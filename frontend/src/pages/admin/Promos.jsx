@@ -129,23 +129,22 @@ export default function Promos() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '20px',
-                    overflowY: 'auto'
+                    padding: '16px'
                 }}>
                     <div style={{
                         backgroundColor: 'white',
                         borderRadius: '32px',
                         width: '100%',
                         maxWidth: '560px',
-                        maxHeight: '85vh',
-                        overflowY: 'auto',
+                        maxHeight: '90vh',
+                        display: 'flex',
+                        flexDirection: 'column',
                         position: 'relative',
-                        padding: 'clamp(24px, 4vw, 48px)',
-                        margin: 'auto'
+                        padding: 'clamp(24px, 4vw, 48px)'
                     }}>
                         <div style={{
                             display: 'flex', justifyContent: 'space-between',
-                            alignItems: 'center', marginBottom: '32px'
+                            alignItems: 'center', marginBottom: '32px', flexShrink: 0
                         }}>
                             <h2 style={{ fontSize: '28px', fontFamily: 'serif', margin: 0 }}>
                                 Nouveau Code Promo
@@ -161,7 +160,7 @@ export default function Promos() {
                                 <X size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-5" style={{ overflowY: 'auto', flex: 1, paddingRight: '8px' }}>
                             <div className="space-y-2">
                                 <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Code</label>
                                 <input required value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '14px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" placeholder="SOLDES2024" />

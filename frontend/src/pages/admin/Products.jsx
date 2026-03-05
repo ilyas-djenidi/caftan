@@ -140,8 +140,7 @@ export default function Products() {
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Gestion des Produits</h1>
-                    <p style={{ color: '#9ca3af', fontSize: '14px' }}>{totalItems} produits au total</p>
+                    <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Produits</h1>
                 </div>
                 <div className="flex gap-4">
                     <div className="relative">
@@ -201,23 +200,22 @@ export default function Products() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '20px',
-                    overflowY: 'auto'
+                    padding: '16px'
                 }}>
                     <div style={{
                         backgroundColor: 'white',
                         borderRadius: '32px',
                         width: '100%',
                         maxWidth: '860px',
-                        maxHeight: '85vh',
-                        overflowY: 'auto',
+                        maxHeight: '90vh',
+                        display: 'flex',
+                        flexDirection: 'column',
                         position: 'relative',
-                        padding: 'clamp(24px, 4vw, 48px)',
-                        margin: 'auto'
+                        padding: 'clamp(24px, 4vw, 48px)'
                     }}>
                         <div style={{
                             display: 'flex', justifyContent: 'space-between',
-                            alignItems: 'center', marginBottom: '32px'
+                            alignItems: 'center', marginBottom: '32px', flexShrink: 0
                         }}>
                             <h2 style={{ fontSize: '28px', fontFamily: 'serif', margin: 0 }}>
                                 {editingProduct ? 'Modifier le Produit' : 'Nouveau Produit'}
@@ -234,7 +232,7 @@ export default function Products() {
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-8">
+                        <form onSubmit={handleSubmit} className="space-y-8" style={{ overflowY: 'auto', flex: 1, paddingRight: '8px' }}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
                                     <div className="space-y-2">

@@ -47,12 +47,14 @@ export default function Checkout() {
 
         setLoading(true);
         try {
+            const orderId = crypto.randomUUID();
             const orderNumber = `MDC-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
 
             // 1. Create Order — corrected field names
-            const { data: order, error: orderError } = await supabase
+            const { error: orderError } = await supabase
                 .from('orders')
                 .insert({
+                    id: orderId,
                     order_number: orderNumber,
                     customer_name: formData.fullName,
                     customer_phone: formData.phone,
@@ -63,15 +65,13 @@ export default function Checkout() {
                     status: 'pending',
                     total_price: totalPrice,
                     notes: formData.city
-                })
-                .select()
-                .single();
+                });
 
             if (orderError) throw orderError;
 
             // 2. Create Order Items — corrected field names
             const orderItems = items.map(item => ({
-                order_id: order.id,
+                order_id: orderId,
                 product_id: item.product?.id || null,
                 product_name: item.product?.name_fr || '',
                 product_image: item.product?.images?.[0]?.image_url || '',
@@ -88,7 +88,7 @@ export default function Checkout() {
             if (itemsError) throw itemsError;
 
             // 3. Success
-            setOrderSuccess(order);
+            setOrderSuccess({ order_number: orderNumber });
             clearCart();
             setStep(3);
         } catch (error) {
@@ -256,10 +256,6 @@ export default function Checkout() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                                     <span style={{ color: '#6b7280' }}>Sous-total</span>
                                     <span style={{ fontWeight: '700' }}>{totalPrice.toLocaleString()} DA</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#6b7280' }}>Livraison</span>
-                                    <span style={{ color: '#16a34a', fontWeight: '800', fontSize: '11px', textTransform: 'uppercase' }}>Gratuite (Offre)</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f0ede8' }}>
                                     <span style={{ fontSize: '18px', fontWeight: '800' }}>Total</span>

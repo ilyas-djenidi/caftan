@@ -3,7 +3,8 @@ import { useCartStore } from '../store/cartStore';
 import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag } from 'lucide-react';
 
 export default function Cart() {
-    const { items, updateQuantity, removeItem, totalPrice } = useCartStore();
+    const { items, updateQuantity, removeItem } = useCartStore();
+    const totalPrice = items.reduce((sum, item) => sum + ((item.product?.price || 0) * item.quantity), 0);
 
     return (
         <main className="container mx-auto px-4 md:px-10 pb-32" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
@@ -81,10 +82,6 @@ export default function Cart() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <span style={{ color: '#6b7280' }}>Sous-total</span>
                                     <span style={{ fontWeight: '700' }}>{totalPrice.toLocaleString()} DA</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#6b7280' }}>Livraison</span>
-                                    <span style={{ color: '#16a34a', fontWeight: '800', fontSize: '11px' }}>GRATUITE</span>
                                 </div>
                                 <div style={{ height: '1px', backgroundColor: '#f0ede8', margin: '20px 0' }} />
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>

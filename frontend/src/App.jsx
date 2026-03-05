@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home';
 import Caftans from './pages/Caftans';
@@ -42,9 +43,18 @@ function StorefrontLayout() {
     );
 }
 
+function ScrollToTop() {
+    const { pathname } = useLocation();
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+    return null;
+}
+
 function App() {
     return (
         <BrowserRouter>
+            <ScrollToTop />
             <Toaster position="bottom-right" />
             <Routes>
                 {/* ── Admin routes — NO storefront Navbar/Footer ── */}

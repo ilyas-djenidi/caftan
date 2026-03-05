@@ -122,7 +122,7 @@ export default function PacksAdmin() {
         <div className="space-y-8" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
             <header className="flex justify-between items-center">
                 <div>
-                    <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Gestion des Packs</h1>
+                    <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Packs</h1>
                     <p style={{ color: '#9ca3af', fontSize: '14px' }}>Collections et Bundles</p>
                 </div>
                 <button
@@ -179,23 +179,22 @@ export default function PacksAdmin() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '20px',
-                    overflowY: 'auto'
+                    padding: '16px'
                 }}>
                     <div style={{
                         backgroundColor: 'white',
                         borderRadius: '32px',
                         width: '100%',
                         maxWidth: '860px',
-                        maxHeight: '85vh',
-                        overflowY: 'auto',
+                        maxHeight: '90vh',
+                        display: 'flex',
+                        flexDirection: 'column',
                         position: 'relative',
-                        padding: 'clamp(24px, 4vw, 48px)',
-                        margin: 'auto'
+                        padding: 'clamp(24px, 4vw, 48px)'
                     }}>
                         <div style={{
                             display: 'flex', justifyContent: 'space-between',
-                            alignItems: 'center', marginBottom: '32px', gap: '16px'
+                            alignItems: 'center', marginBottom: '32px', gap: '16px', flexShrink: 0
                         }}>
                             <h2 style={{ fontSize: '28px', fontFamily: 'serif', margin: 0 }}>
                                 Éditeur de Pack
@@ -209,7 +208,7 @@ export default function PacksAdmin() {
                                 <X size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="overflow-y-auto flex-grow grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        <form onSubmit={handleSubmit} style={{ overflowY: 'auto', flex: 1, paddingRight: '8px' }} className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom du Pack</label>
@@ -245,7 +244,7 @@ export default function PacksAdmin() {
                                 </div>
                             </div>
                         </form>
-                        <footer className="mt-8 pt-8 border-t border-gray-100">
+                        <footer className="mt-8 pt-8 border-t border-gray-100" style={{ flexShrink: 0 }}>
                             <button disabled={isSaving} onClick={handleSubmit} style={{ width: '100%', height: '72px', backgroundColor: '#111111', color: 'white', borderRadius: '20px', fontWeight: '800', fontSize: '14px' }}>
                                 {isSaving ? <Loader2 className="animate-spin" /> : 'ENREGISTRER LE PACK'}
                             </button>
