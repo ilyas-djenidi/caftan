@@ -192,16 +192,16 @@ export default function Products() {
 
             {/* Modal placeholder */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                    <div className="bg-white rounded-[40px] w-full max-w-4xl max-h-[90vh] overflow-y-auto relative z-10 p-10">
+                    <div style={{ padding: 'clamp(20px, 4vw, 40px)', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} className="bg-white rounded-[40px] z-10">
                         <header className="flex justify-between items-center mb-10">
                             <h2 style={{ fontSize: '28px', fontFamily: 'serif' }}>{editingProduct ? 'Modifier le Produit' : 'Nouveau Produit'}</h2>
                             <button onClick={() => setIsModalOpen(false)} className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center"><X /></button>
                         </header>
 
                         <form onSubmit={handleSubmit} className="space-y-8">
-                            <div className="grid grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom (Français)</label>
@@ -215,7 +215,7 @@ export default function Products() {
                                             <option value="accessoires">Accessoires</option>
                                         </select>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Prix (DA)</label>
                                             <input required type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />

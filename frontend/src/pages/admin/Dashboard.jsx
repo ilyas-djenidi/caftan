@@ -76,7 +76,7 @@ export default function Dashboard() {
                 supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', today),
                 supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
                 supabase.from('orders').select('total_price').gte('created_at', startOfMonth).eq('status', 'delivered'),
-                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'unread'),
+                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_read', false),
                 supabase.from('products').select('*', { count: 'exact', head: true })
             ]);
 
@@ -111,7 +111,7 @@ export default function Dashboard() {
     if (loading) return <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-[#C3AB7E]" size={40} /></div>;
 
     return (
-        <div className="flex flex-col gap-8 w-full animate-fade-in-up pb-10">
+        <div className="flex flex-col gap-8 w-full animate-fade-in-up pb-10" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
                     { label: "COMMANDES AUJ.", value: stats.today_orders, icon: <ShoppingBag size={18} />, color: '#C3AB7E' },

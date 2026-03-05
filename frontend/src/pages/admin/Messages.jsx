@@ -32,8 +32,8 @@ export default function Messages() {
 
     const markAsRead = async (id) => {
         try {
-            await supabase.from('messages').update({ status: 'read' }).eq('id', id);
-            setMessages(messages.map(m => m.id === id ? { ...m, status: 'read' } : m));
+            await supabase.from('messages').update({ is_read: true }).eq('id', id);
+            setMessages(messages.map(m => m.id === id ? { ...m, is_read: true } : m));
         } catch (error) {
             toast.error('Erreur');
         }
@@ -46,11 +46,11 @@ export default function Messages() {
     );
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
             <header className="flex justify-between items-center">
                 <div>
                     <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Messages Clients</h1>
-                    <p style={{ color: '#9ca3af', fontSize: '14px' }}>{messages.filter(m => m.status === 'unread').length} messages non lus</p>
+                    <p style={{ color: '#9ca3af', fontSize: '14px' }}>{messages.filter(m => !m.is_read).length} messages non lus</p>
                 </div>
                 <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -76,13 +76,13 @@ export default function Messages() {
                         ) : filtered.map(msg => (
                             <div
                                 key={msg.id}
-                                onClick={() => { setSelectedMessage(msg); if (msg.status === 'unread') markAsRead(msg.id); }}
+                                onClick={() => { setSelectedMessage(msg); if (!msg.is_read) markAsRead(msg.id); }}
                                 style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: selectedMessage?.id === msg.id ? '#fdfbf7' : 'white' }}
                                 className="hover:bg-[#fafafa]"
                             >
                                 <div className="flex justify-between items-start mb-2">
-                                    <h3 style={{ fontSize: '15px', fontWeight: msg.status === 'unread' ? '800' : '600' }}>{msg.name}</h3>
-                                    {msg.status === 'unread' && <div className="w-2 h-2 rounded-full bg-[#C3AB7E]" />}
+                                    <h3 style={{ fontSize: '15px', fontWeight: !msg.is_read ? '800' : '600' }}>{msg.name}</h3>
+                                    {!msg.is_read && <div className="w-2 h-2 rounded-full bg-[#C3AB7E]" />}
                                 </div>
                                 <p style={{ fontSize: '13px', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg.subject}</p>
                                 <span style={{ fontSize: '11px', color: '#9ca3af', marginTop: '8px', display: 'block' }}>{format(new Date(msg.created_at), 'd MMM, HH:mm', { locale: fr })}</span>

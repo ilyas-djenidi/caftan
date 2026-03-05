@@ -35,6 +35,7 @@ export default function AdminLayout() {
             height: '100vh',
             overflow: 'hidden',
             backgroundColor: '#ffffff',
+            maxWidth: '100vw',
             fontFamily: 'Inter, sans-serif'
         }}>
             {/* SIDEBAR Component */}
@@ -125,8 +126,9 @@ export default function AdminLayout() {
                 {/* Content Container */}
                 <main style={{
                     flex: 1,
-                    padding: '32px',
-                    overflowY: 'auto'
+                    padding: 'clamp(16px, 3vw, 32px)',
+                    overflowY: 'auto',
+                    overflowX: 'hidden'
                 }}>
                     <div className="max-w-[1600px] mx-auto w-full">
                         <Outlet />

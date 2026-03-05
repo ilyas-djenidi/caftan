@@ -69,7 +69,7 @@ export default function Promos() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
             <header className="flex justify-between items-center">
                 <div>
                     <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Codes Promo</h1>

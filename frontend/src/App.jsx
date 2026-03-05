@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home';
 import Caftans from './pages/Caftans';
@@ -9,12 +9,14 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Wishlist from './pages/Wishlist';
 import Contact from './pages/Contact';
+import Checkout from './pages/Checkout';
 import NotFound from './pages/NotFound';
 
 // Layouts
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import CartDrawer from './components/layout/CartDrawer';
+import FloatingIcons from './components/layout/FloatingIcons';
 
 // Admin
 import AdminLayout from './pages/admin/AdminLayout';
@@ -27,24 +29,25 @@ import Messages from './pages/admin/Messages';
 import Promos from './pages/admin/Promos';
 import HeroManager from './pages/admin/HeroManager';
 
+// Storefront layout wrapper — renders Navbar + CartDrawer + FloatingIcons + page + Footer
+function StorefrontLayout() {
+    return (
+        <>
+            <Navbar />
+            <CartDrawer />
+            <FloatingIcons />
+            <Outlet />
+            <Footer />
+        </>
+    );
+}
+
 function App() {
     return (
         <BrowserRouter>
             <Toaster position="bottom-right" />
-            <Navbar />
-            <CartDrawer />
             <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/caftans" element={<Caftans />} />
-                <Route path="/sacs" element={<Sacs />} />
-                <Route path="/accessoires" element={<Accessoires />} />
-                <Route path="/packs" element={<Packs />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/panier" element={<Cart />} />
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="/contact" element={<Contact />} />
-
-                {/* Admin Routes */}
+                {/* ── Admin routes — NO storefront Navbar/Footer ── */}
                 <Route path="/admin/nad-auth" element={<AdminAuth />} />
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route index element={<Dashboard />} />
@@ -56,9 +59,21 @@ function App() {
                     <Route path="hero" element={<HeroManager />} />
                 </Route>
 
-                <Route path="*" element={<NotFound />} />
+                {/* ── Storefront routes — wrapped with Navbar + Footer ── */}
+                <Route element={<StorefrontLayout />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/caftans" element={<Caftans />} />
+                    <Route path="/sacs" element={<Sacs />} />
+                    <Route path="/accessoires" element={<Accessoires />} />
+                    <Route path="/packs" element={<Packs />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/panier" element={<Cart />} />
+                    <Route path="/wishlist" element={<Wishlist />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="*" element={<NotFound />} />
+                </Route>
             </Routes>
-            <Footer />
         </BrowserRouter>
     );
 }

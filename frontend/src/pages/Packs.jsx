@@ -3,8 +3,6 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Sparkles, Check, ChevronRight, ArrowRight } from 'lucide-react';
 import { getPacks } from '../api/packs.api';
 import { useCartStore } from '../store/cartStore';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
 import { getImageUrl } from '../utils';
 
 export default function Packs() {
@@ -27,7 +25,6 @@ export default function Packs() {
     }, []);
 
     const handleAddToCart = (pack) => {
-        // Handle pack as a conceptual product for simplicity in cart
         addItem({
             ...pack,
             id: pack.id,
@@ -41,17 +38,15 @@ export default function Packs() {
 
     return (
         <div className="min-h-screen bg-[#fafafa]">
-            <Navbar />
-
-            <header className="pt-40 pb-20 text-center container mx-auto px-10">
+            <header className="pt-40 pb-20 text-center container mx-auto px-4 md:px-10">
                 <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.4em' }}>ÉDITION LIMITÉE</span>
-                <h1 style={{ fontSize: '48px', fontFamily: 'serif', marginTop: '16px' }}>Les Packs Mariée</h1>
+                <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontFamily: 'serif', marginTop: '16px' }}>Les Packs Mariée</h1>
                 <p style={{ color: '#9ca3af', fontSize: '16px', marginTop: '20px', maxWidth: '600px', margin: '20px auto 0' }}>
                     Des ensembles prestigieux conçus pour les moments les plus inoubliables. Le raffinement ultime pour votre grand jour.
                 </p>
             </header>
 
-            <main className="container mx-auto px-10 pb-32">
+            <main className="container mx-auto px-4 md:px-10 pb-32">
                 {loading ? (
                     <div className="flex flex-col gap-20">
                         {Array.from({ length: 2 }).map((_, i) => (
@@ -68,21 +63,27 @@ export default function Packs() {
                                 viewport={{ once: true }}
                                 style={{
                                     display: 'flex',
-                                    flexDirection: idx % 2 === 0 ? 'row' : 'row-reverse',
                                     backgroundColor: 'white',
-                                    borderRadius: '60px',
+                                    borderRadius: 'clamp(24px, 4vw, 60px)',
                                     overflow: 'hidden',
                                     boxShadow: '0 40px 100px -20px rgba(0,0,0,0.05)',
-                                    minHeight: '600px'
+                                    minHeight: '500px'
                                 }}
                                 className="flex-col md:flex-row"
                             >
-                                {/* Image Section */}
-                                <div style={{ flex: 1, position: 'relative' }} className="min-h-[400px]">
+                                {/* Image Section — reorder on mobile (always on top) */}
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        position: 'relative',
+                                        order: 0
+                                    }}
+                                    className="min-h-[300px] md:min-h-[500px]"
+                                >
                                     <img
                                         src={getImageUrl(pack.image_url)}
                                         alt={pack.name_fr}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                                     />
                                     {pack.is_sold_out && (
                                         <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -92,13 +93,13 @@ export default function Packs() {
                                 </div>
 
                                 {/* Content Section */}
-                                <div style={{ flex: 1, padding: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                <div style={{ flex: 1, padding: 'clamp(24px, 5vw, 80px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
                                         <Sparkles size={20} style={{ color: '#C3AB7E' }} />
                                         <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.2em' }}>PACK D'EXCEPTION</span>
                                     </div>
 
-                                    <h2 style={{ fontSize: '40px', fontFamily: 'serif', margin: '0 0 24px' }}>{pack.name_fr}</h2>
+                                    <h2 style={{ fontSize: 'clamp(24px, 3vw, 40px)', fontFamily: 'serif', margin: '0 0 24px' }}>{pack.name_fr}</h2>
                                     <p style={{ color: '#6b7280', fontSize: '16px', lineHeight: '1.8', marginBottom: '40px' }}>
                                         {pack.description_fr}
                                     </p>
@@ -107,7 +108,7 @@ export default function Packs() {
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '48px' }}>
                                         {pack.items?.map((item, i) => (
                                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f0ede8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f0ede8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                                     <Check size={14} style={{ color: '#C3AB7E' }} />
                                                 </div>
                                                 <span style={{ fontSize: '14px', fontWeight: '600', color: '#111111' }}>{item.name_fr}</span>
@@ -115,10 +116,10 @@ export default function Packs() {
                                         ))}
                                     </div>
 
-                                    <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '40px' }}>
+                                    <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
                                         <div>
                                             <span style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'line-through', display: 'block' }}>{pack.original_price?.toLocaleString()} DA</span>
-                                            <span style={{ fontSize: '32px', fontWeight: '800', color: '#111111' }}>{pack.price?.toLocaleString()} DA</span>
+                                            <span style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: '800', color: '#111111' }}>{pack.price?.toLocaleString()} DA</span>
                                         </div>
                                         <button
                                             disabled={pack.is_sold_out}
@@ -126,9 +127,9 @@ export default function Packs() {
                                             style={{
                                                 backgroundColor: pack.is_sold_out ? '#f0ede8' : '#111111',
                                                 color: pack.is_sold_out ? '#9ca3af' : 'white',
-                                                padding: '20px 48px', borderRadius: '100px',
+                                                padding: '20px 40px', borderRadius: '100px',
                                                 fontWeight: '800', fontSize: '12px', letterSpacing: '0.2em',
-                                                border: 'none', transition: 'all 0.3s'
+                                                border: 'none', transition: 'all 0.3s', cursor: pack.is_sold_out ? 'default' : 'pointer'
                                             }}
                                             className={!pack.is_sold_out ? "hover:scale-105 active:scale-95 shadow-xl shadow-gray-200" : ""}
                                         >
@@ -141,7 +142,6 @@ export default function Packs() {
                     </div>
                 )}
             </main>
-            <Footer />
         </div>
     );
 }

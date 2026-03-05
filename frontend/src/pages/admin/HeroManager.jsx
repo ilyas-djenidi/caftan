@@ -19,10 +19,12 @@ export default function HeroManager() {
 
     const fetchSettings = async () => {
         try {
-            const { data } = await supabase.from('site_settings').select('value').eq('key', 'hero_content').maybeSingle();
-            if (data?.value) setHeroData(prev => ({ ...prev, ...data.value }));
+            const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'hero_content').maybeSingle();
+            if (!error && data?.value) {
+                setHeroData(prev => ({ ...prev, ...data.value }));
+            }
         } catch (error) {
-            console.error(error);
+            console.warn('site_settings table not found, using defaults');
         } finally {
             setLoading(false);
         }
@@ -31,14 +33,15 @@ export default function HeroManager() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await supabase.from('site_settings').upsert({
+            const { error } = await supabase.from('site_settings').upsert({
                 key: 'hero_content',
                 value: heroData,
                 updated_at: new Date().toISOString()
             });
+            if (error) throw error;
             toast.success('Paramètres enregistrés');
         } catch (error) {
-            toast.error('Erreur lors de l’enregistrement');
+            toast.error('Erreur (table manquante ?)');
         } finally {
             setSaving(false);
         }
@@ -47,7 +50,7 @@ export default function HeroManager() {
     if (loading) return <div className="py-20 flex justify-center"><Loader2 className="animate-spin" /></div>;
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
             <header className="flex justify-between items-center">
                 <div>
                     <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Gestion du Contenu</h1>

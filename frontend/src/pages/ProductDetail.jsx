@@ -5,8 +5,6 @@ import { ShoppingBag, Heart, ChevronLeft, ChevronRight, Star, Shield, Truck, Ref
 import { getProduct } from '../api/products.api';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
 import { getImageUrl, formatPrice } from '../utils';
 
 export default function ProductDetail() {
@@ -27,7 +25,6 @@ export default function ProductDetail() {
             try {
                 const { data } = await getProduct(id);
                 setProduct(data);
-                // Set default selections
                 if (data.attributes) {
                     const sizes = data.attributes.filter(a => a.name === 'size' || a.name === 'taille');
                     if (sizes.length > 0) setSelectedSize(sizes[0].value);
@@ -44,16 +41,14 @@ export default function ProductDetail() {
     }, [id]);
 
     if (loading) {
-        return <div className="min-h-screen bg-white flex items-center justify-center"><Navbar /></div>;
+        return <div className="min-h-screen bg-white flex items-center justify-center pt-40"><div className="animate-pulse text-[#C3AB7E]">Chargement...</div></div>;
     }
 
     if (!product) {
         return (
             <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-                <Navbar />
                 <h1 className="text-2xl font-serif">Produit non trouvé</h1>
                 <button onClick={() => navigate(-1)} className="mt-4 text-[#C3AB7E] font-bold">Retour</button>
-                <Footer />
             </div>
         );
     }
@@ -69,10 +64,8 @@ export default function ProductDetail() {
 
     return (
         <div className="min-h-screen bg-white">
-            <Navbar />
-
-            <main className="container mx-auto px-10 pt-40 pb-32">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
+            <main className="container mx-auto px-4 md:px-10 pt-40 pb-32">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
 
                     {/* Left: Image Gallery */}
                     <div className="lg:col-span-7 space-y-4">
@@ -97,17 +90,18 @@ export default function ProductDetail() {
                             )}
                         </div>
 
-                        <div className="grid grid-cols-6 gap-4">
+                        {/* Thumbnails — 4 cols on mobile, 6 on sm+ */}
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                             {images.map((img, i) => (
                                 <div
                                     key={i}
                                     onClick={() => setCurrentImageIndex(i)}
                                     style={{
-                                        aspectRatio: '1/1', borderRadius: '16px', overflow: 'hidden', cursor: 'pointer',
+                                        aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
                                         border: currentImageIndex === i ? '2px solid #C3AB7E' : '2px solid transparent'
                                     }}
                                 >
-                                    <img src={getImageUrl(img.image_url)} className="w-full h-full object-cover" />
+                                    <img src={getImageUrl(img.image_url)} className="w-full h-full object-cover" alt="" />
                                 </div>
                             ))}
                         </div>
@@ -125,7 +119,7 @@ export default function ProductDetail() {
                             </div>
                         </div>
 
-                        <h1 style={{ fontSize: '48px', fontFamily: 'serif', lineHeight: '1.2', margin: '0 0 16px' }}>{product.name_fr || product.name}</h1>
+                        <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontFamily: 'serif', lineHeight: '1.2', margin: '0 0 16px' }}>{product.name_fr || product.name}</h1>
                         <p style={{ fontSize: '28px', fontWeight: '800', color: '#111111', margin: '0 0 32px' }}>{product.price?.toLocaleString()} DA</p>
 
                         <div style={{ height: '1px', backgroundColor: '#f0ede8', margin: '32px 0' }} />
@@ -144,7 +138,7 @@ export default function ProductDetail() {
                                                 border: selectedSize === s.value ? '2px solid #111111' : '1px solid #f0ede8',
                                                 backgroundColor: selectedSize === s.value ? '#111111' : 'transparent',
                                                 color: selectedSize === s.value ? 'white' : '#111111',
-                                                fontWeight: '700', fontSize: '14px', transition: 'all 0.2s'
+                                                fontWeight: '700', fontSize: '14px', transition: 'all 0.2s', cursor: 'pointer'
                                             }}
                                         >
                                             {s.value}
@@ -166,7 +160,7 @@ export default function ProductDetail() {
                                             style={{
                                                 width: '40px', height: '40px', borderRadius: '50%',
                                                 border: selectedColor === c.value ? '2px solid #C3AB7E' : '1px solid #f0ede8',
-                                                padding: '3px', transition: 'all 0.2s'
+                                                padding: '3px', transition: 'all 0.2s', cursor: 'pointer'
                                             }}
                                         >
                                             <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: c.value }} />
@@ -193,7 +187,8 @@ export default function ProductDetail() {
                                 style={{
                                     flex: 1, backgroundColor: '#111111', color: 'white',
                                     height: '72px', borderRadius: '24px', fontWeight: '800',
-                                    fontSize: '14px', letterSpacing: '0.2em', textTransform: 'uppercase'
+                                    fontSize: '14px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                                    border: 'none', cursor: 'pointer'
                                 }}
                                 className="hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-3"
                             >
@@ -205,7 +200,8 @@ export default function ProductDetail() {
                                     width: '72px', height: '72px', borderRadius: '24px',
                                     border: '1px solid #f0ede8', display: 'flex',
                                     alignItems: 'center', justifyContent: 'center',
-                                    color: isWishlisted(product.id) ? '#ef4444' : '#111111'
+                                    color: isWishlisted(product.id) ? '#ef4444' : '#111111',
+                                    cursor: 'pointer', background: 'white'
                                 }}
                                 className="hover:bg-gray-50 transition-all"
                             >
@@ -227,7 +223,7 @@ export default function ProductDetail() {
                     </div>
                 </div>
 
-                {/* Description Tabs */}
+                {/* Description */}
                 <div style={{ marginTop: '120px' }}>
                     <div style={{ display: 'flex', gap: '48px', borderBottom: '1px solid #f0ede8', marginBottom: '40px' }}>
                         <h3 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.2em', borderBottom: '2px solid #111111', paddingBottom: '16px' }}>Description</h3>
@@ -239,7 +235,6 @@ export default function ProductDetail() {
                     </div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 }

@@ -225,3 +225,34 @@ select {
     opacity: 0.5
   }
 }
+
+/* ── Global Layout Fixes ─────────────────────────────── */
+
+/* Fix horizontal scroll on ALL screens */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Remove Vite default root constraint that breaks full-width layout */
+#root {
+  max-width: 100% !important;
+  padding: 0 !important;
+  text-align: left !important;
+  margin: 0 !important;
+}
+
+/* Fix container padding on mobile */
+.container {
+  width: 100%;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+  }
+}

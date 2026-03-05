@@ -1,12 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
+import { getAdminOrders, updateOrderStatus as apiUpdateStatus } from '../api/orders.api';
 
 export const useAdminStore = create(
     persist(
-        (set) => ({
+        (set, get) => ({
             admin: null,
             token: localStorage.getItem('admin_token'),
+            orders: [],
+            stats: {},
+
             setAdmin: (admin) => set({ admin }),
             setToken: (token) => {
                 localStorage.setItem('admin_token', token);
@@ -16,10 +20,63 @@ export const useAdminStore = create(
                 await supabase.auth.signOut();
                 localStorage.removeItem('admin_token');
                 set({ admin: null, token: null });
+            },
+
+            fetchOrders: async (params = {}) => {
+                try {
+                    const { data } = await getAdminOrders(params);
+                    set({ orders: data.orders || [] });
+                } catch (error) {
+                    console.error('fetchOrders error:', error);
+                    set({ orders: [] });
+                }
+            },
+
+            updateOrderStatus: async (id, status) => {
+                try {
+                    await apiUpdateStatus(id, status);
+                    const orders = get().orders.map(o =>
+                        o.id === id ? { ...o, status } : o
+                    );
+                    set({ orders });
+                } catch (error) {
+                    console.error('updateOrderStatus error:', error);
+                }
+            },
+
+            fetchStats: async () => {
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    const startOfMonth = new Date(
+                        new Date().getFullYear(), new Date().getMonth(), 1
+                    ).toISOString();
+
+                    const [
+                        { count: todayOrders },
+                        { count: pendingOrders },
+                        { data: revenueData },
+                        { count: totalProds }
+                    ] = await Promise.all([
+                        supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', today),
+                        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+                        supabase.from('orders').select('total_price').gte('created_at', startOfMonth).eq('status', 'delivered'),
+                        supabase.from('products').select('*', { count: 'exact', head: true })
+                    ]);
+
+                    const revenue = revenueData?.reduce((s, r) => s + (r.total_price || 0), 0) || 0;
+                    set({
+                        stats: {
+                            today_orders: todayOrders || 0,
+                            pending_orders: pendingOrders || 0,
+                            month_revenue: revenue,
+                            products_count: totalProds || 0
+                        }
+                    });
+                } catch (error) {
+                    console.error('fetchStats error:', error);
+                }
             }
         }),
-        {
-            name: 'admin-storage'
-        }
+        { name: 'admin-storage' }
     )
 );

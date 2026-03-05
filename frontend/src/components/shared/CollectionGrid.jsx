@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getProducts } from '../../api/products.api';
 import ProductCard from './ProductCard';
 import { Search, Filter, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -10,6 +11,7 @@ export default function CollectionGrid({ category, title, subtitle }) {
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
     const [sort, setSort] = useState('newest');
+    const navigate = useNavigate();
 
     useEffect(() => {
         const loadProducts = async () => {
@@ -35,14 +37,14 @@ export default function CollectionGrid({ category, title, subtitle }) {
     }, [category, page, sort]);
 
     return (
-        <div className="min-h-screen bg-white pt-32 pb-20">
+        <div className="min-h-screen bg-white pb-20" style={{ overflowX: 'hidden', paddingTop: '100px' }}>
             {/* Header */}
-            <header className="container mx-auto px-10 mb-16 text-center">
+            <header className="container mx-auto px-4 md:px-10 mb-16 text-center">
                 <span style={{ color: '#C3AB7E', fontSize: '10px', fontWeight: '800', letterSpacing: '0.3em', textTransform: 'uppercase' }}>COLLECTION</span>
-                <h1 style={{ fontSize: '48px', fontFamily: 'serif', marginTop: '12px' }}>{title}</h1>
+                <h1 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontFamily: 'serif', marginTop: '12px' }}>{title}</h1>
                 {subtitle && <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '600px', margin: '16px auto 0' }}>{subtitle}</p>}
 
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', marginTop: '40px', borderBottom: '1px solid #f0ede8', paddingBottom: '20px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '20px', marginTop: '40px', borderBottom: '1px solid #f0ede8', paddingBottom: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '11px', fontWeight: '800', color: '#111111', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{total} Produits</span>
                     </div>
@@ -59,7 +61,7 @@ export default function CollectionGrid({ category, title, subtitle }) {
             </header>
 
             {/* Grid */}
-            <main className="container mx-auto px-10">
+            <main className="container mx-auto px-4 md:px-10">
                 {loading ? (
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                         {Array.from({ length: 8 }).map((_, i) => (
@@ -74,9 +76,13 @@ export default function CollectionGrid({ category, title, subtitle }) {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                             {products.map((product) => (
-                                <ProductCard key={product.id} product={product} />
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onClick={() => navigate(`/product/${product.id}`)}
+                                />
                             ))}
                         </div>
 

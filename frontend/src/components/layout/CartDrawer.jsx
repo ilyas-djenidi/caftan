@@ -7,7 +7,8 @@ export default function CartDrawer() {
     const { items, isDrawerOpen, closeDrawer, updateQuantity, removeItem } = useCartStore();
     const navigate = useNavigate();
 
-    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Fixed: use product.price instead of item.price
+    const total = items.reduce((sum, item) => sum + ((item.product?.price || 0) * item.quantity), 0);
 
     const handleCheckout = () => {
         closeDrawer();
@@ -83,8 +84,14 @@ export default function CartDrawer() {
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                     {items.map((item) => {
-                                        const p = item.product || {}
-                                        const img = item.image || p.image || (p.images && p.images[0])
+                                        const p = item.product || {};
+
+                                        // Fixed: resolve image correctly from Supabase images array
+                                        const primaryImage = p.images?.find(img => img.is_primary)?.image_url
+                                            || p.images?.[0]?.image_url
+                                            || p.cover_image_url
+                                            || p.image_url;
+                                        const img = primaryImage;
 
                                         return (
                                             <div key={item.key} style={{
@@ -100,7 +107,11 @@ export default function CartDrawer() {
                                                     backgroundColor: '#ffffff',
                                                     border: '1px solid rgba(195,171,126,0.2)'
                                                 }}>
-                                                    {img && <img src={getImageUrl(img)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                                                    <img
+                                                        src={img ? getImageUrl(img) : '/placeholder.jpg'}
+                                                        alt={p.name_fr || p.name}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    />
                                                 </div>
 
                                                 {/* Item details */}
@@ -109,7 +120,8 @@ export default function CartDrawer() {
                                                     {/* Name + remove */}
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
                                                         <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#111111', lineHeight: '1.3' }}>
-                                                            {p.name}
+                                                            {/* Fixed: show name_fr first */}
+                                                            {p.name_fr || p.name}
                                                         </p>
                                                         <button onClick={() => removeItem(item.key)} style={{
                                                             background: 'none', border: 'none', cursor: 'pointer',
@@ -118,9 +130,9 @@ export default function CartDrawer() {
                                                         }}>✕</button>
                                                     </div>
 
-                                                    {/* Price */}
+                                                    {/* Price — fixed: use product.price */}
                                                     <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#111111' }}>
-                                                        {item.price * item.quantity} DA
+                                                        {((p.price || 0) * item.quantity).toLocaleString()} DA
                                                     </p>
 
                                                     {/* Attrs */}
@@ -156,7 +168,7 @@ export default function CartDrawer() {
                                                     </div>
                                                 </div>
                                             </div>
-                                        )
+                                        );
                                     })}
                                 </div>
                             )}
@@ -167,7 +179,7 @@ export default function CartDrawer() {
                             <div style={{ padding: '30px', borderTop: '1px solid #F0EDE8', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                     <span style={{ fontSize: '10px', fontWeight: '800', color: '#9ca3af', letterSpacing: '0.1em' }}>TOTAL</span>
-                                    <span style={{ fontSize: '24px', fontFamily: 'serif', fontWeight: '700', color: '#111111' }}>{total} DA</span>
+                                    <span style={{ fontSize: '24px', fontFamily: 'serif', fontWeight: '700', color: '#111111' }}>{total.toLocaleString()} DA</span>
                                 </div>
                                 <p style={{ margin: 0, fontSize: '10px', color: '#9ca3af', fontWeight: '600' }}>
                                     TAXES ET LIVRAISON CALCULÉES À LA COMMANDE
