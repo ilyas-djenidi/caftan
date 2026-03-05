@@ -38,7 +38,7 @@ export default function Contact() {
     };
 
     return (
-        <main className="container mx-auto px-4 md:px-10 pt-40 pb-32">
+        <main className="container mx-auto px-4 md:px-10 pb-32" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
             <div style={{ textAlign: 'center', marginBottom: '80px' }}>
                 <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.3em' }}>NOUS CONTACTER</span>
                 <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontFamily: 'serif', marginTop: '16px' }}>Une Équipe à votre Écoute</h1>

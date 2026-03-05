@@ -12,7 +12,8 @@ import { ALGERIA_CITIES, WILAYAS } from '../utils';
 
 export default function Checkout() {
     const navigate = useNavigate();
-    const { items, totalPrice, clearCart } = useCartStore();
+    const { items, clearCart } = useCartStore();
+    const totalPrice = items.reduce((sum, item) => sum + ((item.product?.price || 0) * item.quantity), 0);
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(null);
@@ -129,7 +130,7 @@ export default function Checkout() {
 
     return (
         <div className="min-h-screen bg-[#fafafa]">
-            <main className="container mx-auto px-4 md:px-10 pt-40 pb-32">
+            <main className="container mx-auto px-4 md:px-10 pb-32" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 
                     {/* Left: Checkout Form */}
@@ -231,7 +232,7 @@ export default function Checkout() {
                                                 src={
                                                     item.product?.images?.find(img => img.is_primary)?.image_url
                                                     || item.product?.images?.[0]?.image_url
-                                                    || item.product?.cover_image_url
+                                                    || item.product?.image_url
                                                     || '/placeholder.jpg'
                                                 }
                                                 alt={item.product?.name_fr}

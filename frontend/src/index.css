@@ -12,6 +12,9 @@
   --color-muted: #6B6B6B;
   --color-bg: #ffffff;
 
+  /* Layout Variables */
+  --navbar-height: 100px;
+
   /* Fonts */
   --font-serif: 'Cormorant Garamond', serif;
   --font-sans: 'Inter', sans-serif;
@@ -206,6 +209,18 @@ select {
 
 .animate-fade-in-up {
   animation: fadeInUp 0.6s ease forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 @keyframes spin {

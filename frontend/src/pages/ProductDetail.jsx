@@ -64,7 +64,7 @@ export default function ProductDetail() {
 
     return (
         <div className="min-h-screen bg-white">
-            <main className="container mx-auto px-4 md:px-10 pt-40 pb-32">
+            <main className="container mx-auto px-4 md:px-10 pb-32" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
 
                     {/* Left: Image Gallery */}
