@@ -111,7 +111,7 @@ export default function Dashboard() {
     if (loading) return <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-[#C3AB7E]" size={40} /></div>;
 
     return (
-        <div className="flex flex-col gap-8 w-full animate-fade-in-up pb-10" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
+        <div className="flex flex-col gap-8 w-full animate-fade-in-up pb-10" style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {[
                     { label: "COMMANDES AUJ.", value: stats.today_orders, icon: <ShoppingBag size={18} />, color: '#C3AB7E' },

@@ -190,26 +190,60 @@ export default function Products() {
                 </div>
             )}
 
-            {/* Modal placeholder */}
+            {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                    <div style={{ padding: 'clamp(20px, 4vw, 40px)', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} className="bg-white rounded-[40px] z-10">
-                        <header className="flex justify-between items-center mb-10">
-                            <h2 style={{ fontSize: '28px', fontFamily: 'serif' }}>{editingProduct ? 'Modifier le Produit' : 'Nouveau Produit'}</h2>
-                            <button onClick={() => setIsModalOpen(false)} className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center"><X /></button>
-                        </header>
+                <div style={{
+                    position: 'fixed',
+                    top: 0, bottom: 0, right: 0, left: 0,
+                    zIndex: 200,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    backdropFilter: 'blur(4px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px',
+                    overflowY: 'auto'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '32px',
+                        width: '100%',
+                        maxWidth: '860px',
+                        maxHeight: '85vh',
+                        overflowY: 'auto',
+                        position: 'relative',
+                        padding: 'clamp(24px, 4vw, 48px)',
+                        margin: 'auto'
+                    }}>
+                        <div style={{
+                            display: 'flex', justifyContent: 'space-between',
+                            alignItems: 'center', marginBottom: '32px'
+                        }}>
+                            <h2 style={{ fontSize: '28px', fontFamily: 'serif', margin: 0 }}>
+                                {editingProduct ? 'Modifier le Produit' : 'Nouveau Produit'}
+                            </h2>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                style={{
+                                    width: '44px', height: '44px', borderRadius: '50%',
+                                    border: '1px solid #F0EDE8', background: 'white',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
 
                         <form onSubmit={handleSubmit} className="space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom (Français)</label>
-                                        <input required value={formData.name_fr} onChange={e => setFormData({ ...formData, name_fr: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                        <input required value={formData.name_fr} onChange={e => setFormData({ ...formData, name_fr: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
                                     </div>
                                     <div className="space-y-2">
                                         <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Catégorie</label>
-                                        <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]">
+                                        <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]">
                                             <option value="caftans">Caftans</option>
                                             <option value="sacs">Sacs</option>
                                             <option value="accessoires">Accessoires</option>
@@ -218,11 +252,11 @@ export default function Products() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Prix (DA)</label>
-                                            <input required type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                            <input required type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
                                         </div>
                                         <div className="space-y-2">
                                             <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Stock</label>
-                                            <input required type="number" value={formData.stock_count} onChange={e => setFormData({ ...formData, stock_count: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                            <input required type="number" value={formData.stock_count} onChange={e => setFormData({ ...formData, stock_count: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
                                         </div>
                                     </div>
                                 </div>
@@ -247,7 +281,7 @@ export default function Products() {
 
                             <div style={{ height: '1px', backgroundColor: '#f0ede8' }} />
 
-                            <button disabled={formLoading} type="submit" style={{ width: '100%', height: '72px', backgroundColor: '#111111', color: 'white', borderRadius: '20px', fontWeight: '800', fontSize: '14px', letterSpacing: '0.1em' }} className="hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-200">
+                            <button disabled={formLoading} type="submit" style={{ width: '100%', height: '52px', backgroundColor: '#111111', color: 'white', borderRadius: '100px', fontWeight: '800', fontSize: '14px', letterSpacing: '0.1em' }} className="hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-200">
                                 {formLoading ? <Loader2 className="animate-spin" /> : (editingProduct ? 'MODIFIER LE PRODUIT' : 'CRÉER LE PRODUIT')}
                             </button>
                         </form>

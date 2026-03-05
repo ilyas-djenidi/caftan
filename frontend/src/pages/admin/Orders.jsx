@@ -70,7 +70,7 @@ const Orders = () => {
     };
 
     return (
-        <div className="flex flex-col gap-8 animate-fade-in pb-10" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
+        <div className="flex flex-col gap-8 animate-fade-in pb-10" style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
@@ -89,14 +89,14 @@ const Orders = () => {
                             style={{
                                 paddingLeft: '44px', paddingRight: '16px', py: '12px',
                                 borderRadius: '15px', border: '1px solid #F0EDE8',
-                                backgroundColor: 'white', width: '100%', maxWidth: '280px', outline: 'none',
+                                backgroundColor: 'white', width: '100%', maxWidth: '300px', outline: 'none',
                                 fontSize: '14px', fontWeight: '500', transition: 'all 0.2s'
                             }}
                             className="focus:border-[#C3AB7E] focus:ring-4 focus:ring-[#C3AB7E]/5"
                         />
                     </div>
 
-                    <div style={{ display: 'flex', backgroundColor: '#ffffff', borderRadius: '15px', padding: '4px', border: '1px solid #F0EDE8' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', backgroundColor: '#ffffff', borderRadius: '15px', padding: '4px', border: '1px solid #F0EDE8' }}>
                         {['ALL', 'PENDING', 'SHIPPED', 'DELIVERED'].map((s) => (
                             <button
                                 key={s}

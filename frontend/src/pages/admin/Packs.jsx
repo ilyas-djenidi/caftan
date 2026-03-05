@@ -170,14 +170,46 @@ export default function PacksAdmin() {
             )}
 
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                    <div className="bg-white rounded-[40px] w-full max-w-5xl max-h-[90vh] overflow-hidden relative z-10 flex flex-col">
-                        <header className="p-8 border-b border-gray-100 flex justify-between items-center">
-                            <h2 style={{ fontSize: '28px', fontFamily: 'serif' }}>Éditeur de Pack</h2>
-                            <button onClick={() => setIsModalOpen(false)} className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center"><X /></button>
-                        </header>
-                        <form onSubmit={handleSubmit} className="p-8 overflow-y-auto flex-grow grid grid-cols-2 gap-12">
+                <div style={{
+                    position: 'fixed',
+                    top: 0, bottom: 0, right: 0, left: 0,
+                    zIndex: 200,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    backdropFilter: 'blur(4px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px',
+                    overflowY: 'auto'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '32px',
+                        width: '100%',
+                        maxWidth: '860px',
+                        maxHeight: '85vh',
+                        overflowY: 'auto',
+                        position: 'relative',
+                        padding: 'clamp(24px, 4vw, 48px)',
+                        margin: 'auto'
+                    }}>
+                        <div style={{
+                            display: 'flex', justifyContent: 'space-between',
+                            alignItems: 'center', marginBottom: '32px', gap: '16px'
+                        }}>
+                            <h2 style={{ fontSize: '28px', fontFamily: 'serif', margin: 0 }}>
+                                Éditeur de Pack
+                            </h2>
+                            <button onClick={() => setIsModalOpen(false)} style={{
+                                width: '44px', height: '44px', borderRadius: '50%',
+                                border: '1px solid #F0EDE8', background: 'white',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                flexShrink: 0
+                            }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="overflow-y-auto flex-grow grid grid-cols-1 lg:grid-cols-2 gap-12">
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom du Pack</label>
@@ -200,7 +232,7 @@ export default function PacksAdmin() {
                             </div>
                             <div className="space-y-4">
                                 <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Sélectionner les Produits ({formData.items.length})</label>
-                                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                                     {products.map(p => {
                                         const selected = formData.items.find(i => i.product_id === p.id);
                                         return (
@@ -213,7 +245,7 @@ export default function PacksAdmin() {
                                 </div>
                             </div>
                         </form>
-                        <footer className="p-8 border-t border-gray-100">
+                        <footer className="mt-8 pt-8 border-t border-gray-100">
                             <button disabled={isSaving} onClick={handleSubmit} style={{ width: '100%', height: '72px', backgroundColor: '#111111', color: 'white', borderRadius: '20px', fontWeight: '800', fontSize: '14px' }}>
                                 {isSaving ? <Loader2 className="animate-spin" /> : 'ENREGISTRER LE PACK'}
                             </button>

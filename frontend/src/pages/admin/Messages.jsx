@@ -46,7 +46,7 @@ export default function Messages() {
     );
 
     return (
-        <div className="space-y-8" style={{ overflowX: 'hidden', maxWidth: '100%' }}>
+        <div className="space-y-8" style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
             <header className="flex justify-between items-center">
                 <div>
                     <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Messages Clients</h1>
