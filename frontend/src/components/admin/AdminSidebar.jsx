@@ -1,141 +1,152 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Package, LogOut, Tags, MessageCircle, Star, Image as ImageIcon } from 'lucide-react';
-import { useAdminStore } from '../../store/adminStore';
+import { LayoutDashboard, ShoppingBag, Package, LogOut, Tags, MessageCircle, Star, Image as ImageIcon, X, ArrowLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
-const menuItems = [
-    { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin' },
-    { icon: ShoppingBag, label: 'Commandes', path: '/admin/orders' },
-    { icon: Package, label: 'Produits', path: '/admin/products' },
-    { icon: Star, label: 'Packs Mariée', path: '/admin/packs' },
-    { icon: Tags, label: 'Promotions', path: '/admin/promos' },
-    { icon: ImageIcon, label: 'Gérer la Vitrine', path: '/admin/hero' },
-    { icon: MessageCircle, label: 'Messages', path: '/admin/messages' },
+const navItems = [
+    { icon: LayoutDashboard, label: 'Tableau de bord', to: '/admin', end: true },
+    { icon: ShoppingBag, label: 'Commandes', to: '/admin/orders', badgeKey: 'orders' },
+    { icon: Package, label: 'Produits', to: '/admin/products' },
+    { icon: Star, label: 'Packs Mariée', to: '/admin/packs' },
+    { icon: Tags, label: 'Promotions', to: '/admin/promos' },
+    { icon: ImageIcon, label: 'Gérer la Vitrine', to: '/admin/hero' },
+    { icon: MessageCircle, label: 'Messages', to: '/admin/messages', badgeKey: 'messages' },
 ];
 
-export default function AdminSidebar({ mobileOpen, setMobileOpen }) {
-    const { logout } = useAdminStore();
+export default function AdminSidebar({ isOpen, onClose }) {
     const navigate = useNavigate();
-    const location = useLocation();
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [pendingOrders, setPendingOrders] = useState(0);
+    const [counts, setCounts] = useState({ orders: 0, messages: 0 });
 
-    const handleLogout = async () => {
-        await logout();
-        navigate('/admin/nad-auth');
+    useEffect(() => { fetchCounts(); }, []);
+
+    const fetchCounts = async () => {
+        try {
+            const [{ count: orders }, { count: messages }] = await Promise.all([
+                supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_read', false)
+            ]);
+            setCounts({ orders: orders || 0, messages: messages || 0 });
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    useEffect(() => {
-        const fetchCounts = async () => {
-            try {
-                // Fixed: use is_read = false instead of status = unread
-                const { count: msgs } = await supabase
-                    .from('messages')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('is_read', false);
-
-                const { count: ords } = await supabase
-                    .from('orders')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('status', 'pending');
-
-                setUnreadCount(msgs || 0);
-                setPendingOrders(ords || 0);
-            } catch (err) {
-                console.error("Error fetching admin counts:", err);
-            }
-        };
-
-        fetchCounts();
-
-        // Subscriptions
-        const channels = supabase.channel('admin_changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, fetchCounts)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchCounts)
-            .subscribe();
-
-        return () => supabase.removeChannel(channels);
-    }, []);
-
-    const sidebarStyle = {
-        width: '280px', flexShrink: 0, backgroundColor: '#111111', color: 'white',
-        borderRight: '1px solid #1f1f1f', display: 'flex', flexDirection: 'column',
-        position: 'fixed', top: 0, bottom: 0, left: 0,
-        transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 50
-    };
-
-    return (
-        <aside style={sidebarStyle} className="lg:translate-x-0 lg:static">
-            <div style={{ padding: '40px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div>
-                    <img src="/logo.png" alt="Maison du Caftans" style={{ height: '40px', filter: 'brightness(0) invert(1)', marginBottom: '8px' }} />
-                    <span style={{ fontSize: '10px', fontWeight: '800', color: '#C3AB7E', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Administration</span>
-                </div>
-                {setMobileOpen && (
-                    <button onClick={() => setMobileOpen(false)} className="lg:hidden" style={{ background: 'none', border: 'none', color: 'white', padding: '8px' }}>✕</button>
-                )}
-            </div>
-
-            <div style={{ padding: '32px 20px', flex: 1, overflowY: 'auto' }}>
-                <p style={{ fontSize: '10px', fontWeight: '800', color: '#6b7280', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px', paddingLeft: '12px' }}>
-                    Menu Principal
-                </p>
-                <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {menuItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
-
-                        return (
-                            <NavLink
-                                key={item.path}
-                                to={item.path}
-                                onClick={() => setMobileOpen && setMobileOpen(false)}
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: '16px',
-                                    padding: '16px 20px', borderRadius: '16px',
-                                    textDecoration: 'none', fontSize: '13px', fontWeight: '700',
-                                    backgroundColor: isActive ? 'rgba(195, 171, 126, 0.1)' : 'transparent',
-                                    color: isActive ? '#C3AB7E' : '#9ca3af',
-                                    transition: 'all 0.2s'
-                                }}
-                                className="hover:bg-white/5 hover:text-white group"
-                            >
-                                <Icon size={20} style={{ color: isActive ? '#C3AB7E' : '#6b7280' }} className="group-hover:text-white transition-colors" />
-                                <span style={{ flex: 1 }}>{item.label}</span>
-
-                                {item.label === 'Messages' && unreadCount > 0 && (
-                                    <span style={{ backgroundColor: '#C3AB7E', color: 'white', fontSize: '10px', fontWeight: '800', padding: '2px 8px', borderRadius: '100px' }}>
-                                        {unreadCount}
-                                    </span>
-                                )}
-                                {item.label === 'Commandes' && pendingOrders > 0 && (
-                                    <span style={{ backgroundColor: '#ef4444', color: 'white', fontSize: '10px', fontWeight: '800', padding: '2px 8px', borderRadius: '100px' }}>
-                                        {pendingOrders}
-                                    </span>
-                                )}
-                            </NavLink>
-                        );
-                    })}
-                </nav>
-            </div>
-
-            <div style={{ padding: '24px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <button
-                    onClick={handleLogout}
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: '16px', width: '100%',
-                        padding: '16px 20px', borderRadius: '16px', background: 'none', border: 'none',
-                        color: '#6b7280', fontSize: '13px', fontWeight: '700', cursor: 'pointer',
-                        transition: 'all 0.2s', textAlign: 'left'
-                    }}
-                    className="hover:bg-red-500/10 hover:text-red-500 group"
-                >
-                    <LogOut size={20} className="group-hover:text-red-500 transition-colors" />
-                    Déconnexion
+    const SidebarContent = () => (
+        <div style={{
+            width: '280px',
+            backgroundColor: '#111111',
+            height: '100vh',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0
+        }}>
+            {/* Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '48px' }}>
+                <span style={{ color: 'white', fontFamily: 'serif', fontSize: '20px', fontWeight: '700' }}>
+                    Maison Admin
+                </span>
+                <button onClick={onClose} className="lg:hidden" style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+                    <X size={24} />
                 </button>
             </div>
-        </aside>
+
+            {/* Nav */}
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                {navItems.map(({ to, label, icon: Icon, end, badgeKey }) => {
+                    const count = badgeKey ? counts[badgeKey] : 0;
+                    return (
+                        <NavLink
+                            key={to}
+                            to={to}
+                            end={end}
+                            onClick={onClose}
+                            style={({ isActive }) => ({
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '14px 16px',
+                                borderRadius: '14px',
+                                backgroundColor: isActive ? '#C3AB7E' : 'transparent',
+                                color: isActive ? '#111111' : 'rgba(255,255,255,0.65)',
+                                fontWeight: '700',
+                                fontSize: '14px',
+                                textDecoration: 'none',
+                                transition: 'all 0.2s'
+                            })}
+                        >
+                            <Icon size={18} />
+                            <span>{label}</span>
+                            {count > 0 && (
+                                <span style={{
+                                    marginLeft: 'auto',
+                                    backgroundColor: '#ef4444',
+                                    color: 'white',
+                                    fontSize: '10px',
+                                    fontWeight: '800',
+                                    borderRadius: '20px',
+                                    padding: '2px 8px',
+                                    minWidth: '20px',
+                                    textAlign: 'center'
+                                }}>{count}</span>
+                            )}
+                        </NavLink>
+                    );
+                })}
+            </nav>
+
+            {/* Bottom */}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <button
+                    onClick={() => navigate('/')}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: '12px',
+                        color: 'rgba(255,255,255,0.5)', background: 'none', border: 'none',
+                        padding: '14px 16px', cursor: 'pointer', fontSize: '14px',
+                        fontWeight: '700', borderRadius: '14px', width: '100%', textAlign: 'left'
+                    }}
+                >
+                    <ArrowLeft size={18} /> Retour au site
+                </button>
+                <button
+                    onClick={() => { localStorage.removeItem('admin_token'); navigate('/admin/nad-auth'); }}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: '12px',
+                        color: '#ef4444', background: 'none', border: 'none',
+                        padding: '14px 16px', cursor: 'pointer', fontSize: '14px',
+                        fontWeight: '700', borderRadius: '14px', width: '100%', textAlign: 'left'
+                    }}
+                >
+                    <LogOut size={18} /> Déconnexion
+                </button>
+            </div>
+        </div>
+    );
+
+    return (
+        <>
+            {/* DESKTOP: always visible, sticky in flex row */}
+            <div className="hidden lg:block" style={{ flexShrink: 0 }}>
+                <SidebarContent />
+            </div>
+
+            {/* MOBILE: overlay when isOpen */}
+            {isOpen && (
+                <>
+                    <div
+                        onClick={onClose}
+                        style={{
+                            position: 'fixed', inset: 0,
+                            backgroundColor: 'rgba(0,0,0,0.6)',
+                            backdropFilter: 'blur(4px)',
+                            zIndex: 99
+                        }}
+                    />
+                    <div style={{ position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100 }}>
+                        <SidebarContent />
+                    </div>
+                </>
+            )}
+        </>
     );
 }
