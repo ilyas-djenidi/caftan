@@ -1,0 +1,122 @@
+import { useState, useEffect } from 'react';
+import { getProducts } from '../../api/products.api';
+import ProductCard from './ProductCard';
+import { Search, Filter, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+
+export default function CollectionGrid({ category, title, subtitle }) {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [sort, setSort] = useState('newest');
+
+    useEffect(() => {
+        const loadProducts = async () => {
+            setLoading(true);
+            try {
+                const params = {
+                    category: category,
+                    page: page,
+                    limit: 12,
+                    sort: sort === 'price_asc' || sort === 'price_desc' ? sort : 'newest'
+                };
+                const { data } = await getProducts(params);
+                setProducts(data.products || []);
+                setTotalPages(data.totalPages || 1);
+                setTotal(data.total || 0);
+            } catch (error) {
+                console.error('Error loading products:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadProducts();
+    }, [category, page, sort]);
+
+    return (
+        <div className="min-h-screen bg-white pt-32 pb-20">
+            {/* Header */}
+            <header className="container mx-auto px-10 mb-16 text-center">
+                <span style={{ color: '#C3AB7E', fontSize: '10px', fontWeight: '800', letterSpacing: '0.3em', textTransform: 'uppercase' }}>COLLECTION</span>
+                <h1 style={{ fontSize: '48px', fontFamily: 'serif', marginTop: '12px' }}>{title}</h1>
+                {subtitle && <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '600px', margin: '16px auto 0' }}>{subtitle}</p>}
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', marginTop: '40px', borderBottom: '1px solid #f0ede8', paddingBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#111111', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{total} Produits</span>
+                    </div>
+                    <select
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value)}
+                        style={{ border: 'none', background: 'none', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', outline: 'none' }}
+                    >
+                        <option value="newest">Nouveautés</option>
+                        <option value="price_asc">Prix croissant</option>
+                        <option value="price_desc">Prix décroissant</option>
+                    </select>
+                </div>
+            </header>
+
+            {/* Grid */}
+            <main className="container mx-auto px-10">
+                {loading ? (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} style={{ height: '400px', backgroundColor: '#F0EDE8', borderRadius: '24px' }} className="animate-pulse" />
+                        ))}
+                    </div>
+                ) : products.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '100px 0' }}>
+                        <Search size={48} style={{ color: '#f0ede8', marginBottom: '24px' }} />
+                        <h3 style={{ fontSize: '20px', fontFamily: 'serif' }}>Aucun produit trouvé</h3>
+                        <p style={{ color: '#9ca3af', fontSize: '14px' }}>Revenez bientôt ou explorez d'autres catégories.</p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                            {products.map((product) => (
+                                <ProductCard key={product.id} product={product} />
+                            ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '80px' }}>
+                                <button
+                                    disabled={page === 1}
+                                    onClick={() => setPage(p => p - 1)}
+                                    style={{ width: '40px', height: '40px', borderRadius: '12px', border: '1px solid #f0ede8', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: page === 1 ? 'default' : 'pointer', opacity: page === 1 ? 0.3 : 1 }}
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                {Array.from({ length: totalPages }).map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setPage(i + 1)}
+                                        style={{
+                                            width: '40px', height: '40px', borderRadius: '12px',
+                                            border: 'none',
+                                            backgroundColor: page === i + 1 ? '#111111' : 'transparent',
+                                            color: page === i + 1 ? 'white' : '#111111',
+                                            fontWeight: '800', fontSize: '12px', cursor: 'pointer'
+                                        }}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                                <button
+                                    disabled={page === totalPages}
+                                    onClick={() => setPage(p => p + 1)}
+                                    style={{ width: '40px', height: '40px', borderRadius: '12px', border: '1px solid #f0ede8', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: page === totalPages ? 'default' : 'pointer', opacity: page === totalPages ? 0.3 : 1 }}
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </main>
+        </div>
+    );
+}
