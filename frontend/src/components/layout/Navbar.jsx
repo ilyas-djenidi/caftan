@@ -36,7 +36,7 @@ export default function Navbar() {
                 { label: 'Accessoires', to: '/accessoires', desc: 'Bijoux & accessoires' },
             ]
         },
-        { label: 'Packs Mariée', to: '/packs' },
+        { label: 'Packs', to: '/packs' },
         { label: 'Contact', to: '/contact' },
     ];
 
@@ -225,7 +225,7 @@ export default function Navbar() {
                         <Link to="/caftans" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '32px', fontFamily: 'serif', color: '#111111', textDecoration: 'none' }}>Caftans</Link>
                         <Link to="/sacs" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '32px', fontFamily: 'serif', color: '#111111', textDecoration: 'none' }}>Sacs</Link>
                         <Link to="/accessoires" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '32px', fontFamily: 'serif', color: '#111111', textDecoration: 'none' }}>Accessoires</Link>
-                        <Link to="/packs" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '32px', fontFamily: 'serif', color: '#111111', textDecoration: 'none' }}>Packs Mariée</Link>
+                        <Link to="/packs" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '32px', fontFamily: 'serif', color: '#111111', textDecoration: 'none' }}>Packs</Link>
                         <Link to="/wishlist" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '32px', fontFamily: 'serif', color: '#111111', textDecoration: 'none' }}>Favoris</Link>
                         <Link to="/contact" onClick={() => setIsMenuOpen(false)} style={{ fontSize: '32px', fontFamily: 'serif', color: '#111111', textDecoration: 'none' }}>Contact</Link>
                     </div>

@@ -7,7 +7,7 @@ const navItems = [
     { icon: LayoutDashboard, label: 'Tableau de bord', to: '/admin', end: true },
     { icon: ShoppingBag, label: 'Commandes', to: '/admin/orders', badgeKey: 'orders' },
     { icon: Package, label: 'Produits', to: '/admin/products' },
-    { icon: Star, label: 'Packs Mariée', to: '/admin/packs' },
+    { icon: Star, label: 'Packs', to: '/admin/packs' },
     { icon: Tags, label: 'Promotions', to: '/admin/promos' },
     { icon: ImageIcon, label: 'Gérer la Vitrine', to: '/admin/hero' },
     { icon: MessageCircle, label: 'Messages', to: '/admin/messages', badgeKey: 'messages' },

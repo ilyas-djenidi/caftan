@@ -40,7 +40,7 @@ export default function Packs() {
         <div className="min-h-screen bg-[#fafafa]">
             <header className="pb-20 text-center container mx-auto px-4 md:px-10" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
                 <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.4em' }}>ÉDITION LIMITÉE</span>
-                <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontFamily: 'serif', marginTop: '16px' }}>Les Packs Mariée</h1>
+                <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontFamily: 'serif', marginTop: '16px' }}>Les Packs</h1>
                 <p style={{ color: '#9ca3af', fontSize: '16px', marginTop: '20px', maxWidth: '600px', margin: '20px auto 0' }}>
                     Des ensembles prestigieux conçus pour les moments les plus inoubliables. Le raffinement ultime pour votre grand jour.
                 </p>

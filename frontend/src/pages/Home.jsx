@@ -27,7 +27,7 @@ export default function Home() {
         { name: 'Caftans', to: '/caftans', image: '/images/cat_caftans.jpg', count: '12+ Modèles' },
         { name: 'Sacs', to: '/sacs', image: '/images/cat_sacs.jpg', count: '8+ Styles' },
         { name: 'Accessoires', to: '/accessoires', image: '/images/cat_acc.jpg', count: '15+ Pièces' },
-        { name: 'Packs Mariée', to: '/packs', image: '/images/cat_packs.jpg', count: 'Édition Spéciale' },
+        { name: 'Packs', to: '/packs', image: '/images/cat_packs.jpg', count: 'Édition Spéciale' },
     ];
 
     return (
@@ -182,7 +182,7 @@ export default function Home() {
 
                 <div className="relative z-10 max-w-2xl">
                     <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.4em' }}>ÉDITION SPÉCIALE</span>
-                    <h2 style={{ color: 'white', fontSize: '56px', fontFamily: 'serif', margin: '24px 0 32px' }}>Le Pack Mariée <br /> d'Exception</h2>
+                    <h2 style={{ color: 'white', fontSize: '56px', fontFamily: 'serif', margin: '24px 0 32px' }}>Le Pack <br /> d'Exception</h2>
                     <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '18px', lineHeight: '1.6', marginBottom: '48px' }}>
                         Un coffret complet soigneusement assemblé pour accompagner vos moments les plus précieux. Inclut des pièces exclusives et personnalisées.
                     </p>

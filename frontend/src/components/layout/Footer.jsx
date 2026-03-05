@@ -38,7 +38,7 @@ export default function Footer() {
                             <li><Link to="/caftans" style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'none' }} className="hover:text-white">Caftans</Link></li>
                             <li><Link to="/sacs" style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'none' }} className="hover:text-white">Les Sacs</Link></li>
                             <li><Link to="/accessoires" style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'none' }} className="hover:text-white">Accessoires</Link></li>
-                            <li><Link to="/packs" style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'none' }} className="hover:text-white">Packs Mariée</Link></li>
+                            <li><Link to="/packs" style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'none' }} className="hover:text-white">Packs</Link></li>
                         </ul>
                     </div>
 

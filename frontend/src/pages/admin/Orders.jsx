@@ -13,7 +13,8 @@ import {
     CreditCard,
     ShoppingBag,
     Loader2,
-    Trash2
+    Trash2,
+    MessageSquare
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
