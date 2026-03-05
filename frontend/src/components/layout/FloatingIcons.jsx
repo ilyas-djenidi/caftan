@@ -1,6 +1,9 @@
-import { MessageCircle } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
+import { useCartStore } from '../../store/cartStore';
 
 const FloatingIcons = () => {
+    const { items, setIsCartOpen } = useCartStore();
+    const itemCount = items?.reduce((total, item) => total + item.quantity, 0) || 0;
 
     const btnBase = {
         width: '52px',
@@ -12,8 +15,9 @@ const FloatingIcons = () => {
         cursor: 'pointer',
         border: 'none',
         boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s',
         textDecoration: 'none',
+        position: 'relative'
     };
 
     return (
@@ -28,28 +32,36 @@ const FloatingIcons = () => {
                 zIndex: 999,
             }}
         >
-            {/* WhatsApp */}
-            <a
-                href="https://wa.me/213XXXXXXXXX"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Contactez-nous sur WhatsApp"
+            <button
+                onClick={() => setIsCartOpen(true)}
+                title="Mon Panier"
                 style={{
                     ...btnBase,
-                    backgroundColor: '#25D366',
+                    backgroundColor: '#111111',
                     color: '#ffffff',
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'scale(1.1)';
-                    e.currentTarget.style.boxShadow = '0 6px 24px rgba(37,211,102,0.4)';
+                    e.currentTarget.style.backgroundColor = '#C3AB7E';
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.18)';
+                    e.currentTarget.style.backgroundColor = '#111111';
                 }}
             >
-                <MessageCircle size={24} />
-            </a>
+                <ShoppingBag size={24} />
+                {itemCount > 0 && (
+                    <div style={{
+                        position: 'absolute', top: '-4px', right: '-4px',
+                        backgroundColor: '#C3AB7E', color: 'white',
+                        fontSize: '10px', fontWeight: 'bold',
+                        width: '20px', height: '20px', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        {itemCount}
+                    </div>
+                )}
+            </button>
         </div>
     );
 };

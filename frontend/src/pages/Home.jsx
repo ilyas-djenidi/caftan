@@ -82,29 +82,11 @@ export default function Home() {
                                 textDecoration: 'none', fontWeight: '800', fontSize: '12px',
                                 letterSpacing: '0.2em', textTransform: 'uppercase',
                                 border: 'none', transition: 'all 0.3s'
-                            }} className="hover:scale-105 shadow-xl shadow-[#C3AB7E]/20">
+                            }} className="hover:scale-105">
                                 DÉCOUVRIR LA COLLECTION
                             </Link>
                         </div>
                     </motion.div>
-                </div>
-
-                {/* Vertical Text - Left */}
-                <div style={{
-                    position: 'absolute', left: '40px', top: '50%', transform: 'translateY(-50%) rotate(-90deg)',
-                    color: 'rgba(255,255,255,0.2)', fontSize: '10px', fontWeight: '900',
-                    letterSpacing: '0.5em', textTransform: 'uppercase', pointerEvents: 'none'
-                }}>
-                    EST. 2024 — ALGER
-                </div>
-
-                {/* Scrol Down */}
-                <div style={{
-                    position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px'
-                }}>
-                    <div style={{ width: '1px', height: '60px', background: 'linear-gradient(to bottom, transparent, #C3AB7E)' }} />
-                    <span style={{ color: '#C3AB7E', fontSize: '9px', fontWeight: '900', letterSpacing: '0.2em' }}>SCROLL</span>
                 </div>
             </section>
 
@@ -148,10 +130,10 @@ export default function Home() {
                         ))}
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* FEATURED PRODUCTS */}
-            <section style={{ padding: '0 0 120px', backgroundColor: '#ffffff' }}>
+            < section style={{ padding: '0 0 120px', backgroundColor: '#ffffff' }}>
                 <div className="container mx-auto px-10">
                     <div style={{ textAlign: 'center', marginBottom: '80px' }}>
                         <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>Sélection Exclusive</h2>
@@ -184,10 +166,10 @@ export default function Home() {
                         </Link>
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* CALL TO ACTION - PACK BRIDAL */}
-            <section style={{
+            < section style={{
                 margin: '0 40px 120px', padding: '100px', borderRadius: '60px',
                 backgroundColor: '#111111', position: 'relative', overflow: 'hidden'
             }}>
@@ -214,7 +196,7 @@ export default function Home() {
                         DÉCOUVRIR LE PACK
                     </Link>
                 </div>
-            </section>
-        </div>
+            </section >
+        </div >
     );
 }
