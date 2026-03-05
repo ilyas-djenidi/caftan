@@ -38,7 +38,8 @@ export default function Contact() {
     };
 
     return (
-        <main style={{ minHeight: 'calc(100vh - var(--navbar-height))', marginTop: 'var(--navbar-height)' }} className="flex items-center justify-center p-4 md:p-8">
+        <main style={{ minHeight: 'calc(100vh - var(--navbar-height))', marginTop: 'var(--navbar-height)', overflowX: 'hidden', maxWidth: '100vw' }}
+            className="flex items-center justify-center px-4 sm:px-8 md:px-10 py-8">
             <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-12 lg:gap-20 items-center justify-center">
                 {/* Form Side */}
                 <div style={{ flex: 1, width: '100%', maxWidth: '440px' }}>
@@ -71,7 +72,7 @@ export default function Contact() {
                 </div>
 
                 {/* Info Side */}
-                <div style={{ flex: 1, backgroundColor: '#fafafa', padding: 'clamp(32px, 4vw, 48px)', display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', maxWidth: '440px' }} className="rounded-2xl">
+                <div style={{ flex: 1, backgroundColor: '#fafafa', padding: 'clamp(24px, 4vw, 48px)', display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', maxWidth: '440px' }} className="rounded-2xl mt-12 lg:mt-0">
                     <h3 style={{ fontSize: '22px', fontFamily: 'serif', marginBottom: '32px' }}>Maison du Caftans</h3>
                     <div className="space-y-10">
                         <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>

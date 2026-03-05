@@ -169,10 +169,10 @@ export default function Home() {
             </section >
 
             {/* CALL TO ACTION - PACK BRIDAL */}
-            < section style={{
-                margin: '0 40px 120px', padding: '100px', borderRadius: '60px',
+            <section style={{
+                padding: 'clamp(40px, 8vw, 100px)', borderRadius: 'clamp(30px, 10vw, 60px)',
                 backgroundColor: '#111111', position: 'relative', overflow: 'hidden'
-            }}>
+            }} className="mx-5 md:mx-10 mb-[120px]">
                 <div style={{
                     position: 'absolute', right: '10%', top: '50%', transform: 'translateY(-50%)',
                     width: '500px', height: '500px', borderRadius: '50%',
@@ -182,17 +182,18 @@ export default function Home() {
 
                 <div className="relative z-10 max-w-2xl">
                     <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.4em' }}>ÉDITION SPÉCIALE</span>
-                    <h2 style={{ color: 'white', fontSize: '56px', fontFamily: 'serif', margin: '24px 0 32px' }}>Le Pack <br /> d'Exception</h2>
+                    <h2 style={{ color: 'white', fontSize: 'clamp(32px, 8vw, 56px)', fontFamily: 'serif', margin: '24px 0 32px', lineHeight: '1.2' }}>Le Pack <br /> d'Exception</h2>
                     <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '18px', lineHeight: '1.6', marginBottom: '48px' }}>
                         Un coffret complet soigneusement assemblé pour accompagner vos moments les plus précieux. Inclut des pièces exclusives et personnalisées.
                     </p>
                     <Link to="/packs" style={{
+                        display: 'inline-block',
                         backgroundColor: 'white', color: '#111111',
-                        padding: '20px 48px', borderRadius: '100px',
-                        textDecoration: 'none', fontWeight: '800', fontSize: '12px',
+                        padding: '16px 32px', sm: { padding: '20px 48px' }, borderRadius: '100px',
+                        textDecoration: 'none', fontWeight: '800', fontSize: '11px',
                         letterSpacing: '0.2em', textTransform: 'uppercase',
-                        transition: 'all 0.3s'
-                    }} className="hover:bg-[#C3AB7E] hover:text-white">
+                        transition: 'all 0.3s', whiteSpace: 'nowrap'
+                    }} className="hover:bg-[#C3AB7E] hover:text-white px-8 py-4 sm:px-12 sm:py-5">
                         DÉCOUVRIR LE PACK
                     </Link>
                 </div>

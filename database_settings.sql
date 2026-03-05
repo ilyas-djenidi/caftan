@@ -10,6 +10,12 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
 -- Turn on row level security
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 
+-- Clean up existing policies to avoid existence errors
+DROP POLICY IF EXISTS "Allow public read access to site_settings" ON public.site_settings;
+DROP POLICY IF EXISTS "Allow anon insert" ON public.site_settings;
+DROP POLICY IF EXISTS "Allow anon update" ON public.site_settings;
+DROP POLICY IF EXISTS "Allow authenticated all" ON public.site_settings;
+
 -- Allow public read access (for anon users reading hero content and visitor tracker)
 CREATE POLICY "Allow public read access to site_settings"
   ON public.site_settings FOR SELECT
@@ -24,3 +30,8 @@ CREATE POLICY "Allow anon insert"
 CREATE POLICY "Allow anon update"
   ON public.site_settings FOR UPDATE
   USING (true);
+
+-- Ensure a default visitor_count exists if not already present
+INSERT INTO public.site_settings (key, value)
+VALUES ('visitor_count', '{"count": 0}')
+ON CONFLICT (key) DO NOTHING;

@@ -10,6 +10,7 @@ export default function Messages() {
     const [loading, setLoading] = useState(true);
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [mobileView, setMobileView] = useState('list'); // 'list' or 'detail'
 
     useEffect(() => {
         fetchMessages();
@@ -63,8 +64,13 @@ export default function Messages() {
                 </div>
             </header>
 
-            <div className="grid grid-cols-12 gap-8 min-h-[600px]">
-                <div className="col-span-4 bg-white rounded-[32px] border border-gray-100 overflow-hidden flex flex-col">
+            <div style={{ display: 'flex', gap: '24px', height: 'calc(100vh - 180px)', minHeight: '600px' }}>
+                <div style={{
+                    width: '340px', minWidth: '340px',
+                    flex: mobileView === 'detail' ? '0 0 0' : '1',
+                    display: mobileView === 'detail' ? 'none' : 'flex',
+                    flexDirection: 'column'
+                }} className="bg-white rounded-[32px] border border-gray-100 overflow-hidden w-full lg:w-[340px] lg:min-w-[340px] lg:flex flex-col">
                     <div className="p-6 border-b border-gray-50 bg-gray-50/50">
                         <span style={{ fontSize: '10px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase', letterSpacing: '0.1em' }}>INBOX</span>
                     </div>
@@ -76,7 +82,7 @@ export default function Messages() {
                         ) : filtered.map(msg => (
                             <div
                                 key={msg.id}
-                                onClick={() => { setSelectedMessage(msg); if (!msg.is_read) markAsRead(msg.id); }}
+                                onClick={() => { setSelectedMessage(msg); if (!msg.is_read) markAsRead(msg.id); setMobileView('detail'); }}
                                 style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: selectedMessage?.id === msg.id ? '#fdfbf7' : 'white' }}
                                 className="hover:bg-[#fafafa]"
                             >
@@ -91,21 +97,23 @@ export default function Messages() {
                     </div>
                 </div>
 
-                <div className="col-span-8 bg-white rounded-[32px] border border-gray-100 p-12 flex flex-col">
+                <div style={{ flex: 1, display: mobileView === 'list' && window.innerWidth < 1024 ? 'none' : 'flex' }}
+                    className="bg-white rounded-[32px] border border-gray-100 p-6 md:p-12 hidden lg:flex flex-col flex-1">
                     {selectedMessage ? (
                         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-400">
-                            <header className="flex justify-between items-start">
-                                <div className="flex gap-6">
-                                    <div style={{ width: '64px', height: '64px', backgroundColor: '#f0ede8', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <header className="flex justify-between items-start flex-wrap gap-4">
+                                <div className="flex gap-4 sm:gap-6 items-center w-full sm:w-auto">
+                                    <button onClick={() => setMobileView('list')} className="lg:hidden p-2 -ml-2 text-gray-400">← Retour</button>
+                                    <div style={{ width: '64px', height: '64px', backgroundColor: '#f0ede8', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                         <User size={24} style={{ color: '#C3AB7E' }} />
                                     </div>
-                                    <div>
-                                        <h2 style={{ fontSize: '24px', fontWeight: '700' }}>{selectedMessage.name}</h2>
+                                    <div style={{ wordBreak: 'break-word' }}>
+                                        <h2 style={{ fontSize: '20px', sm: { fontSize: '24px' }, fontWeight: '700' }}>{selectedMessage.name}</h2>
                                         <p style={{ color: '#C3AB7E', fontWeight: '700', fontSize: '14px' }}>{selectedMessage.email}</p>
                                     </div>
                                 </div>
-                                <div className="flex gap-3">
-                                    <button className="p-3 bg-gray-50 rounded-xl text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={20} /></button>
+                                <div className="flex gap-3 mt-4 sm:mt-0 ml-auto bg-gray-50 rounded-xl">
+                                    <button className="p-3 text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={20} /></button>
                                 </div>
                             </header>
 

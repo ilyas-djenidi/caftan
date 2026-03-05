@@ -9,12 +9,19 @@ import {
     MoreVertical,
     Phone,
     MapPin,
+    MessageSquare,
+    Package,
     Calendar,
+    CheckCircle2,
+    Clock,
+    Truck,
+    XCircle,
+    AlertCircle,
+    ArrowUpRight,
     CreditCard,
     ShoppingBag,
     Loader2,
-    Trash2,
-    MessageSquare
+    Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -97,7 +104,18 @@ const Orders = () => {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', backgroundColor: '#ffffff', borderRadius: '15px', padding: '4px', border: '1px solid #F0EDE8' }}>
+                    <div style={{
+                        display: 'flex',
+                        overflowX: 'auto',
+                        whiteSpace: 'nowrap',
+                        gap: '4px',
+                        backgroundColor: '#ffffff',
+                        borderRadius: '15px',
+                        padding: '4px',
+                        border: '1px solid #F0EDE8',
+                        msOverflowStyle: 'none',
+                        scrollbarWidth: 'none'
+                    }} className="no-scrollbar">
                         {['ALL', 'PENDING', 'SHIPPED', 'DELIVERED'].map((s) => (
                             <button
                                 key={s}
@@ -107,7 +125,8 @@ const Orders = () => {
                                     fontSize: '11px', fontWeight: '800', border: 'none',
                                     backgroundColor: statusFilter === s ? '#111111' : 'transparent',
                                     color: statusFilter === s ? 'white' : '#9ca3af',
-                                    cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase'
+                                    cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase',
+                                    flexShrink: 0
                                 }}
                             >
                                 {s === 'ALL' ? 'TOUT' : s}
@@ -130,8 +149,8 @@ const Orders = () => {
                         <tr style={{ borderBottom: '1px solid #F0EDE8', backgroundColor: '#ffffff' }}>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Commande</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Client</th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
+                            <th className="hidden sm:table-cell" style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</th>
+                            <th className="hidden md:table-cell" style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>Détails</th>
                         </tr>
                     </thead>
@@ -162,12 +181,12 @@ const Orders = () => {
                                                 transition: 'background 0.15s',
                                                 backgroundColor: isOpened ? 'rgba(255,255,255,0.6)' : 'transparent'
                                             }}
-                                            className="hover:bg-[rgba(255,255,255,0.5)] cursor-default"
+                                            className="hover:bg-[rgba(255,255,255,0.5)] cursor-default flex flex-col sm:table-row"
                                         >
                                             {/* Order Info */}
                                             <td style={{ padding: '16px 24px' }}>
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className="font-bold text-[#111111]">#{order.order_number}</span>
+                                                    <span className="font-bold text-[#111111]" style={{ whiteSpace: 'nowrap' }}>#{order.order_number}</span>
                                                     <span className="text-[11px] text-gray-400 font-bold uppercase">
                                                         {order.created_at ? format(new Date(order.created_at), 'd MMM yyyy, HH:mm', { locale: fr }) : '—'}
                                                     </span>
@@ -183,7 +202,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Total */}
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td className="hidden sm:table-cell" style={{ padding: '16px 24px' }}>
                                                 <div className="flex flex-col gap-0.5">
                                                     <span className="font-bold text-[#111111]">{order.total_price || 0} DA</span>
                                                     <span className="text-[10px] text-[#C3AB7E] font-bold uppercase tracking-wider">{order.payment_method || 'COD'}</span>
@@ -191,7 +210,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Status */}
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td className="hidden md:table-cell" style={{ padding: '16px 24px' }}>
                                                 <div style={{
                                                     display: 'inline-flex', alignItems: 'center', gap: '8px',
                                                     padding: '6px 14px', borderRadius: '100px',
@@ -204,7 +223,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Action */}
-                                            <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                                            <td style={{ padding: '16px 24px', textAlign: 'right' }} className="sm:table-cell">
                                                 <button style={{
                                                     padding: '8px', borderRadius: '12px', border: '1px solid #F0EDE8',
                                                     backgroundColor: isOpened ? '#C3AB7E' : 'transparent',
@@ -219,12 +238,8 @@ const Orders = () => {
                                         {/* Expanded Details */}
                                         {isOpened && (
                                             <tr>
-                                                <td colSpan="5" style={{ padding: '0 32px 32px 32px', backgroundColor: '#ffffff' }}>
-                                                    <div className="animate-fade-in-up" style={{
-                                                        display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.8fr)',
-                                                        gap: '32px', padding: '32px', borderRadius: '24px',
-                                                        backgroundColor: 'white', border: '1px solid #F0EDE8'
-                                                    }}>
+                                                <td colSpan="5" style={{ padding: 'clamp(12px, 2vw, 32px)', backgroundColor: '#ffffff' }}>
+                                                    <div className="animate-fade-in-up flex flex-col lg:grid lg:grid-cols-[1.2fr_0.8fr] gap-8 p-6 md:p-8 rounded-[24px] bg-white border border-[#F0EDE8]">
                                                         {/* Items Section */}
                                                         <div>
                                                             <div className="flex items-center justify-between mb-6">
@@ -269,8 +284,8 @@ const Orders = () => {
                                                                                 {item.size ? `Taille ${item.size}` : ''} {item.color ? `• ${item.color}` : ''} × {item.quantity}
                                                                             </p>
                                                                         </div>
-                                                                        <span style={{ fontWeight: '800', fontSize: '13px', color: '#111111' }}>
-                                                                            {item.price * item.quantity} DA
+                                                                        <span style={{ fontWeight: '800', fontSize: '13px', color: '#111111', whiteSpace: 'nowrap' }}>
+                                                                            {((item.price_at_purchase || item.price || 0) * item.quantity).toLocaleString()} DA
                                                                         </span>
                                                                     </div>
                                                                 ))}

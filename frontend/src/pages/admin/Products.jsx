@@ -19,10 +19,15 @@ export default function Products() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
 
+    const [newImagePreviews, setNewImagePreviews] = useState([]);
+    const [tempColor, setTempColor] = useState('#000000');
+    const [tempColorName, setTempColorName] = useState('');
+
     const [formData, setFormData] = useState({
         name_fr: '',
         name_ar: '',
         category: 'caftans',
+        sub_category: '',
         price: '',
         original_price: '',
         description_fr: '',
@@ -61,14 +66,31 @@ export default function Products() {
     };
 
     const handleOpenModal = (product = null) => {
+        setNewImagePreviews([]);
+        setTempColor('#000000');
+        setTempColorName('');
+
         if (product) {
             setEditingProduct(product);
             setFormData({
                 ...product,
-                price: product.price.toString(),
+                name_fr: product.name_fr || '',
+                name_ar: product.name_ar || '',
+                category: product.category || 'caftans',
+                sub_category: product.sub_category || '',
+                price: product.price?.toString() || '',
                 original_price: product.original_price?.toString() || '',
+                description_fr: product.description_fr || '',
+                description_ar: product.description_ar || '',
+                stock_count: product.stock_count || 0,
+                in_stock: product.in_stock ?? true,
+                featured: product.featured ?? false,
+                on_sale: product.on_sale ?? false,
+                is_new: product.is_new ?? true,
+                is_visible: product.is_visible ?? true,
                 images: [], // New images to upload
-                existing_images: product.images || []
+                existing_images: product.images || [],
+                attributes: product.attributes || []
             });
         } else {
             setEditingProduct(null);
@@ -76,6 +98,7 @@ export default function Products() {
                 name_fr: '',
                 name_ar: '',
                 category: 'caftans',
+                sub_category: '',
                 price: '',
                 original_price: '',
                 description_fr: '',
@@ -87,10 +110,46 @@ export default function Products() {
                 is_new: true,
                 is_visible: true,
                 images: [],
+                existing_images: [],
                 attributes: []
             });
         }
         setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setNewImagePreviews([]);
+    };
+
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        const newFiles = [...(formData.images || []), ...files];
+        setFormData(prev => ({ ...prev, images: newFiles }));
+
+        // Generate previews
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                setNewImagePreviews(prev => [...prev, ev.target.result]);
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const removeNewImage = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            images: prev.images.filter((_, i) => i !== index)
+        }));
+        setNewImagePreviews(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeExistingImage = (id) => {
+        setFormData(prev => ({
+            ...prev,
+            existing_images: prev.existing_images.filter(img => img.id !== id)
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -101,6 +160,8 @@ export default function Products() {
             Object.keys(formData).forEach(key => {
                 if (key === 'images') {
                     formData.images.forEach(file => data.append('images', file));
+                } else if (key === 'existing_images') {
+                    data.append('existing_images', JSON.stringify(formData.existing_images));
                 } else if (key === 'attributes') {
                     data.append('attributes', JSON.stringify(formData.attributes));
                 } else {
@@ -115,7 +176,7 @@ export default function Products() {
                 await createProduct(data);
                 toast.success('Produit créé');
             }
-            setIsModalOpen(false);
+            handleCloseModal();
             loadProducts();
         } catch (error) {
             console.error('Submit error:', error);
@@ -138,23 +199,23 @@ export default function Products() {
 
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <div>
-                    <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Produits</h1>
+                    <h1 style={{ fontSize: 'clamp(20px, 4vw, 28px)', fontFamily: 'serif', fontWeight: '700', margin: 0 }}>Produits</h1>
                 </div>
-                <div className="flex gap-4">
-                    <div className="relative">
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', width: '100%' }} className="sm:w-auto">
+                    <div className="relative" style={{ flex: 1, minWidth: '160px' }}>
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                             placeholder="Rechercher..."
-                            style={{ padding: '0 16px 0 40px', height: '48px', borderRadius: '12px', border: '1px solid #f0ede8', width: '240px', outline: 'none' }}
+                            style={{ padding: '0 16px 0 40px', height: '48px', borderRadius: '12px', border: '1px solid #f0ede8', width: '100%', outline: 'none' }}
                         />
                     </div>
                     <button
                         onClick={() => handleOpenModal()}
-                        style={{ backgroundColor: '#111111', color: 'white', padding: '0 24px', borderRadius: '12px', fontWeight: '700', fontSize: '14px', border: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        style={{ backgroundColor: '#111111', color: 'white', padding: '0 24px', borderRadius: '12px', height: '48px', fontWeight: '700', fontSize: '14px', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, whiteSpace: 'nowrap' }}
                     >
                         <Plus size={20} /> Nouveau Produit
                     </button>
@@ -164,7 +225,7 @@ export default function Products() {
             {loading ? (
                 <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-[#C3AB7E]" size={40} /></div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     {products.map(product => (
                         <div key={product.id} style={{ backgroundColor: 'white', borderRadius: '24px', border: '1px solid #f0ede8', overflow: 'hidden' }} className="group">
                             <div style={{ aspectRatio: '1/1', backgroundColor: '#fafafa', position: 'relative' }}>
@@ -192,36 +253,35 @@ export default function Products() {
             {/* Modal */}
             {isModalOpen && (
                 <div style={{
-                    position: 'fixed',
-                    top: 0, bottom: 0, right: 0, left: 0,
-                    zIndex: 200,
+                    position: 'fixed', inset: 0, zIndex: 200,
                     backgroundColor: 'rgba(0,0,0,0.6)',
                     backdropFilter: 'blur(4px)',
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     justifyContent: 'center',
-                    padding: '16px'
+                    padding: '20px',
+                    overflowY: 'auto'
                 }}>
                     <div style={{
                         backgroundColor: 'white',
-                        borderRadius: '32px',
+                        borderRadius: '28px',
                         width: '100%',
-                        maxWidth: '860px',
-                        maxHeight: '90vh',
-                        display: 'flex',
-                        flexDirection: 'column',
+                        maxWidth: '900px',
                         position: 'relative',
-                        padding: 'clamp(24px, 4vw, 48px)'
+                        padding: 'clamp(20px, 4vw, 40px)',
+                        margin: 'auto',
+                        overflowY: 'visible'
                     }}>
                         <div style={{
                             display: 'flex', justifyContent: 'space-between',
-                            alignItems: 'center', marginBottom: '32px', flexShrink: 0
+                            alignItems: 'center', marginBottom: '32px'
                         }}>
                             <h2 style={{ fontSize: '28px', fontFamily: 'serif', margin: 0 }}>
                                 {editingProduct ? 'Modifier le Produit' : 'Nouveau Produit'}
                             </h2>
                             <button
-                                onClick={() => setIsModalOpen(false)}
+                                type="button"
+                                onClick={handleCloseModal}
                                 style={{
                                     width: '44px', height: '44px', borderRadius: '50%',
                                     border: '1px solid #F0EDE8', background: 'white',
@@ -232,49 +292,178 @@ export default function Products() {
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-8" style={{ overflowY: 'auto', flex: 1, paddingRight: '8px' }}>
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            {/* Section 1: Basic Info */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom (Français)</label>
-                                        <input required value={formData.name_fr} onChange={e => setFormData({ ...formData, name_fr: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Catégorie</label>
-                                        <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]">
-                                            <option value="caftans">Caftans</option>
-                                            <option value="sacs">Sacs</option>
-                                            <option value="accessoires">Accessoires</option>
-                                        </select>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Prix (DA)</label>
-                                            <input required type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom (Français)*</label>
+                                    <input required value={formData.name_fr} onChange={e => setFormData({ ...formData, name_fr: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom (Arabe)</label>
+                                    <input value={formData.name_ar} onChange={e => setFormData({ ...formData, name_ar: e.target.value })} dir="rtl" style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Catégorie*</label>
+                                    <select required value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]">
+                                        <option value="caftans">Caftans</option>
+                                        <option value="sacs">Sacs</option>
+                                        <option value="accessoires">Accessoires</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Sous-catégorie</label>
+                                    <input value={formData.sub_category || ''} onChange={e => setFormData({ ...formData, sub_category: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                </div>
+                            </div>
+
+                            {/* Section 2: Pricing */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Prix (DA)*</label>
+                                    <input required type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Prix Original (DA)</label>
+                                    <input type="number" value={formData.original_price} onChange={e => setFormData({ ...formData, original_price: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Stock*</label>
+                                    <input required type="number" value={formData.stock_count} onChange={e => setFormData({ ...formData, stock_count: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                </div>
+                            </div>
+
+                            {/* Section 3: Description */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Description (Français)</label>
+                                    <textarea rows="4" value={formData.description_fr} onChange={e => setFormData({ ...formData, description_fr: e.target.value })} style={{ width: '100%', padding: '20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none', resize: 'none' }} className="bg-[#fafafa]" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Description (Arabe)</label>
+                                    <textarea rows="4" value={formData.description_ar} onChange={e => setFormData({ ...formData, description_ar: e.target.value })} dir="rtl" style={{ width: '100%', padding: '20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none', resize: 'none' }} className="bg-[#fafafa]" />
+                                </div>
+                            </div>
+
+                            {/* Section 4: Images */}
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>
+                                    Images du Produit
+                                </label>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                                    {(formData.existing_images || []).map((img, i) => (
+                                        <div key={img.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: '12px', overflow: 'hidden', border: img.is_primary ? '2px solid #C3AB7E' : '1px solid #F0EDE8' }}>
+                                            <img src={img.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <button type="button" onClick={() => removeExistingImage(img.id)} style={{ position: 'absolute', top: '4px', right: '4px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                                            {img.is_primary && <span style={{ position: 'absolute', bottom: '4px', left: '4px', backgroundColor: '#C3AB7E', color: 'white', fontSize: '8px', fontWeight: '800', padding: '2px 6px', borderRadius: '4px' }}>PRINCIPALE</span>}
                                         </div>
-                                        <div className="space-y-2">
-                                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Stock</label>
-                                            <input required type="number" value={formData.stock_count} onChange={e => setFormData({ ...formData, stock_count: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
+                                    ))}
+                                    {newImagePreviews.map((src, i) => (
+                                        <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '12px', overflow: 'hidden', border: '1px solid #F0EDE8' }}>
+                                            <img src={src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <button type="button" onClick={() => removeNewImage(i)} style={{ position: 'absolute', top: '4px', right: '4px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
 
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Description (Français)</label>
-                                        <textarea rows="4" value={formData.description_fr} onChange={e => setFormData({ ...formData, description_fr: e.target.value })} style={{ width: '100%', padding: '20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none', resize: 'none' }} className="bg-[#fafafa]" />
-                                    </div>
-                                    <div className="flex gap-6 pt-4">
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input type="checkbox" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} />
-                                            <span style={{ fontSize: '12px', fontWeight: '700' }}>Mis en avant</span>
-                                        </label>
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input type="checkbox" checked={formData.on_sale} onChange={e => setFormData({ ...formData, on_sale: e.target.checked })} />
-                                            <span style={{ fontSize: '12px', fontWeight: '700' }}>En promotion</span>
-                                        </label>
-                                    </div>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', borderRadius: '16px', border: '2px dashed #F0EDE8', cursor: 'pointer', backgroundColor: '#FAFAFA', transition: 'all 0.2s' }} className="hover:border-[#C3AB7E] hover:bg-white">
+                                    <Upload size={20} style={{ color: '#C3AB7E' }} />
+                                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#6b7280' }}>Cliquer pour ajouter des images</span>
+                                    <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                                </label>
+                            </div>
+
+                            {/* Section 5: Sizes */}
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>Tailles Disponibles</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                                    {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '36', '38', '40', '42', '44', '46', '48', '50', '52'].map(size => (
+                                        <button
+                                            key={size} type="button"
+                                            onClick={() => {
+                                                const sizes = formData.attributes?.filter(a => a.type === 'size') || [];
+                                                const exists = sizes.find(a => a.value === size);
+                                                if (exists) {
+                                                    setFormData(prev => ({ ...prev, attributes: prev.attributes.filter(a => !(a.type === 'size' && a.value === size)) }));
+                                                } else {
+                                                    setFormData(prev => ({ ...prev, attributes: [...(prev.attributes || []), { type: 'size', value: size, label: size, is_available: true }] }));
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: '800',
+                                                border: formData.attributes?.find(a => a.type === 'size' && a.value === size)
+                                                    ? '2px solid #C3AB7E' : '1px solid #F0EDE8',
+                                                backgroundColor: formData.attributes?.find(a => a.type === 'size' && a.value === size)
+                                                    ? '#FDF6E7' : 'white',
+                                                color: formData.attributes?.find(a => a.type === 'size' && a.value === size)
+                                                    ? '#C3AB7E' : '#6b7280',
+                                                cursor: 'pointer', transition: 'all 0.2s'
+                                            }}
+                                        >{size}</button>
+                                    ))}
                                 </div>
+                            </div>
+
+                            {/* Section 6: Colors */}
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>Couleurs Disponibles</label>
+
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+                                    {(formData.attributes?.filter(a => a.type === 'color') || []).map((color, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '10px', border: '1px solid #F0EDE8', backgroundColor: 'white' }}>
+                                            <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: color.value, border: '1px solid rgba(0,0,0,0.1)' }} />
+                                            <span style={{ fontSize: '12px', fontWeight: '700' }}>{color.label}</span>
+                                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, attributes: prev.attributes.filter((_, idx) => idx !== prev.attributes.findIndex(a => a.type === 'color' && a.value === color.value)) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '16px', padding: 0 }}>×</button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <input
+                                        type="color"
+                                        style={{ width: '48px', height: '48px', borderRadius: '12px', border: '1px solid #F0EDE8', cursor: 'pointer', padding: '2px' }}
+                                        value={tempColor}
+                                        onChange={(e) => setTempColor(e.target.value)}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Nom (ex: Rouge)"
+                                        value={tempColorName}
+                                        onChange={e => setTempColorName(e.target.value)}
+                                        style={{ flex: 1, minWidth: '160px', height: '48px', padding: '0 16px', borderRadius: '12px', border: '1px solid #F0EDE8', outline: 'none', fontSize: '13px' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (tempColorName) {
+                                                setFormData(prev => ({ ...prev, attributes: [...(prev.attributes || []), { type: 'color', value: tempColor || '#000000', label: tempColorName, is_available: true }] }));
+                                                setTempColorName('');
+                                                setTempColor('#000000');
+                                            }
+                                        }}
+                                        style={{ height: '48px', padding: '0 20px', borderRadius: '12px', backgroundColor: '#111111', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '800', fontSize: '12px', whiteSpace: 'nowrap' }}
+                                    >+ Ajouter</button>
+                                </div>
+                            </div>
+
+                            {/* Section 7: Toggles */}
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                                {[
+                                    { key: 'featured', label: 'Mis en avant' },
+                                    { key: 'is_new', label: 'Nouveauté' },
+                                    { key: 'on_sale', label: 'En promotion' },
+                                    { key: 'in_stock', label: 'En stock' },
+                                    { key: 'is_visible', label: 'Visible' },
+                                ].map(({ key, label }) => (
+                                    <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '12px 16px', borderRadius: '12px', border: `2px solid ${formData[key] ? '#C3AB7E' : '#F0EDE8'}`, backgroundColor: formData[key] ? '#FDF6E7' : 'white', transition: 'all 0.2s' }}>
+                                        <input type="checkbox" checked={!!formData[key]} onChange={e => setFormData(prev => ({ ...prev, [key]: e.target.checked }))} style={{ display: 'none' }} />
+                                        <div style={{ width: '18px', height: '18px', borderRadius: '6px', backgroundColor: formData[key] ? '#C3AB7E' : 'white', border: `2px solid ${formData[key] ? '#C3AB7E' : '#D1D5DB'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                                            {formData[key] && <span style={{ color: 'white', fontSize: '12px', fontWeight: '900' }}>✓</span>}
+                                        </div>
+                                        <span style={{ fontSize: '12px', fontWeight: '800', color: formData[key] ? '#C3AB7E' : '#6b7280' }}>{label}</span>
+                                    </label>
+                                ))}
                             </div>
 
                             <div style={{ height: '1px', backgroundColor: '#f0ede8' }} />
