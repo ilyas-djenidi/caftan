@@ -64,7 +64,8 @@ export default function Home() {
             <section style={{
                 position: 'relative', height: '100vh', width: '100%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                overflow: 'hidden', backgroundColor: '#111111'
+                overflow: 'hidden', backgroundColor: '#111111',
+                paddingTop: '80px'
             }}>
                 {/* Background Image with Overlay */}
                 <div style={{
