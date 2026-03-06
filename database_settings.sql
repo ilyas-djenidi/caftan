@@ -35,3 +35,63 @@ CREATE POLICY "Allow anon update"
 INSERT INTO public.site_settings (key, value)
 VALUES ('visitor_count', '{"count": 0}')
 ON CONFLICT (key) DO NOTHING;
+
+-----------------------------------------------------------
+-- STORAGE PERMISSIONS (For Seeding / Development)
+-----------------------------------------------------------
+
+-- 1. Ensure the bucket exists and is public
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('caftan-images', 'caftan-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 2. Allow public uploads (INSERT)
+DROP POLICY IF EXISTS "Allow Public Uploads" ON storage.objects;
+CREATE POLICY "Allow Public Uploads"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'caftan-images');
+
+-- 3. Allow public updates (UPDATE)
+DROP POLICY IF EXISTS "Allow Public Update" ON storage.objects;
+CREATE POLICY "Allow Public Update"
+ON storage.objects FOR UPDATE
+WITH CHECK (bucket_id = 'caftan-images');
+
+-- 4. Allow public deletions (DELETE)
+DROP POLICY IF EXISTS "Allow Public Delete" ON storage.objects;
+CREATE POLICY "Allow Public Delete"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'caftan-images');
+
+-- 5. Allow public viewing (SELECT) - technically default for public buckets but good to be explicit
+DROP POLICY IF EXISTS "Allow Public Select" ON storage.objects;
+CREATE POLICY "Allow Public Select"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'caftan-images');
+
+-----------------------------------------------------------
+-- PRODUCT DATA CLEANUP (As requested by user)
+-----------------------------------------------------------
+
+-- This will clear all products. Note: This might fail if you have orders linked to these products.
+-- If it fails, you may need to delete from 'order_items' first.
+TRUNCATE TABLE public.products RESTART IDENTITY CASCADE;
+
+-----------------------------------------------------------
+-- PRODUCT RLS POLICIES (Allow Seeding)
+-----------------------------------------------------------
+
+-- 1. Products
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for products" ON public.products;
+CREATE POLICY "Allow all for products" ON public.products FOR ALL USING (true) WITH CHECK (true);
+
+-- 2. Product Images
+ALTER TABLE public.product_images ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for product_images" ON public.product_images;
+CREATE POLICY "Allow all for product_images" ON public.product_images FOR ALL USING (true) WITH CHECK (true);
+
+-- 3. Product Attributes
+ALTER TABLE public.product_attributes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all for product_attributes" ON public.product_attributes;
+CREATE POLICY "Allow all for product_attributes" ON public.product_attributes FOR ALL USING (true) WITH CHECK (true);

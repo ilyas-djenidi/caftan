@@ -10,7 +10,7 @@ export const getImageUrl = (path) => {
     // Use proxy in dev or full URL in prod if needed
     const baseUrl = import.meta.env.VITE_API_URL === '/api'
         ? ''
-        : 'http://localhost:5000';
+        : '';
 
     return `${baseUrl}${path}`;
 };

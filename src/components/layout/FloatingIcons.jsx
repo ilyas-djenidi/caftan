@@ -37,16 +37,18 @@ const FloatingIcons = () => {
                 title="Mon Panier"
                 style={{
                     ...btnBase,
-                    backgroundColor: '#111111',
-                    color: '#ffffff',
+                    backgroundColor: '#ffffff',
+                    color: '#111111',
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'scale(1.1)';
                     e.currentTarget.style.backgroundColor = '#C3AB7E';
+                    e.currentTarget.style.color = '#ffffff';
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.backgroundColor = '#111111';
+                    e.currentTarget.style.backgroundColor = '#ffffff';
+                    e.currentTarget.style.color = '#111111';
                 }}
             >
                 <ShoppingBag size={24} />

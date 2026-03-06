@@ -5,28 +5,56 @@ import { ArrowRight, Sparkles, ShoppingBag, Heart, Star, ChevronRight } from 'lu
 import { getProducts } from '../api/products.api';
 import ProductCard from '../components/shared/ProductCard';
 
+import { supabase } from '../lib/supabase';
+
 export default function Home() {
     const [featuredProducts, setFeaturedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [heroData, setHeroData] = useState({
+        title_fr: 'Maison du Caftans',
+        subtitle_fr: 'Découvrez notre collection exclusive de caftans haute couture et accessoires raffinés, alliant tradition et modernité.',
+        cta_text_fr: 'DÉCOUVRIR LA COLLECTION',
+        image_url: '/hero-bg.jpg'
+    });
+    const [categoryCounts, setCategoryCounts] = useState({ caftans: 0, sacs: 0, accessoires: 0 });
 
     useEffect(() => {
-        const loadProducts = async () => {
+        const loadPageData = async () => {
             try {
-                const { data } = await getProducts({ featured: true, limit: 8 });
+                // Fetch Products
+                const { data } = await getProducts({ limit: 20 });
                 setFeaturedProducts(data.products || []);
+
+                // Fetch Hero Settings
+                const { data: heroSettings } = await supabase
+                    .from('site_settings')
+                    .select('value')
+                    .eq('key', 'hero_content')
+                    .maybeSingle();
+                if (heroSettings?.value) {
+                    setHeroData(prev => ({ ...prev, ...heroSettings.value }));
+                }
+
+                // Fetch product counts per category
+                const [{ count: caftansCount }, { count: sacsCount }, { count: accCount }] = await Promise.all([
+                    supabase.from('products').select('*', { count: 'exact', head: true }).eq('category', 'caftans'),
+                    supabase.from('products').select('*', { count: 'exact', head: true }).eq('category', 'sacs'),
+                    supabase.from('products').select('*', { count: 'exact', head: true }).eq('category', 'accessoires'),
+                ]);
+                setCategoryCounts({ caftans: caftansCount || 0, sacs: sacsCount || 0, accessoires: accCount || 0 });
             } catch (error) {
-                console.error('Error loading featured products:', error);
+                console.error('Error loading home data:', error);
             } finally {
                 setLoading(false);
             }
         };
-        loadProducts();
+        loadPageData();
     }, []);
 
     const categories = [
-        { name: 'Caftans', to: '/caftans', image: '/images/cat_caftans.jpg', count: '12+ Modèles' },
-        { name: 'Sacs', to: '/sacs', image: '/images/cat_sacs.jpg', count: '8+ Styles' },
-        { name: 'Accessoires', to: '/accessoires', image: '/images/cat_acc.jpg', count: '15+ Pièces' },
+        { name: 'Caftans', to: '/caftans', image: '/images/cat_caftans.jpg', count: `${categoryCounts.caftans} Modèles` },
+        { name: 'Sacs', to: '/sacs', image: '/images/cat_sacs.jpg', count: `${categoryCounts.sacs} Styles` },
+        { name: 'Accessoires', to: '/accessoires', image: '/images/cat_acc.jpg', count: `${categoryCounts.accessoires} Pièces` },
         { name: 'Packs', to: '/packs', image: '/images/cat_packs.jpg', count: 'Édition Spéciale' },
     ];
 
@@ -41,7 +69,7 @@ export default function Home() {
                 {/* Background Image with Overlay */}
                 <div style={{
                     position: 'absolute', inset: 0,
-                    backgroundImage: 'url("/hero-bg.jpg")',
+                    backgroundImage: `url("${heroData.image_url}")`,
                     backgroundSize: 'cover', backgroundPosition: 'center',
                     opacity: 0.6, scale: 1.1
                 }} />
@@ -66,14 +94,18 @@ export default function Home() {
                             color: 'white', fontWeight: '400', lineHeight: '1.1',
                             margin: '0 0 32px'
                         }}>
-                            Maison du <br />
-                            <span style={{ fontStyle: 'italic', fontWeight: '400' }}>Caftans</span>
+                            {heroData.title_fr.split(' ').length > 1 ? (
+                                <>
+                                    {heroData.title_fr.split(' ').slice(0, -1).join(' ')} <br />
+                                    <span style={{ fontStyle: 'italic', fontWeight: '400' }}>{heroData.title_fr.split(' ').slice(-1)}</span>
+                                </>
+                            ) : heroData.title_fr}
                         </h1>
                         <p style={{
                             color: 'rgba(255,255,255,0.7)', fontSize: '18px',
                             maxWidth: '600px', margin: '0 auto 48px', lineHeight: '1.6'
                         }}>
-                            Découvrez notre collection exclusive de caftans haute couture et accessoires raffinés, alliant tradition et modernité.
+                            {heroData.subtitle_fr}
                         </p>
                         <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
                             <Link to="/caftans" style={{
@@ -83,7 +115,7 @@ export default function Home() {
                                 letterSpacing: '0.2em', textTransform: 'uppercase',
                                 border: 'none', transition: 'all 0.3s'
                             }} className="hover:scale-105">
-                                DÉCOUVRIR LA COLLECTION
+                                {heroData.cta_text_fr}
                             </Link>
                         </div>
                     </motion.div>
