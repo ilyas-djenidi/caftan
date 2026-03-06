@@ -1,4 +1,4 @@
-import { Heart, Plus, Sparkles } from 'lucide-react';
+import { Heart, Plus, Sparkles, ShoppingBag as Bag } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore';
 import { useWishlistStore } from '../../store/wishlistStore';
 import { getImageUrl } from '../../utils';
@@ -78,9 +78,27 @@ const ProductCard = ({ product, onClick }) => {
                     <button
                         onClick={handleAddToCart}
                         disabled={isSoldOut}
-                        style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#111', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        style={{
+                            width: '40px', height: '40px', borderRadius: '12px',
+                            background: 'white', border: '1px solid #e5e7eb',
+                            color: '#111', display: 'flex', alignItems: 'center',
+                            justifyContent: 'center', transition: 'all 0.2s ease',
+                            cursor: isSoldOut ? 'not-allowed' : 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (!isSoldOut) {
+                                e.currentTarget.style.background = '#111';
+                                e.currentTarget.style.color = 'white';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (!isSoldOut) {
+                                e.currentTarget.style.background = 'white';
+                                e.currentTarget.style.color = '#111';
+                            }
+                        }}
                     >
-                        <Plus size={20} />
+                        {isSoldOut ? <Plus size={18} style={{ transform: 'rotate(45deg)' }} /> : <Bag size={18} strokeWidth={1.5} />}
                     </button>
                 </div>
             </div>

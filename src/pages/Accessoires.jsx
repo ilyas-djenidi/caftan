@@ -5,7 +5,6 @@ export default function Accessoires() {
         <CollectionGrid
             category="accessoires"
             title="Accessoires de Prestige"
-            subtitle="Une sélection délicate de bijoux et d'accessoires pour parfaire votre allure avec éclat et finesse."
         />
     );
 }

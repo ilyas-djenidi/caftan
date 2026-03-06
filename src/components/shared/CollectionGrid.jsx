@@ -37,27 +37,13 @@ export default function CollectionGrid({ category, title, subtitle }) {
     }, [category, page, sort]);
 
     return (
-        <div className="min-h-screen bg-white pb-20" style={{ overflowX: 'hidden', paddingTop: 'calc(var(--navbar-height) + 32px)' }}>
+        <div className="min-h-screen bg-white pb-40" style={{ overflowX: 'hidden', paddingTop: 'calc(var(--navbar-height) + 32px)' }}>
             {/* Header */}
-            <header className="container mx-auto px-4 md:px-10 mb-16 text-center">
+            <header className="container mx-auto px-4 md:px-10 mb-28 text-center">
                 <span style={{ color: '#C3AB7E', fontSize: '10px', fontWeight: '800', letterSpacing: '0.3em', textTransform: 'uppercase' }}>COLLECTION</span>
                 <h1 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontFamily: 'serif', marginTop: '12px' }}>{title}</h1>
                 {subtitle && <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '600px', margin: '16px auto 0' }}>{subtitle}</p>}
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '20px', marginTop: '40px', borderBottom: '1px solid #f0ede8', paddingBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '800', color: '#111111', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{total} Produits</span>
-                    </div>
-                    <select
-                        value={sort}
-                        onChange={(e) => setSort(e.target.value)}
-                        style={{ border: 'none', background: 'none', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', outline: 'none' }}
-                    >
-                        <option value="newest">Nouveautés</option>
-                        <option value="price_asc">Prix croissant</option>
-                        <option value="price_desc">Prix décroissant</option>
-                    </select>
-                </div>
             </header>
 
             {/* Grid */}

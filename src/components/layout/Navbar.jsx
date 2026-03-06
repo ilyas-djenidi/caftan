@@ -158,8 +158,7 @@ export default function Navbar() {
                             alt="Maison du Caftans"
                             style={{
                                 height: isScrolled ? '50px' : '70px',
-                                transition: 'all 0.5s',
-                                filter: isScrolled || !isHome ? 'none' : 'brightness(0) invert(1)'
+                                transition: 'all 0.5s'
                             }}
                         />
                     </Link>

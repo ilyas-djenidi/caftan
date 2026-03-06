@@ -54,11 +54,32 @@ export default function ProductDetail() {
     }
 
     const images = product.images?.length > 0 ? product.images : [{ image_url: product.image_url || product.image }];
-    const sizes = product.attributes?.filter(a => a.name === 'size' || a.name === 'taille') || [];
-    const colors = product.attributes?.filter(a => a.name === 'color' || a.name === 'couleur') || [];
+
+    // Provide fallback sizes/colors if DB is empty to showcase the premium UI
+    let sizes = product.attributes?.filter(a => a.name === 'size' || a.name === 'taille') || [];
+    let colors = product.attributes?.filter(a => a.name === 'color' || a.name === 'couleur') || [];
+
+    if (sizes.length === 0 && (product.category?.toLowerCase() === 'caftans' || product.category?.toLowerCase() === 'caftan')) {
+        sizes = [
+            { id: 's1', value: 'S' },
+            { id: 's2', value: 'M' },
+            { id: 's3', value: 'L' },
+            { id: 's4', value: 'Sur Mesure' }
+        ];
+    }
+
+    if (colors.length === 0 && (product.category?.toLowerCase() === 'caftans' || product.category?.toLowerCase() === 'caftan')) {
+        colors = [
+            { id: 'c1', value: '#e2d4bd' }, // cream/vanilla
+            { id: 'c2', value: '#111111' }, // black
+            { id: 'c3', value: '#8b0000' }  // deep red/bordeaux
+        ];
+    }
 
     const handleAddToCart = () => {
-        addItem(product, selectedSize, selectedColor, quantity);
+        const sizeToAdd = selectedSize || (sizes[0]?.value) || null;
+        const colorToAdd = selectedColor || (colors[0]?.value) || null;
+        addItem(product, sizeToAdd, colorToAdd, quantity);
         openDrawer();
     };
 
@@ -209,29 +230,32 @@ export default function ProductDetail() {
                             </button>
                         </div>
 
-                        {/* Features */}
-                        <div className="grid grid-cols-1 gap-6 mt-12">
-                            <div className="flex items-center gap-4">
-                                <Shield className="text-[#C3AB7E]" size={20} />
-                                <span className="text-sm font-600">Paiement sécurisé & Authentique</span>
+                        {/* Description & Details embedded in the right column */}
+                        <div className="mt-12 space-y-8">
+                            <div>
+                                <h3 className="text-[11px] font-800 uppercase tracking-widest text-[#111111] mb-4 flex items-center gap-2">
+                                    <Sparkles size={14} className="text-[#C3AB7E]" /> Description
+                                </h3>
+                                <p className="text-[15px] font-400 leading-relaxed text-[#4b5563]">
+                                    {product.description_fr || "Découvrez l'élégance intemporelle de cette pièce unique. Conçue avec des matières nobles et un savoir-faire d'exception, elle sublimera votre allure en toute circonstance."}
+                                </p>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <Truck className="text-[#C3AB7E]" size={20} />
-                                <span className="text-sm font-600">Livraison Express sur tout le territoire</span>
+
+                            <div className="w-full h-px bg-[#f0ede8]" />
+
+                            <div>
+                                <h3 className="text-[11px] font-800 uppercase tracking-widest text-[#111111] mb-4">
+                                    Détails & Entretien
+                                </h3>
+                                <ul className="text-[14px] font-400 leading-relaxed text-[#4b5563] space-y-2 list-disc pl-4 marker:text-[#C3AB7E]">
+                                    <li>Tissu de haute qualité soigneusement sélectionné</li>
+                                    <li>Finitions artisanales et broderies délicates</li>
+                                    <li>Nettoyage à sec uniquement recommandé</li>
+                                    <li>Livré dans son coffret Maison du Caftans exclusif</li>
+                                </ul>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Description */}
-                <div style={{ marginTop: '120px' }}>
-                    <div style={{ display: 'flex', gap: '48px', borderBottom: '1px solid #f0ede8', marginBottom: '40px' }}>
-                        <h3 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.2em', borderBottom: '2px solid #111111', paddingBottom: '16px' }}>Description</h3>
-                    </div>
-                    <div style={{ maxWidth: '800px' }}>
-                        <p style={{ color: '#4b5563', lineHeight: '1.8', fontSize: '16px' }}>
-                            {product.description_fr}
-                        </p>
                     </div>
                 </div>
             </main>

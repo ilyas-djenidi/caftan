@@ -12,7 +12,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [heroData, setHeroData] = useState({
         title_fr: 'Maison du Caftans',
-        subtitle_fr: 'Découvrez notre collection exclusive de caftans haute couture et accessoires raffinés, alliant tradition et modernité.',
+        subtitle_fr: 'L’excellence du savoir-faire traditionnel au service de votre élégance.',
         cta_text_fr: 'DÉCOUVRIR LA COLLECTION',
         image_url: '/hero-bg.jpg'
     });
@@ -60,71 +60,136 @@ export default function Home() {
 
     return (
         <div className="min-h-screen bg-white">
-            {/* HER0 - OVERLAY STYLE */}
+            {/* HERO — SINGLE FULL-SCREEN IMAGE */}
             <section style={{
-                position: 'relative', height: '100vh', width: '100%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                overflow: 'hidden', backgroundColor: '#111111',
-                paddingTop: '80px'
+                position: 'relative',
+                height: '100vh',
+                width: '100%',
+                overflow: 'hidden',
+                backgroundColor: '#0e0e0e',
+                paddingTop: '80px',
             }}>
-                {/* Background Image with Overlay */}
+                {/* Full-screen caftan image */}
                 <div style={{
                     position: 'absolute', inset: 0,
-                    backgroundImage: `url("${heroData.image_url}")`,
-                    backgroundSize: 'cover', backgroundPosition: 'center',
-                    opacity: 0.6, scale: 1.1
+                    backgroundImage: `url('/images/caftan/photo_1_2026-03-01_04-05-38.jpg')`,
+                    backgroundSize: 'cover', backgroundPosition: 'center top',
                 }} />
+                {/* Dark gradient overlay — heavier on the left for text legibility */}
                 <div style={{
                     position: 'absolute', inset: 0,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8))'
+                    background: 'linear-gradient(105deg, rgba(14,14,14,0.80) 0%, rgba(14,14,14,0.35) 55%, rgba(14,14,14,0.10) 100%)',
                 }} />
 
-                <div className="container mx-auto px-10 relative z-10 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
+                {/* Text content — bottom-left */}
+                <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                        position: 'absolute', bottom: 'clamp(10%, 15vh, 25%)', left: '7%',
+                        maxWidth: '560px', zIndex: 10,
+                    }}
+                >
+                    {/* Eyebrow */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
+                        <div style={{ width: '40px', height: '1px', backgroundColor: '#C3AB7E' }} />
                         <span style={{
-                            color: '#C3AB7E', fontSize: '12px', fontWeight: '800',
-                            letterSpacing: '0.4em', textTransform: 'uppercase',
-                            marginBottom: '24px', display: 'block'
+                            color: '#C3AB7E', fontSize: '10px', fontWeight: '600',
+                            letterSpacing: '0.45em', textTransform: 'uppercase',
+                            fontFamily: "'Inter', sans-serif",
                         }}>L'ÉLÉGANCE À L'ÉTAT PUR</span>
-                        <h1 style={{
-                            fontSize: 'clamp(48px, 8vw, 120px)', fontFamily: 'serif',
-                            color: 'white', fontWeight: '400', lineHeight: '1.1',
-                            margin: '0 0 32px'
-                        }}>
-                            {heroData.title_fr.split(' ').length > 1 ? (
-                                <>
-                                    {heroData.title_fr.split(' ').slice(0, -1).join(' ')} <br />
-                                    <span style={{ fontStyle: 'italic', fontWeight: '400' }}>{heroData.title_fr.split(' ').slice(-1)}</span>
-                                </>
-                            ) : heroData.title_fr}
-                        </h1>
-                        <p style={{
-                            color: 'rgba(255,255,255,0.7)', fontSize: '18px',
-                            maxWidth: '600px', margin: '0 auto 48px', lineHeight: '1.6'
-                        }}>
-                            {heroData.subtitle_fr}
-                        </p>
-                        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-                            <Link to="/caftans" style={{
-                                backgroundColor: '#C3AB7E', color: 'white',
-                                padding: '20px 48px', borderRadius: '100px',
-                                textDecoration: 'none', fontWeight: '800', fontSize: '12px',
-                                letterSpacing: '0.2em', textTransform: 'uppercase',
-                                border: 'none', transition: 'all 0.3s'
-                            }} className="hover:scale-105">
-                                {heroData.cta_text_fr}
-                            </Link>
-                        </div>
-                    </motion.div>
-                </div>
+                    </div>
+
+                    {/* Title */}
+                    <h1 style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: 'clamp(56px, 7vw, 104px)',
+                        fontWeight: '400',
+                        color: 'white',
+                        lineHeight: '1.05',
+                        margin: '0 0 28px',
+                        letterSpacing: '-0.01em',
+                    }}>
+                        {(() => {
+                            const words = heroData.title_fr.split(' ');
+                            if (words.length > 1) {
+                                return (
+                                    <>
+                                        {words.slice(0, -1).join(' ')}<br />
+                                        <em style={{ fontStyle: 'italic', fontWeight: '300' }}>{words.slice(-1)}</em>
+                                    </>
+                                );
+                            }
+                            return heroData.title_fr;
+                        })()}
+                    </h1>
+
+                    {/* Subtitle */}
+                    <p style={{
+                        fontFamily: "'Inter', sans-serif",
+                        color: 'rgba(255,255,255,0.65)', fontSize: '15px',
+                        lineHeight: '1.75', marginBottom: '40px', maxWidth: '420px',
+                    }}>
+                        {heroData.subtitle_fr}
+                    </p>
+
+                    {/* CTAs */}
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                        <Link to="/caftans" style={{
+                            backgroundColor: '#C3AB7E', color: '#0e0e0e',
+                            padding: '16px 40px', borderRadius: '100px',
+                            textDecoration: 'none', fontWeight: '700', fontSize: '10px',
+                            letterSpacing: '0.25em', textTransform: 'uppercase',
+                            fontFamily: "'Inter', sans-serif",
+                            transition: 'all 0.3s',
+                        }} className="hover:scale-105">
+                            {heroData.cta_text_fr}
+                        </Link>
+                        <Link to="/packs" style={{
+                            color: 'white', padding: '16px 32px',
+                            borderRadius: '100px', textDecoration: 'none',
+                            fontWeight: '600', fontSize: '10px',
+                            letterSpacing: '0.25em', textTransform: 'uppercase',
+                            fontFamily: "'Inter', sans-serif",
+                            border: '1px solid rgba(255,255,255,0.3)',
+                            transition: 'all 0.3s',
+                        }} className="hover:border-[#C3AB7E] hover:text-[#C3AB7E]">
+                            NOS PACKS
+                        </Link>
+                    </div>
+                </motion.div>
+
+                {/* Scroll indicator */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.2, duration: 0.8 }}
+                    style={{
+                        position: 'absolute', bottom: '32px', left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', gap: '8px', zIndex: 20,
+                    }}
+                >
+                    <span style={{
+                        color: 'rgba(255,255,255,0.4)', fontSize: '9px',
+                        fontFamily: "'Inter', sans-serif",
+                        letterSpacing: '0.3em', textTransform: 'uppercase',
+                    }}>Défiler</span>
+                    <motion.div
+                        animate={{ y: [0, 8, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+                        style={{
+                            width: '1px', height: '40px',
+                            background: 'linear-gradient(to bottom, rgba(195,171,126,0.8), transparent)',
+                        }}
+                    />
+                </motion.div>
             </section>
 
             {/* CATEGORIES GRID */}
-            <section style={{ padding: '120px 0', backgroundColor: '#ffffff' }}>
+            <section style={{ padding: 'clamp(60px, 10vw, 120px) 0', backgroundColor: '#ffffff' }}>
                 <div className="container mx-auto px-10">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '60px' }}>
                         <div>
@@ -133,10 +198,10 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
                         {categories.map((cat, i) => (
                             <Link key={i} to={cat.to} style={{
-                                position: 'relative', height: '500px', borderRadius: '30px',
+                                position: 'relative', height: 'clamp(320px, 65vw, 500px)', borderRadius: '30px',
                                 overflow: 'hidden', textDecoration: 'none', display: 'block'
                             }} className="group">
                                 <div style={{
@@ -149,11 +214,11 @@ export default function Home() {
                                     background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)'
                                 }} />
                                 <div style={{
-                                    position: 'absolute', bottom: '40px', left: '40px', right: '40px',
+                                    position: 'absolute', bottom: 'clamp(20px, 5vw, 40px)', left: 'clamp(20px, 5vw, 40px)', right: 'clamp(20px, 5vw, 40px)',
                                     display: 'flex', flexDirection: 'column', gap: '8px'
                                 }}>
-                                    <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '10px', fontWeight: '800', letterSpacing: '0.1em' }}>{cat.count}</span>
-                                    <h3 style={{ color: 'white', fontSize: '24px', fontFamily: 'serif', margin: 0 }}>{cat.name}</h3>
+                                    <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 'clamp(8px, 2vw, 10px)', fontWeight: '800', letterSpacing: '0.1em' }}>{cat.count}</span>
+                                    <h3 style={{ color: 'white', fontSize: 'clamp(20px, 5vw, 28px)', fontFamily: 'serif', margin: 0 }}>{cat.name}</h3>
                                     <div style={{
                                         width: '40px', height: '2px', backgroundColor: '#C3AB7E',
                                         transition: 'width 0.3s'
