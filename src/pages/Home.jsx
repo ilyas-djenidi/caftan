@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, ShoppingBag, Heart, Star, ChevronRight } from 'lucide-react';
+import { ArrowRight, Sparkles, ShoppingBag, Heart, Star, ChevronRight, Send, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { getProducts } from '../api/products.api';
 import ProductCard from '../components/shared/ProductCard';
 
@@ -10,6 +11,26 @@ import { supabase } from '../lib/supabase';
 export default function Home() {
     const [featuredProducts, setFeaturedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [contactLoading, setContactLoading] = useState(false);
+    const [contactData, setContactData] = useState({ name: '', email: '', message: '' });
+
+    const handleContactSubmit = async (e) => {
+        e.preventDefault();
+        setContactLoading(true);
+        try {
+            const { error } = await supabase.from('messages').insert([{
+                name: contactData.name, email: contactData.email,
+                subject: '', message: contactData.message, status: 'unread'
+            }]);
+            if (error) throw error;
+            toast.success('Message envoyé avec succès !');
+            setContactData({ name: '', email: '', message: '' });
+        } catch {
+            toast.error('Une erreur est survenue.');
+        } finally {
+            setContactLoading(false);
+        }
+    };
     const [heroData, setHeroData] = useState({
         title_fr: 'Maison du Caftans',
         subtitle_fr: 'L’excellence du savoir-faire traditionnel au service de votre élégance.',
@@ -266,36 +287,33 @@ export default function Home() {
                 </div>
             </section >
 
-            {/* CALL TO ACTION - PACK BRIDAL */}
-            <section style={{
-                padding: 'clamp(40px, 8vw, 100px)', borderRadius: 'clamp(30px, 10vw, 60px)',
-                backgroundColor: '#111111', position: 'relative', overflow: 'hidden'
-            }} className="mx-5 md:mx-10 mb-[120px]">
-                <div style={{
-                    position: 'absolute', right: '10%', top: '50%', transform: 'translateY(-50%)',
-                    width: '500px', height: '500px', borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(195,171,126,0.3) 0%, transparent 70%)',
-                    filter: 'blur(40px)'
-                }} />
+            {/* CONTACT FORM SECTION */}
+            <section style={{ padding: 'clamp(60px, 8vw, 100px) 20px', backgroundColor: '#fafaf9' }} className="mx-5 md:mx-10 mb-[100px] rounded-[40px]">
+                <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+                    <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.3em', display: 'block', textAlign: 'center', marginBottom: '12px' }}>NOUS CONTACTER</span>
+                    <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontFamily: 'serif', textAlign: 'center', marginBottom: '40px', lineHeight: 1.2 }}>Envoyez-nous<br />un Message</h2>
 
-                <div className="relative z-10 max-w-2xl">
-                    <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.4em' }}>ÉDITION SPÉCIALE</span>
-                    <h2 style={{ color: 'white', fontSize: 'clamp(32px, 8vw, 56px)', fontFamily: 'serif', margin: '24px 0 32px', lineHeight: '1.2' }}>Le Pack <br /> d'Exception</h2>
-                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '18px', lineHeight: '1.6', marginBottom: '48px' }}>
-                        Un coffret complet soigneusement assemblé pour accompagner vos moments les plus précieux. Inclut des pièces exclusives et personnalisées.
-                    </p>
-                    <Link to="/packs" style={{
-                        display: 'inline-block',
-                        backgroundColor: 'white', color: '#111111',
-                        padding: '16px 32px', sm: { padding: '20px 48px' }, borderRadius: '100px',
-                        textDecoration: 'none', fontWeight: '800', fontSize: '11px',
-                        letterSpacing: '0.2em', textTransform: 'uppercase',
-                        transition: 'all 0.3s', whiteSpace: 'nowrap'
-                    }} className="hover:bg-[#C3AB7E] hover:text-white px-8 py-4 sm:px-12 sm:py-5">
-                        DÉCOUVRIR LE PACK
-                    </Link>
+                    <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div>
+                                <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>Nom</label>
+                                <input required value={contactData.name} onChange={e => setContactData({ ...contactData, name: e.target.value })} placeholder="Votre nom" style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>Email</label>
+                                <input required type="email" value={contactData.email} onChange={e => setContactData({ ...contactData, email: e.target.value })} placeholder="votre@email.com" style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>Message</label>
+                            <textarea required rows="4" value={contactData.message} onChange={e => setContactData({ ...contactData, message: e.target.value })} placeholder="Votre message..." style={{ width: '100%', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', resize: 'none', paddingTop: '10px', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
+                        </div>
+                        <button disabled={contactLoading} type="submit" style={{ height: '52px', backgroundColor: '#111', color: 'white', fontWeight: '800', fontSize: '12px', letterSpacing: '0.1em', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: 'none', cursor: contactLoading ? 'not-allowed' : 'pointer', transition: 'background-color 0.3s' }} className="hover:bg-[#C3AB7E]">
+                            {contactLoading ? <Loader2 size={18} className="animate-spin" /> : <>ENVOYER LE MESSAGE <Send size={15} /></>}
+                        </button>
+                    </form>
                 </div>
-            </section >
+            </section>
         </div >
     );
 }

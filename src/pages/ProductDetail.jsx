@@ -63,8 +63,7 @@ export default function ProductDetail() {
         sizes = [
             { id: 's1', value: 'S' },
             { id: 's2', value: 'M' },
-            { id: 's3', value: 'L' },
-            { id: 's4', value: 'Sur Mesure' }
+            { id: 's3', value: 'L' }
         ];
     }
 
@@ -191,42 +190,42 @@ export default function ProductDetail() {
                             </div>
                         )}
 
-                        {/* Quantity */}
-                        <div className="mb-10">
-                            <label className="block text-[11px] font-800 uppercase tracking-widest text-[#111111] mb-4">Quantité</label>
-                            <div style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: '#f9f9f9', padding: '8px', borderRadius: '16px', gap: '20px' }}>
-                                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-10 rounded-xl bg-white flex items-center justify-center hover:scale-110 transition-all"><Minus size={16} /></button>
-                                <span style={{ fontWeight: '800', width: '20px', textAlign: 'center' }}>{quantity}</span>
-                                <button onClick={() => setQuantity(q => q + 1)} className="w-10 h-10 rounded-xl bg-white flex items-center justify-center hover:scale-110 transition-all"><Plus size={16} /></button>
+                        {/* Quantity & Actions inline */}
+                        <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                            {/* Quantity Selector */}
+                            <div style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: '#f9f9f9', padding: '8px', borderRadius: '16px', gap: '16px', height: '56px' }}>
+                                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-10 rounded-xl bg-white flex items-center justify-center hover:scale-110 transition-all"><Minus size={14} /></button>
+                                <span style={{ fontWeight: '800', width: '20px', textAlign: 'center', fontSize: '14px' }}>{quantity}</span>
+                                <button onClick={() => setQuantity(q => q + 1)} className="w-10 h-10 rounded-xl bg-white flex items-center justify-center hover:scale-110 transition-all"><Plus size={14} /></button>
                             </div>
-                        </div>
 
-                        {/* Actions */}
-                        <div className="flex gap-4">
+                            {/* Add to Cart */}
                             <button
                                 onClick={handleAddToCart}
                                 style={{
                                     flex: 1, backgroundColor: '#111111', color: 'white',
-                                    height: '72px', borderRadius: '24px', fontWeight: '800',
-                                    fontSize: '14px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                                    height: '56px', borderRadius: '16px', fontWeight: '800',
+                                    fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase',
                                     border: 'none', cursor: 'pointer'
                                 }}
                                 className="hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-gray-200 flex items-center justify-center gap-3"
                             >
-                                <ShoppingBag /> Ajouter au panier
+                                <ShoppingBag size={18} /> Ajouter au panier
                             </button>
+
+                            {/* Wishlist */}
                             <button
                                 onClick={() => toggle(product)}
                                 style={{
-                                    width: '72px', height: '72px', borderRadius: '24px',
+                                    width: '56px', height: '56px', borderRadius: '16px',
                                     border: '1px solid #f0ede8', display: 'flex',
                                     alignItems: 'center', justifyContent: 'center',
                                     color: isWishlisted(product.id) ? '#ef4444' : '#111111',
                                     cursor: 'pointer', background: 'white'
                                 }}
-                                className="hover:bg-gray-50 transition-all"
+                                className="hover:bg-gray-50 transition-all flex items-center justify-center"
                             >
-                                <Heart fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
+                                <Heart size={20} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
                             </button>
                         </div>
 
