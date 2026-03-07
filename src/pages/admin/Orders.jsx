@@ -26,6 +26,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getImageUrl } from '../../utils';
+import LogoLoader from '../../components/shared/LogoLoader';
 
 const ORDER_STATUSES = [
     { value: 'PENDING', label: 'En attente', color: '#f59e0b', bg: '#FFFBEB' },
@@ -157,10 +158,9 @@ const Orders = () => {
                     <tbody className="divide-y divide-[#F0EDE8]">
                         {loading ? (
                             <tr>
-                                <td colSpan="5" className="py-20 text-center">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <Loader2 className="animate-spin text-[#C3AB7E]" size={32} />
-                                        <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Chargement...</span>
+                                <td colSpan="5" className="py-20">
+                                    <div style={{ position: 'relative', height: '300px' }}>
+                                        <LogoLoader />
                                     </div>
                                 </td>
                             </tr>

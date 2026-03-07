@@ -5,6 +5,7 @@ import { ArrowRight, Sparkles, ShoppingBag, Heart, Star, ChevronRight, Send, Loa
 import toast from 'react-hot-toast';
 import { getProducts } from '../api/products.api';
 import ProductCard from '../components/shared/ProductCard';
+import LogoLoader from '../components/shared/LogoLoader';
 
 import { supabase } from '../lib/supabase';
 
@@ -80,6 +81,8 @@ export default function Home() {
         { name: 'Packs', to: '/packs', image: '/images/cat_packs.jpg', count: 'Édition Spéciale' },
     ];
 
+    if (loading) return <LogoLoader />;
+
     return (
         <div className="min-h-screen bg-white">
             {/* HERO — SINGLE FULL-SCREEN IMAGE */}
@@ -88,7 +91,7 @@ export default function Home() {
                 height: '100vh',
                 width: '100%',
                 overflow: 'hidden',
-                backgroundColor: '#0e0e0e',
+                backgroundColor: '#f8f5f0',
                 paddingTop: '80px',
             }}>
                 <div style={{

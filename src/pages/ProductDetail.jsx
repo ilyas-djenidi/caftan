@@ -5,6 +5,7 @@ import { ShoppingBag, Heart, ChevronLeft, ChevronRight, Star, Shield, Truck, Ref
 import { getProduct, getProducts } from '../api/products.api';
 import { getReviews, createReview } from '../api/reviews.api';
 import ProductCard from '../components/shared/ProductCard';
+import LogoLoader from '../components/shared/LogoLoader';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { getImageUrl, formatPrice } from '../utils';
@@ -83,7 +84,7 @@ export default function ProductDetail() {
     }, [id]);
 
     if (loading) {
-        return <div className="min-h-screen bg-white flex items-center justify-center pt-40"><div className="animate-pulse text-[#C3AB7E]">Chargement...</div></div>;
+        return <LogoLoader />;
     }
 
     if (!product) {
