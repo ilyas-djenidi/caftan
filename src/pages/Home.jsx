@@ -91,10 +91,9 @@ export default function Home() {
                 backgroundColor: '#0e0e0e',
                 paddingTop: '80px',
             }}>
-                {/* Full-screen caftan image */}
                 <div style={{
                     position: 'absolute', inset: 0,
-                    backgroundImage: `url('/images/caftan/photo_1_2026-03-01_04-05-38.jpg')`,
+                    backgroundImage: `url(${heroData.image_url})`,
                     backgroundSize: 'cover', backgroundPosition: 'center top',
                 }} />
                 {/* Dark gradient overlay — heavier on the left for text legibility */}
