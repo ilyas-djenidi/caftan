@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useWishlistStore } from '../store/wishlistStore';
 import { useCartStore } from '../store/cartStore';
 import { ShoppingBag, Trash2, ArrowLeft, Heart, Sparkles } from 'lucide-react';
 import ProductCard from '../components/shared/ProductCard';
 
 export default function Wishlist() {
+    const navigate = useNavigate();
     const { items, toggleItem } = useWishlistStore();
     const { addItem, openDrawer } = useCartStore();
 
@@ -41,7 +42,11 @@ export default function Wishlist() {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         {items.map((product) => (
-                            <ProductCard key={product.id} product={product} />
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                onClick={() => navigate(`/product/${product.id}`)}
+                            />
                         ))}
                     </div>
                 )}

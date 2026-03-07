@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, ShoppingBag, Heart, Star, ChevronRight, Send, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ import ProductCard from '../components/shared/ProductCard';
 import { supabase } from '../lib/supabase';
 
 export default function Home() {
+    const navigate = useNavigate();
     const [featuredProducts, setFeaturedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [contactLoading, setContactLoading] = useState(false);
@@ -80,7 +81,7 @@ export default function Home() {
     ];
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white" style={{ paddingBottom: '100px' }}>
             {/* HERO — SINGLE FULL-SCREEN IMAGE */}
             <section style={{
                 position: 'relative',
@@ -252,7 +253,7 @@ export default function Home() {
             </section >
 
             {/* FEATURED PRODUCTS */}
-            < section style={{ padding: '0 0 120px', backgroundColor: '#ffffff' }}>
+            <section style={{ padding: '0 0 80px', backgroundColor: '#ffffff' }}>
                 <div className="container mx-auto px-10">
                     <div style={{ textAlign: 'center', marginBottom: '80px' }}>
                         <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>Sélection Exclusive</h2>
@@ -268,7 +269,11 @@ export default function Home() {
                             ))
                         ) : (
                             featuredProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} />
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onClick={() => navigate(`/product/${product.id}`)}
+                                />
                             ))
                         )}
                     </div>

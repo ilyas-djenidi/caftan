@@ -40,14 +40,14 @@ const ProductCard = ({ product, onClick }) => {
                 border: '1px solid #F0EDE8',
                 position: 'relative'
             }}
-            className="group hover:shadow-2xl hover:shadow-gray-100"
+            className="group"
         >
             <div style={{ aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#f9f9f9', position: 'relative' }}>
                 <img
                     src={imageUrl || '/placeholder.jpg'}
                     alt={product.name_fr || product.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    className="group-hover:scale-110 transition-transform duration-700"
+                    className="group-hover:scale-[1.04] transition-transform duration-700"
                 />
 
                 {/* ── Heart button – circular ── */}

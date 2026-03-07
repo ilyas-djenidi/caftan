@@ -33,13 +33,15 @@ import HeroManager from './pages/admin/HeroManager';
 // Storefront layout wrapper — renders Navbar + CartDrawer + FloatingIcons + page + Footer
 function StorefrontLayout() {
     return (
-        <>
+        <div className="min-h-screen flex flex-col bg-white" style={{ overflowX: 'hidden', paddingBottom: '100px' }}>
             <Navbar />
             <CartDrawer />
             <FloatingIcons />
-            <Outlet />
+            <div className="flex-grow">
+                <Outlet />
+            </div>
             <Footer />
-        </>
+        </div>
     );
 }
 
