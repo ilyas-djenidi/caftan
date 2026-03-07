@@ -130,7 +130,7 @@ export default function Checkout() {
 
     return (
         <div className="min-h-screen bg-[#fafafa]">
-            <main className="container mx-auto px-4 md:px-10 pb-32" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
+            <main className="container mx-auto px-4 md:px-10 pb-0" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 
                     {/* Left: Checkout Form */}

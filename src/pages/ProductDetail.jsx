@@ -24,6 +24,7 @@ export default function ProductDetail() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [newReview, setNewReview] = useState({ author_name: '', rating: 5, comment: '' });
     const [hoverRating, setHoverRating] = useState(0);
+    const [hasReviewed, setHasReviewed] = useState(false);
 
     const { addItem, openDrawer } = useCartStore();
     const { toggle, isWishlisted } = useWishlistStore();
@@ -63,6 +64,14 @@ export default function ProductDetail() {
                 setLoading(false);
             }
         };
+        const checkReviewed = () => {
+            const reviewedProducts = JSON.parse(localStorage.getItem('reviewed_products') || '[]');
+            if (reviewedProducts.includes(id)) {
+                setHasReviewed(true);
+            }
+        };
+
+        checkReviewed();
         loadProduct();
     }, [id]);
 
@@ -101,6 +110,14 @@ export default function ProductDetail() {
             const updated = await getReviews(id);
             setReviews(updated.data || []);
             setNewReview({ author_name: '', rating: 5, comment: '' });
+
+            // Set hasReviewed to true and save to localStorage
+            const reviewedProducts = JSON.parse(localStorage.getItem('reviewed_products') || '[]');
+            if (!reviewedProducts.includes(id)) {
+                reviewedProducts.push(id);
+                localStorage.setItem('reviewed_products', JSON.stringify(reviewedProducts));
+            }
+            setHasReviewed(true);
         } catch (error) {
             console.error('Error submitting review:', error);
         } finally {
@@ -113,13 +130,13 @@ export default function ProductDetail() {
         : 0;
 
     return (
-        <div className="min-h-screen bg-white">
-            <main className="container mx-auto px-4 md:px-10" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)', paddingBottom: '40px' }}>
+        <div className="bg-white" style={{ paddingBottom: '120px' }}>
+            <main className="max-w-[1400px] mx-auto px-6 md:px-[48px]" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
 
                     {/* Left: Main Image */}
                     <div className="lg:col-span-6 space-y-4">
-                        <div style={{ aspectRatio: '4/5', borderRadius: '40px', overflow: 'hidden', backgroundColor: '#f9f9f9', position: 'sticky', top: '120px' }}>
+                        <div style={{ maxHeight: '520px', aspectRatio: '3/4', borderRadius: '40px', overflow: 'hidden', backgroundColor: '#f9f9f9', position: 'sticky', top: '120px' }}>
                             <AnimatePresence mode="wait">
                                 <motion.img
                                     key={currentImageIndex}
@@ -144,30 +161,19 @@ export default function ProductDetail() {
                     {/* Right: Info Section */}
                     <div className="lg:col-span-6 flex flex-col justify-start">
                         <div className="mb-8">
-                            <div className="space-y-1 mb-6">
-                                <div className="flex items-center gap-1 text-[#C3AB7E]">
-                                    <span style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: '4px', color: '#6B6458' }}>Note</span>
-                                </div>
-                                <button
-                                    onClick={() => setActiveTab('avis')}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'block' }}
-                                >
-                                    <span style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#C3AB7E' }}>Votre avis</span>
-                                </button>
-                            </div>
-
-                            <span style={{ color: '#C3AB7E', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'block', marginBottom: '8px' }}>
-                                {product.category}
-                            </span>
-
-                            <div className="flex items-center gap-1 text-[#C3AB7E] mb-6">
-                                <Star size={14} fill="currentColor" />
-                                <span className="text-xs font-bold">{averageRating || 0} ({reviews.length} avis)</span>
-                            </div>
-
-                            <h1 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.2', margin: '0 0 12px', color: '#1A1714' }}>
+                            <h1 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.2', margin: '0 0 8px', color: '#1A1714' }}>
                                 {product.name_fr || product.name}
                             </h1>
+
+                            <div className="flex items-center gap-2 text-[#C3AB7E] mb-6">
+                                <div className="flex">
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                        <Star key={s} size={12} fill={s <= Math.round(averageRating) ? "currentColor" : "none"} strokeWidth={1.5} />
+                                    ))}
+                                </div>
+                                <span className="text-xs font-medium text-[#6B6458]">{averageRating || 0} ({reviews.length} avis)</span>
+                            </div>
+
                             <p className="font-serif italic" style={{ fontSize: '32px', fontWeight: '600', color: '#1A1714', margin: 0 }}>
                                 {product.price?.toLocaleString()} <span className="text-sm font-sans text-gray-400 font-normal uppercase tracking-widest ml-2">DA</span>
                             </p>
@@ -285,60 +291,34 @@ export default function ProductDetail() {
 
                         <div style={{ height: '1px', backgroundColor: '#f0ede8', margin: '60px 0 40px' }} />
 
-                        {/* TABS: Description & Details */}
-                        <div className="mb-20">
+                        <div style={{ marginTop: '32px' }}>
                             <div className="flex gap-8 border-b border-[#f0ede8] mb-6">
-                                <button
-                                    onClick={() => setActiveTab('description')}
-                                    style={{
-                                        paddingBottom: '12px',
-                                        borderBottom: activeTab === 'description' ? '2px solid #111' : '2px solid transparent',
-                                        color: activeTab === 'description' ? '#111' : '#9ca3af',
-                                        fontWeight: '800', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase',
-                                        transition: 'all 0.3s'
-                                    }}
-                                >
-                                    Description
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('details')}
-                                    style={{
-                                        paddingBottom: '12px',
-                                        borderBottom: activeTab === 'details' ? '2px solid #111' : '2px solid transparent',
-                                        color: activeTab === 'details' ? '#111' : '#9ca3af',
-                                        fontWeight: '800', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase',
-                                        transition: 'all 0.3s'
-                                    }}
-                                >
-                                    Détails & Entretien
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('avis')}
-                                    style={{
-                                        paddingBottom: '12px',
-                                        borderBottom: activeTab === 'avis' ? '2px solid #111' : '2px solid transparent',
-                                        color: activeTab === 'avis' ? '#111' : '#9ca3af',
-                                        fontWeight: '800', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase',
-                                        transition: 'all 0.3s'
-                                    }}
-                                >
-                                    Avis ({reviews.length})
-                                </button>
-                            </div>
-
-                            {/* Global Tab Info */}
-                            <div className="flex flex-col gap-2 mb-8 px-1">
-                                <div className="flex items-center gap-1 text-[#C3AB7E]">
-                                    <span style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: '4px', color: '#6B6458' }}>Note</span>
-                                    <Star size={12} fill="currentColor" />
-                                    <span className="text-xs font-bold">{averageRating || 0} ({reviews.length} avis)</span>
-                                </div>
-                                <button
-                                    onClick={() => setActiveTab('avis')}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
-                                >
-                                    <span style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#C3AB7E' }}>Votre avis</span>
-                                </button>
+                                {[
+                                    { key: 'description', label: 'Description' },
+                                    { key: 'details', label: 'Détails & Entretien' },
+                                ].map(tab => (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        style={{
+                                            fontFamily: "'Jost', sans-serif",
+                                            fontSize: '11px',
+                                            fontWeight: activeTab === tab.key ? '500' : '300',
+                                            letterSpacing: '0.15em',
+                                            textTransform: 'uppercase',
+                                            color: activeTab === tab.key ? '#1A1714' : '#6B6458',
+                                            background: 'none',
+                                            border: 'none',
+                                            borderBottom: activeTab === tab.key ? '2px solid #B8963E' : '2px solid transparent',
+                                            paddingBottom: '16px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            marginBottom: '-1px',
+                                        }}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
                             </div>
 
                             <div className="pt-4">
@@ -360,101 +340,180 @@ export default function ProductDetail() {
                                             </ul>
                                         </motion.div>
                                     )}
-                                    {activeTab === 'avis' && (
-                                        <motion.div key="avis" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-                                            <div className="space-y-6">
-                                                {reviews.length > 0 ? (
-                                                    reviews.map((review) => (
-                                                        <div
-                                                            key={review.id}
-                                                            style={{
-                                                                backgroundColor: '#FAF8F4', border: '1px solid #E8E2D6',
-                                                                padding: '20px'
-                                                            }}
-                                                        >
-                                                            <div className="flex justify-between items-start mb-3">
-                                                                <div>
-                                                                    <h4 style={{ fontFamily: "'Jost', sans-serif", fontWeight: '500', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                                                        {review.author_name}
-                                                                    </h4>
-                                                                    <div className="flex text-[#B8963E] mt-1">
-                                                                        {[1, 2, 3, 4, 5].map(s => (
-                                                                            <Star key={s} size={10} fill={s <= review.rating ? "currentColor" : "none"} strokeWidth={1} />
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
-                                                                <span style={{ fontFamily: "'Jost', sans-serif", fontWeight: '200', fontSize: '10px', color: '#6B6458' }}>
-                                                                    {new Date(review.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                                                </span>
-                                                            </div>
-                                                            <p style={{
-                                                                fontFamily: "'Jost', sans-serif", fontWeight: '300', fontSize: '13px',
-                                                                color: '#6B6458', lineHeight: '1.6'
-                                                            }}>
-                                                                {review.comment}
-                                                            </p>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <div className="text-center py-10">
-                                                        <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '20px', color: '#9ca3af' }}>
-                                                            Soyez le premier à laisser un avis
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    )}
                                 </AnimatePresence>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Standalone Review Form Section */}
-                <div className="mt-40 py-32 border-t border-[#f0ede8]">
-                    <div className="max-w-xl mx-auto px-4 text-center">
-                        <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '32px', fontStyle: 'italic', marginBottom: '40px' }}>
-                            Laisser un avis
-                        </h3>
-                        <form onSubmit={handleReviewSubmit} className="space-y-8">
-                            <div className="flex flex-col items-center">
-                                <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', display: 'block' }}>Votre nom</label>
-                                <input required type="text" value={newReview.author_name} onChange={e => setNewReview({ ...newReview, author_name: e.target.value })} className="w-full max-w-sm px-4 py-3 border border-[#E8E2D6] focus:border-[#B8963E] outline-none transition-colors font-['Jost'] text-sm text-center" style={{ borderRadius: 0, backgroundColor: '#FAF8F4' }} />
+                {/* Side-by-Side Reviews & Form Section */}
+                <div className="mt-[120px]">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-start">
+
+                        {/* Left Column: Existing Reviews */}
+                        <div className="space-y-0">
+                            <div>
+                                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B8963E' }}>
+                                    TÉMOIGNAGES
+                                </p>
+                                <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '36px', fontStyle: 'italic', fontWeight: '400', color: '#1A1714', marginTop: '16px' }}>
+                                    Avis Clients ({reviews.length})
+                                </h3>
                             </div>
-                            <div className="flex flex-col items-center">
-                                <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', display: 'block' }}>Note</label>
-                                <div className="flex gap-2">
-                                    {[1, 2, 3, 4, 5].map((s) => (
-                                        <button key={s} type="button" onMouseEnter={() => setHoverRating(s)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewReview({ ...newReview, rating: s })} className="text-[#B8963E] transition-transform hover:scale-125">
-                                            <Star size={24} fill={(hoverRating || newReview.rating) >= s ? "currentColor" : "none"} strokeWidth={1} />
-                                        </button>
-                                    ))}
+
+                            <div className="custom-scrollbar" style={{ marginTop: '40px', spaceY: '32px', maxH: '600px', overflowY: 'auto', pr: '16px' }}>
+                                <div className="space-y-8">
+                                    {reviews.length > 0 ? (
+                                        reviews.map((review) => (
+                                            <div
+                                                key={review.id}
+                                                style={{
+                                                    backgroundColor: '#FAF8F4', border: '1px solid #E8E2D6',
+                                                    padding: '24px'
+                                                }}
+                                            >
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div>
+                                                        <h4 style={{ fontFamily: "'Jost', sans-serif", fontWeight: '500', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                            {review.author_name}
+                                                        </h4>
+                                                        <div className="flex text-[#B8963E] mt-1">
+                                                            {[1, 2, 3, 4, 5].map(s => (
+                                                                <Star key={s} size={10} fill={s <= review.rating ? "currentColor" : "none"} strokeWidth={1} />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <span style={{ fontFamily: "'Jost', sans-serif", fontWeight: '200', fontSize: '10px', color: '#6B6458' }}>
+                                                        {new Date(review.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                    </span>
+                                                </div>
+                                                <p style={{
+                                                    fontFamily: "'Jost', sans-serif", fontWeight: '300', fontSize: '13px',
+                                                    color: '#6B6458', lineHeight: '1.6'
+                                                }}>
+                                                    {review.comment}
+                                                </p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="py-10">
+                                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '20px', color: '#9ca3af' }}>
+                                                Aucun avis pour le moment.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <div className="flex flex-col items-center">
-                                <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', display: 'block' }}>Votre avis</label>
-                                <textarea required rows="4" value={newReview.comment} onChange={e => setNewReview({ ...newReview, comment: e.target.value })} className="w-full px-4 py-3 border border-[#E8E2D6] focus:border-[#B8963E] outline-none transition-colors font-['Jost'] resize-none text-sm text-center" style={{ borderRadius: 0, backgroundColor: '#FAF8F4' }} />
-                            </div>
-                            <div className="flex justify-center">
-                                <button type="submit" disabled={isSubmitting} style={{ width: '100%', maxWidth: '300px', height: '56px', backgroundColor: '#1A1714', color: '#FAF8F4', fontWeight: '500', fontSize: '12px', letterSpacing: '0.2em', textTransform: 'uppercase', border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer', position: 'relative', overflow: 'hidden' }} className="group">
-                                    <span className="relative z-10">{isSubmitting ? 'Envoi...' : 'Envoyer mon avis'}</span>
-                                    <div className="absolute inset-0 bg-[#B8963E] translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-0" />
-                                </button>
-                            </div>
-                        </form>
+                        </div>
+
+                        {/* Right Column: Review Form or Success Message */}
+                        <div style={{ marginTop: '64px' }}>
+                            {hasReviewed ? (
+                                <div style={{ border: '1px solid #E8E2D6', padding: '60px 40px', backgroundColor: '#ffffff', textAlign: 'center' }}>
+                                    <div className="w-16 h-16 bg-[#F0FDF4] text-[#16A34A] rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <Sparkles size={32} />
+                                    </div>
+                                    <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontStyle: 'italic', color: '#1A1714', marginBottom: '16px' }}>
+                                        Merci pour votre avis !
+                                    </h3>
+                                    <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '14px', color: '#6B6458', fontWeight: '300' }}>
+                                        Votre témoignage a été enregistré avec succès.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B8963E', marginBottom: '12px', textAlign: 'center' }}>
+                                        PARTAGER VOTRE EXPÉRIENCE
+                                    </p>
+                                    <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '32px', fontStyle: 'italic', fontWeight: '400', marginBottom: '60px', color: '#1A1714', textAlign: 'center' }}>
+                                        Laisser un avis
+                                    </h3>
+                                    <form onSubmit={handleReviewSubmit} className="space-y-8">
+                                        <div className="flex flex-col items-center">
+                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Votre nom</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                value={newReview.author_name}
+                                                onChange={e => setNewReview({ ...newReview, author_name: e.target.value })}
+                                                style={{
+                                                    width: '100%',
+                                                    maxWidth: '400px',
+                                                    padding: '14px 16px',
+                                                    border: '1px solid #E8E2D6',
+                                                    borderRadius: 0,
+                                                    backgroundColor: '#FAF8F4',
+                                                    fontFamily: "'Jost', sans-serif",
+                                                    fontSize: '13px',
+                                                    fontWeight: '300',
+                                                    color: '#1A1714',
+                                                    outline: 'none',
+                                                    transition: 'border-color 0.2s',
+                                                    textAlign: 'center'
+                                                }}
+                                                onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                                onBlur={e => e.target.style.borderColor = '#E8E2D6'}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Note</label>
+                                            <div className="flex gap-2">
+                                                {[1, 2, 3, 4, 5].map((s) => (
+                                                    <button key={s} type="button" onMouseEnter={() => setHoverRating(s)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewReview({ ...newReview, rating: s })} className="text-[#B8963E] transition-transform hover:scale-125">
+                                                        <Star size={24} fill={(hoverRating || newReview.rating) >= s ? "currentColor" : "none"} strokeWidth={1} />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Votre avis</label>
+                                            <textarea
+                                                required
+                                                rows="4"
+                                                value={newReview.comment}
+                                                onChange={e => setNewReview({ ...newReview, comment: e.target.value })}
+                                                style={{
+                                                    width: '100%',
+                                                    maxWidth: '500px',
+                                                    padding: '14px 16px',
+                                                    border: '1px solid #E8E2D6',
+                                                    borderRadius: 0,
+                                                    backgroundColor: '#FAF8F4',
+                                                    fontFamily: "'Jost', sans-serif",
+                                                    fontSize: '13px',
+                                                    fontWeight: '300',
+                                                    color: '#1A1714',
+                                                    outline: 'none',
+                                                    transition: 'border-color 0.2s',
+                                                    resize: 'none',
+                                                    textAlign: 'center'
+                                                }}
+                                                onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                                onBlur={e => e.target.style.borderColor = '#E8E2D6'}
+                                            />
+                                        </div>
+                                        <div className="flex justify-center">
+                                            <button type="submit" disabled={isSubmitting} style={{ width: '100%', maxWidth: '300px', height: '56px', backgroundColor: '#1A1714', color: '#FAF8F4', fontWeight: '500', fontSize: '12px', letterSpacing: '0.2em', textTransform: 'uppercase', border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer', position: 'relative', overflow: 'hidden' }} className="group">
+                                                <span className="relative z-10">{isSubmitting ? 'Envoi...' : 'Envoyer mon avis'}</span>
+                                                <div className="absolute inset-0 bg-[#B8963E] translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-0" />
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {/* Related Products Section */}
                 {relatedProducts.length > 0 && (
-                    <div className="mt-40 pt-32 mb-10 border-t border-[#f0ede8]">
-                        <div className="flex flex-col items-center mb-16">
+                    <div style={{ marginTop: '100px', paddingTop: '80px', borderTop: '1px solid #f0ede8' }}>
+                        <div className="flex flex-col items-center">
                             <h2 style={{ fontSize: 'clamp(32px, 4vw, 40px)', fontFamily: "'Cormorant Garamond', serif", margin: 0 }}>
                                 Vous aimerez aussi
                             </h2>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8" style={{ marginTop: '48px' }}>
                             {relatedProducts.map(rp => (
                                 <ProductCard key={rp.id} product={rp} onClick={() => {
                                     navigate(`/product/${rp.id}`);

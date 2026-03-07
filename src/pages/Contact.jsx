@@ -39,7 +39,7 @@ export default function Contact() {
     return (
         <main
             style={{ minHeight: 'calc(100vh - var(--navbar-height))', marginTop: 'var(--navbar-height)', overflowX: 'hidden', maxWidth: '100vw' }}
-            className="flex items-center justify-center px-4 sm:px-8 md:px-10 py-16"
+            className="flex items-center justify-center px-4 sm:px-8 md:px-10 pt-16 pb-0"
         >
             <div style={{ width: '100%', maxWidth: '560px' }}>
                 <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.3em', marginBottom: '12px', display: 'block', textAlign: 'center' }}>NOUS CONTACTER</span>

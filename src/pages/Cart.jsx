@@ -7,7 +7,7 @@ export default function Cart() {
     const totalPrice = items.reduce((sum, item) => sum + ((item.product?.price || 0) * item.quantity), 0);
 
     return (
-        <main className="container mx-auto px-4 md:px-10 pb-32" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
+        <main className="container mx-auto px-4 md:px-10 pb-0" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
             <header className="mb-12">
                 <h1 style={{ fontSize: '48px', fontFamily: 'serif' }}>Votre Panier</h1>
                 <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '8px' }}>

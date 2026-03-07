@@ -37,7 +37,7 @@ export default function CollectionGrid({ category, title, subtitle }) {
     }, [category, page, sort]);
 
     return (
-        <div className="min-h-screen bg-white" style={{ overflowX: 'hidden', paddingTop: 'calc(var(--navbar-height) + 32px)', paddingBottom: '100px' }}>
+        <div className="min-h-screen bg-white" style={{ overflowX: 'hidden', paddingTop: 'calc(var(--navbar-height) + 32px)' }}>
             {/* Header */}
             <header className="container mx-auto px-4 md:px-10 mb-40 text-center">
                 <span style={{ color: '#C3AB7E', fontSize: '10px', fontWeight: '800', letterSpacing: '0.3em', textTransform: 'uppercase' }}>COLLECTION</span>

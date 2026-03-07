@@ -81,7 +81,7 @@ export default function Home() {
     ];
 
     return (
-        <div className="min-h-screen bg-white" style={{ paddingBottom: '100px' }}>
+        <div className="min-h-screen bg-white">
             {/* HERO — SINGLE FULL-SCREEN IMAGE */}
             <section style={{
                 position: 'relative',
