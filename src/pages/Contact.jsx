@@ -45,34 +45,136 @@ export default function Contact() {
     };
 
     return (
-        <main
-            style={{ minHeight: 'calc(100vh - var(--navbar-height))', marginTop: 'var(--navbar-height)', overflowX: 'hidden', maxWidth: '100vw' }}
-            className="flex items-center justify-center px-4 sm:px-8 md:px-10 pt-16 pb-0"
-        >
-            <div style={{ width: '100%', maxWidth: '560px' }}>
-                <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.3em', marginBottom: '12px', display: 'block', textAlign: 'center' }}>{t('contact.label')}</span>
-                <h1 style={{ fontSize: 'clamp(32px, 4vw, 44px)', fontFamily: 'serif', marginBottom: '40px', lineHeight: 1.1, textAlign: 'center', whiteSpace: 'pre-line' }}>{t('contact.title')}</h1>
+        <div style={{
+            minHeight: '100vh',
+            backgroundColor: '#FAF8F4',
+            paddingTop: 'calc(var(--navbar-height, 100px) + 32px)',
+            paddingBottom: '100px', // Extra spacing above footer
+            paddingLeft: '24px',
+            paddingRight: '24px',
+        }}>
+            <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+                {/* Page Title Block — outside the card */}
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                    <span style={{ color: '#B8963E', fontSize: '11px', fontWeight: '600', letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: "'Jost', sans-serif", display: 'block', marginBottom: '8px' }}>
+                        {t('contact.label')}
+                    </span>
+                    <h1 style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: 'clamp(28px, 5vw, 40px)',
+                        fontWeight: '500',
+                        color: '#1A1714',
+                        margin: 0,
+                        lineHeight: 1.1
+                    }}>
+                        {t('contact.title')}
+                    </h1>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>{t('contact.name')}</label>
-                            <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', backgroundColor: '#fafafa' }} className="focus:border-[#C3AB7E] transition-colors" placeholder={t('contact.namePlaceholder')} />
+                {/* Card — all fields + button inside */}
+                <div style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '24px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                }}>
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {/* Name */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label style={{
+                                fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                color: '#1A1714', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'
+                            }}>
+                                {t('contact.name')}
+                            </label>
+                            <input
+                                required name="name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                placeholder={t('contact.namePlaceholder')}
+                                style={{
+                                    width: '100%', padding: '12px 14px', backgroundColor: '#F5F5F5',
+                                    border: '1.5px solid transparent', borderRadius: '10px',
+                                    fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                    color: '#1A1714', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box',
+                                }}
+                                onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                onBlur={e => e.target.style.borderColor = 'transparent'}
+                            />
                         </div>
-                        <div className="space-y-2">
-                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>{t('contact.email')}</label>
-                            <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', backgroundColor: '#fafafa' }} className="focus:border-[#C3AB7E] transition-colors" placeholder={t('contact.emailPlaceholder')} />
+
+                        {/* Email */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label style={{
+                                fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                color: '#1A1714', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'
+                            }}>
+                                {t('contact.email')}
+                            </label>
+                            <input
+                                required type="email" name="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                placeholder={t('contact.emailPlaceholder')}
+                                style={{
+                                    width: '100%', padding: '12px 14px', backgroundColor: '#F5F5F5',
+                                    border: '1.5px solid transparent', borderRadius: '10px',
+                                    fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                    color: '#1A1714', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box',
+                                }}
+                                onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                onBlur={e => e.target.style.borderColor = 'transparent'}
+                            />
                         </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>{t('contact.message')}</label>
-                        <textarea required rows="5" value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} style={{ width: '100%', padding: '20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', backgroundColor: '#fafafa', resize: 'none' }} className="focus:border-[#C3AB7E] transition-colors" placeholder={t('contact.messagePlaceholder')} />
-                    </div>
-                    <button disabled={loading} type="submit" style={{ width: '100%', height: '56px', backgroundColor: '#111111', color: 'white', borderRadius: '16px', fontWeight: '800', fontSize: '12px', letterSpacing: '0.1em', marginTop: '32px' }} className="hover:bg-[#C3AB7E] transition-colors flex items-center justify-center gap-3">
-                        {loading ? <Loader2 className="animate-spin" /> : <>{t('contact.send')} <Send size={16} /></>}
-                    </button>
-                </form>
+
+                        {/* Message */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label style={{
+                                fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                color: '#1A1714', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'
+                            }}>
+                                {t('contact.message')}
+                            </label>
+                            <textarea
+                                required name="message" rows="4" value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })}
+                                placeholder={t('contact.messagePlaceholder')}
+                                style={{
+                                    width: '100%', padding: '12px 14px', backgroundColor: '#F5F5F5',
+                                    border: '1.5px solid transparent', borderRadius: '10px',
+                                    fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                    color: '#1A1714', outline: 'none', transition: 'border-color 0.2s',
+                                    resize: 'none', boxSizing: 'border-box',
+                                }}
+                                onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                onBlur={e => e.target.style.borderColor = 'transparent'}
+                            />
+                        </div>
+
+                        {/* Submit Button */}
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                            <button
+                                disabled={loading} type="submit"
+                                style={{
+                                    width: '100%', maxWidth: '220px', height: '44px',
+                                    backgroundColor: '#1A1714', color: '#FAF8F4',
+                                    border: 'none', borderRadius: '10px',
+                                    fontFamily: "'Jost', sans-serif", fontSize: '11px',
+                                    fontWeight: '400', letterSpacing: '0.2em',
+                                    textTransform: 'uppercase', cursor: loading ? 'default' : 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                    transition: 'background 0.3s',
+                                }}
+                                onMouseEnter={e => !loading && (e.currentTarget.style.backgroundColor = '#B8963E')}
+                                onMouseLeave={e => !loading && (e.currentTarget.style.backgroundColor = '#1A1714')}
+                            >
+                                {loading ? <Loader2 size={16} className="animate-spin" /> :
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {t('contact.send')} <Send size={13} />
+                                    </span>
+                                }
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </main>
+        </div>
     );
 }

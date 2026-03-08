@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
-import { Menu, Bell, Calendar, LogOut } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, Outlet, Link } from 'react-router-dom';
+import { Menu, Bell, Calendar, LogOut, MessageSquare, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 import AdminSidebar from '../../components/admin/AdminSidebar';
 import { useAdminStore } from '../../store/adminStore';
+import { supabase } from '../../lib/supabase';
 
 export default function AdminLayout() {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [unreadMessages, setUnreadMessages] = useState(0);
+    const [pendingReviews, setPendingReviews] = useState(0);
+    const notificationsRef = useRef(null);
     const { logout } = useAdminStore();
 
     // Protection: Redirect if no token
@@ -20,10 +25,45 @@ export default function AdminLayout() {
         }
     }, [navigate]);
 
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            try {
+                const [msgsRes, revsRes] = await Promise.all([
+                    supabase.from('messages').select('id', { count: 'exact', head: true }).eq('is_read', false),
+                    supabase.from('product_reviews').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+                ]);
+
+                if (msgsRes.count !== null) setUnreadMessages(msgsRes.count);
+                if (revsRes.count !== null) setPendingReviews(revsRes.count);
+            } catch (error) {
+                console.error("Error fetching notifications", error);
+            }
+        };
+
+        fetchNotifications();
+
+        // Optional: Set up an interval or real-time subscription here
+        const interval = setInterval(fetchNotifications, 30000); // refresh every 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    // Close notifications dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+                setIsNotificationsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const totalNotifications = unreadMessages + pendingReviews;
+
     return (
         <div style={{
             display: 'flex',
-            flexDirection: 'row',     // ← explicit row
+            flexDirection: 'row',
             height: '100vh',
             overflow: 'hidden',
             backgroundColor: '#f8f8f8',
@@ -34,7 +74,7 @@ export default function AdminLayout() {
             {/* Main content — takes remaining space */}
             <div style={{
                 flex: 1,
-                minWidth: 0,            // ← CRITICAL
+                minWidth: 0,
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100vh',
@@ -44,14 +84,14 @@ export default function AdminLayout() {
                 <header style={{
                     backgroundColor: 'white',
                     height: '72px',
-                    minHeight: '72px',   // ← don't let it shrink
+                    minHeight: '72px',
                     borderBottom: '1px solid #F0EDE8',
                     padding: '0 clamp(16px, 3vw, 40px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     flexShrink: 0,
-                    gap: '16px'          // ← gap so items don't collide on small screens
+                    gap: '16px'
                 }}>
                     {/* Left */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
@@ -82,14 +122,81 @@ export default function AdminLayout() {
 
                     {/* Right */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                        <button style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
-                            <Bell size={20} />
-                            <span style={{
-                                position: 'absolute', top: '-2px', right: '-2px',
-                                width: '8px', height: '8px', backgroundColor: '#ef4444',
-                                borderRadius: '50%', border: '2px solid white'
-                            }} />
-                        </button>
+                        <div ref={notificationsRef} style={{ position: 'relative' }}>
+                            <button
+                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px' }}
+                            >
+                                <Bell size={20} className={isNotificationsOpen ? "text-[#C3AB7E]" : ""} />
+                                {totalNotifications > 0 && (
+                                    <span style={{
+                                        position: 'absolute', top: '0px', right: '0px',
+                                        width: '10px', height: '10px', backgroundColor: '#ef4444',
+                                        borderRadius: '50%', border: '2px solid white'
+                                    }} />
+                                )}
+                            </button>
+
+                            {/* Notifications Dropdown */}
+                            {isNotificationsOpen && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 'calc(100% + 12px)',
+                                    right: 0,
+                                    width: '320px',
+                                    backgroundColor: 'white',
+                                    borderRadius: '20px',
+                                    boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
+                                    border: '1px solid #F0EDE8',
+                                    overflow: 'hidden',
+                                    zIndex: 50
+                                }} className="animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div style={{ padding: '16px 20px', borderBottom: '1px solid #F0EDE8', backgroundColor: '#fafafa' }}>
+                                        <h3 style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Notifications</h3>
+                                    </div>
+                                    <div style={{ padding: '8px' }}>
+                                        <Link
+                                            to="/admin/messages"
+                                            onClick={() => setIsNotificationsOpen(false)}
+                                            style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px', borderRadius: '12px', textDecoration: 'none', color: 'inherit' }}
+                                            className="hover:bg-gray-50 transition-colors"
+                                        >
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: unreadMessages > 0 ? '#fdfbf7' : '#f8f8f8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                <MessageSquare size={16} style={{ color: unreadMessages > 0 ? '#C3AB7E' : '#9ca3af' }} />
+                                            </div>
+                                            <div>
+                                                <p style={{ fontSize: '14px', fontWeight: '600', color: '#111111', margin: '0 0 2px 0' }}>Messages Clients</p>
+                                                <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                                                    {unreadMessages > 0 ? <span style={{ color: '#d97706', fontWeight: '600' }}>{unreadMessages} non lu{unreadMessages > 1 ? 's' : ''}</span> : 'Aucun nouveau message'}
+                                                </p>
+                                            </div>
+                                        </Link>
+
+                                        <Link
+                                            to="/admin/reviews"
+                                            onClick={() => setIsNotificationsOpen(false)}
+                                            style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px', borderRadius: '12px', textDecoration: 'none', color: 'inherit' }}
+                                            className="hover:bg-gray-50 transition-colors"
+                                        >
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: pendingReviews > 0 ? '#fdfbf7' : '#f8f8f8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                <Star size={16} style={{ color: pendingReviews > 0 ? '#C3AB7E' : '#9ca3af' }} />
+                                            </div>
+                                            <div>
+                                                <p style={{ fontSize: '14px', fontWeight: '600', color: '#111111', margin: '0 0 2px 0' }}>Avis Clients</p>
+                                                <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+                                                    {pendingReviews > 0 ? <span style={{ color: '#d97706', fontWeight: '600' }}>{pendingReviews} en attente</span> : 'Aucun avis en attente'}
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                    {totalNotifications === 0 && (
+                                        <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>
+                                            Vous êtes à jour !
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
                         <div style={{ width: '1px', height: '28px', backgroundColor: '#F0EDE8' }} />
 
