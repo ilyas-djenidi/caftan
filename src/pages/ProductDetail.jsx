@@ -226,37 +226,40 @@ export default function ProductDetail() {
                 )}
             </AnimatePresence>
 
-            <main style={{ paddingLeft: '20px', paddingRight: '20px', paddingTop: 'calc(var(--navbar-height) + 10px)' }}
+            <main style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: 'calc(var(--navbar-height) + 10px)' }}
                 className="max-w-[1400px] mx-auto md:px-[48px]">
 
                 {/* Mobile Title Block (Above Image) */}
-                <div className="block lg:hidden mb-4">
-                    <h1 style={{ fontSize: 'clamp(26px, 6vw, 32px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 8px', color: '#1A1714', fontWeight: '600' }}>
+                <div className="block lg:hidden" style={{ marginBottom: '12px' }}>
+                    <h1 style={{ fontSize: 'clamp(22px, 6vw, 30px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 6px', color: '#1A1714', fontWeight: '600' }}>
                         {i18n.language === 'ar' && product.name_ar ? product.name_ar : (product.name_fr || product.name)}
                     </h1>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                         <div className="flex text-[#C3AB7E]">
                             {[1, 2, 3, 4, 5].map(s => (
-                                <Star key={s} size={13} fill={s <= Math.round(averageRating) ? "currentColor" : "none"} strokeWidth={1} />
+                                <Star key={s} size={12} fill={s <= Math.round(averageRating) ? "currentColor" : "none"} strokeWidth={1} />
                             ))}
                         </div>
                         <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} {t('product.reviews')})</span>
                     </div>
-
-                    <p style={{ fontSize: '28px', fontWeight: '400', color: '#1A1714', margin: '0' }}>
-                        {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '13px', color: '#B8963E', fontWeight: '500' }}>DA</span>
+                    <p style={{ fontSize: '24px', fontWeight: '300', color: '#1A1714', margin: '0' }}>
+                        {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '12px', color: '#B8963E', fontWeight: '500' }}>DA</span>
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+                {/* Product Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-4 lg:gap-10 items-start">
 
                     {/* Left: Main Image */}
-                    <div className="lg:col-span-5">
+                    <div style={{ alignSelf: 'start' }}>
                         <div
                             onClick={() => setLightboxOpen(true)}
-                            style={{ overflow: 'hidden', cursor: 'zoom-in', position: 'relative', aspectRatio: '3/4', backgroundColor: '#F0EBE0', borderRadius: '16px', marginTop: '0', paddingTop: '0' }}
-                            className="w-full lg:sticky lg:top-[100px]"
+                            style={{
+                                overflow: 'hidden', cursor: 'zoom-in', position: 'relative',
+                                backgroundColor: '#F0EBE0', borderRadius: '12px',
+                                aspectRatio: '3/4',
+                            }}
+                            className="w-full lg:sticky lg:top-[80px] lg:max-h-[calc(100vh-120px)]"
                         >
                             <AnimatePresence mode="wait">
                                 <motion.img
@@ -266,21 +269,20 @@ export default function ProductDetail() {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.4 }}
-                                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'top', display: 'block' }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
                                 />
                             </AnimatePresence>
                         </div>
                     </div>
 
                     {/* Right: Info Section */}
-                    <div className="lg:col-span-7 flex flex-col justify-start">
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
 
                         {/* Desktop Title Block */}
                         <div className="hidden lg:block" style={{ marginBottom: '8px' }}>
                             <h1 style={{ fontSize: 'clamp(22px, 2.5vw, 32px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 8px', color: '#1A1714', fontWeight: '500' }}>
                                 {i18n.language === 'ar' && product.name_ar ? product.name_ar : (product.name_fr || product.name)}
                             </h1>
-
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                 <div className="flex text-[#C3AB7E]">
                                     {[1, 2, 3, 4, 5].map(s => (
@@ -289,7 +291,6 @@ export default function ProductDetail() {
                                 </div>
                                 <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} {t('product.reviews')})</span>
                             </div>
-
                             <p style={{ fontSize: '28px', fontWeight: '300', color: '#1A1714', margin: '0 0 16px' }}>
                                 {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '13px', color: '#B8963E', fontWeight: '500' }}>DA</span>
                             </p>
