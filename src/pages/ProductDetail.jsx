@@ -255,7 +255,7 @@ export default function ProductDetail() {
                     <div className="lg:col-span-5">
                         <div
                             onClick={() => setLightboxOpen(true)}
-                            style={{ overflow: 'hidden', cursor: 'zoom-in', position: 'relative', aspectRatio: '3/4', backgroundColor: '#F0EBE0', borderRadius: '16px' }}
+                            style={{ overflow: 'hidden', cursor: 'zoom-in', position: 'relative', aspectRatio: '3/4', backgroundColor: '#F0EBE0', borderRadius: '16px', marginTop: '0', paddingTop: '0' }}
                             className="w-full lg:sticky lg:top-[100px]"
                         >
                             <AnimatePresence mode="wait">
@@ -436,7 +436,7 @@ export default function ProductDetail() {
 
                                 {/* Thumbnails — below tabs */}
                                 {images.length > 1 && (
-                                    <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '24px', flexWrap: 'wrap' }}>
                                         {images.map((img, i) => (
                                             <div
                                                 key={i}
@@ -459,7 +459,7 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Side-by-Side Reviews & Form Section */}
-                <div style={{ marginTop: '48px', paddingTop: '40px', borderTop: '1px solid #E8E2D6' }}>
+                <div style={{ marginTop: '80px', paddingTop: '64px', borderTop: '1px solid #E8E2D6' }}>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
 
                         {/* Left Column: Review Form or Success Message */}
@@ -485,7 +485,7 @@ export default function ProductDetail() {
                                         {t('product.leaveReview')}
                                     </h3>
                                     <form onSubmit={handleReviewSubmit} className="space-y-8">
-                                        <div className="flex flex-col items-center">
+                                        <div className="flex flex-col items-center" style={{ marginBottom: '24px' }}>
                                             <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>{t('product.yourName')}</label>
                                             <input
                                                 required
@@ -495,15 +495,16 @@ export default function ProductDetail() {
                                                 style={{
                                                     width: '100%',
                                                     maxWidth: '400px',
-                                                    padding: '14px 16px',
+                                                    padding: '12px 16px',
                                                     border: '1px solid #E8E2D6',
-                                                    borderRadius: 0,
+                                                    borderRadius: '10px',
                                                     backgroundColor: '#FAF8F4',
                                                     fontFamily: "'Jost', sans-serif",
                                                     fontSize: '13px',
                                                     fontWeight: '300',
                                                     color: '#1A1714',
                                                     outline: 'none',
+                                                    lineHeight: '1.5',
                                                     transition: 'border-color 0.2s',
                                                     textAlign: 'center'
                                                 }}
@@ -521,7 +522,7 @@ export default function ProductDetail() {
                                                 ))}
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-center">
+                                        <div className="flex flex-col items-center" style={{ marginBottom: '24px' }}>
                                             <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>{t('product.yourReview')}</label>
                                             <textarea
                                                 required
@@ -531,14 +532,17 @@ export default function ProductDetail() {
                                                 style={{
                                                     width: '100%',
                                                     maxWidth: '500px',
-                                                    padding: '14px 16px',
+                                                    padding: '12px 16px',
+                                                    paddingTop: '12px',
+                                                    paddingBottom: '12px',
                                                     border: '1px solid #E8E2D6',
-                                                    borderRadius: 0,
+                                                    borderRadius: '10px',
                                                     backgroundColor: '#FAF8F4',
                                                     fontFamily: "'Jost', sans-serif",
                                                     fontSize: '13px',
                                                     fontWeight: '300',
                                                     color: '#1A1714',
+                                                    lineHeight: '1.5',
                                                     outline: 'none',
                                                     transition: 'border-color 0.2s',
                                                     resize: 'none',
@@ -620,7 +624,7 @@ export default function ProductDetail() {
                 {/* Related Products Section */}
                 {
                     relatedProducts.length > 0 && (
-                        <div style={{ marginTop: '80px', paddingTop: '60px', borderTop: '1px solid #f0ede8' }}>
+                        <div style={{ marginTop: '100px', paddingTop: '64px', borderTop: '1px solid #f0ede8' }}>
                             <div className="flex flex-col items-center">
                                 <h2 style={{ fontSize: 'clamp(32px, 4vw, 40px)', fontFamily: "'Cormorant Garamond', serif", margin: 0 }}>
                                     Vous aimerez aussi
