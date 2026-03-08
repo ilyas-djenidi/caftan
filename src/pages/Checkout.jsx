@@ -382,7 +382,7 @@ export default function Checkout() {
                                         fontSize: '13px', fontFamily: "'Jost', sans-serif",
                                         fontWeight: '400', color: '#1A1714', margin: 0
                                     }}>
-                                        {((item.product?.price || 0) * item.quantity).toLocaleString()} DA
+                                        {((item.product?.price || 0) * item.quantity).toLocaleString('fr-FR')} DA
                                     </p>
                                 </div>
                             ))}
@@ -393,11 +393,11 @@ export default function Checkout() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#6B6458' }}>Subtotal</span>
-                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>{totalPrice.toLocaleString()} DA</span>
+                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>{totalPrice.toLocaleString('fr-FR')} DA</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: '13px', fontFamily: "'Jost', sans-serif", fontWeight: '600', color: '#1A1714' }}>Total</span>
-                                <span style={{ fontSize: '16px', fontFamily: "'Jost', sans-serif", fontWeight: '700', color: '#B8963E' }}>{totalPrice.toLocaleString()} DA</span>
+                                <span style={{ fontSize: '16px', fontFamily: "'Jost', sans-serif", fontWeight: '700', color: '#B8963E' }}>{totalPrice.toLocaleString('fr-FR')} DA</span>
                             </div>
                         </div>
 

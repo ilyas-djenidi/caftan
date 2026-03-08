@@ -1,48 +1,59 @@
-import { Heart, Plus, Sparkles, ShoppingBag as Bag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Heart } from 'lucide-react';
 import { useCartStore } from '../../store/cartStore';
 import { useWishlistStore } from '../../store/wishlistStore';
 import { getImageUrl } from '../../utils';
 
 const ProductCard = ({ product, onClick }) => {
+    const navigate = useNavigate();
     const { addItem, openDrawer } = useCartStore();
     const { toggle, isWishlisted } = useWishlistStore();
 
     if (!product) return null;
 
     const isSoldOut = product.stock_count === 0 || product.is_sold_out;
-    const hasDiscount = product.is_on_sale && product.original_price;
-    const discountPercent = hasDiscount ? Math.round(((product.original_price - (product.price || 0)) / (product.original_price || 1)) * 100) : 0;
+
+    const imageUrl = getImageUrl(
+        product.cover_image_url ||
+        product.image_url ||
+        product.image ||
+        (product.images && product.images[0]?.image_url)
+    );
 
     const handleAddToCart = (e) => {
         e.stopPropagation();
+        if (isSoldOut) return;
         addItem(product);
         openDrawer();
     };
 
-    const handleToggleWishlist = (e) => {
-        e.stopPropagation();
-        toggle(product);
+    const handleCardClick = () => {
+        if (onClick) {
+            onClick();
+        } else {
+            navigate(`/product/${product.id}`);
+        }
     };
-
-    const imageUrl = getImageUrl(product.cover_image_url || product.image_url || product.image || (product.images && product.images[0]?.image_url));
 
     return (
         <div
-            onClick={onClick}
+            className="product-card"
+            onClick={handleCardClick}
             style={{
-                backgroundColor: 'white',
-                borderRadius: '24px',
-                overflow: 'hidden',
-                transition: 'all 0.3s',
                 cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                border: '1px solid #F0EDE8',
-                position: 'relative'
+                backgroundColor: 'transparent',
+                border: 'none',
+                position: 'relative',
             }}
-            className="group"
         >
-            <div style={{ aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#f9f9f9', position: 'relative' }}>
+            {/* Image Container */}
+            <div style={{
+                width: '100%',
+                aspectRatio: '3/4',
+                overflow: 'hidden',
+                backgroundColor: '#F0EBE0',
+                position: 'relative',
+            }}>
                 <img
                     src={imageUrl || '/placeholder.jpg'}
                     alt={product.name_fr || product.name}
@@ -50,109 +61,140 @@ const ProductCard = ({ product, onClick }) => {
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        filter: isSoldOut ? 'grayscale(100%) opacity(0.7)' : 'none'
+                        objectPosition: 'center top',
+                        transition: 'transform 0.6s ease',
+                        filter: isSoldOut ? 'grayscale(60%) opacity(0.8)' : 'none',
                     }}
-                    className="group-hover:scale-[1.04] transition-transform duration-700"
+                    onMouseEnter={e => { if (!isSoldOut) e.currentTarget.style.transform = 'scale(1.04)'; }}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 />
 
-                {/* ── Heart button – circular ── */}
+                {/* Wishlist button — top right */}
                 <button
-                    onClick={handleToggleWishlist}
+                    onClick={(e) => { e.stopPropagation(); toggle(product); }}
                     style={{
-                        position: 'absolute', top: '14px', right: '14px',
-                        width: '38px', height: '38px', borderRadius: '50%',
-                        background: 'rgba(255,255,255,0.92)',
-                        backdropFilter: 'blur(6px)',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.10)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: isWishlisted(product.id) ? '#ef4444' : '#9ca3af',
-                        border: 'none', cursor: 'pointer',
-                        transition: 'transform 0.2s, box-shadow 0.2s'
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backdropFilter: 'blur(4px)',
+                        zIndex: 2,
+                        transition: 'transform 0.2s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.10)'; }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                    <Heart size={16} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
+                    <Heart
+                        size={14}
+                        fill={isWishlisted(product.id) ? '#1A1714' : 'none'}
+                        stroke="#1A1714"
+                        strokeWidth={1.5}
+                    />
                 </button>
 
+                {/* Sold out badge */}
                 {isSoldOut && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                        <div style={{
-                            background: 'rgba(26, 23, 20, 0.85)',
-                            color: 'white',
-                            padding: '16px 32px',
-                            borderRadius: '2px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            letterSpacing: '0.3em',
-                            textTransform: 'uppercase',
-                            fontFamily: "'Jost', sans-serif",
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                            textAlign: 'center'
-                        }}>
-                            SOLD OUT
-                        </div>
+                    <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        backgroundColor: 'rgba(26,23,20,0.85)',
+                        color: 'white',
+                        padding: '4px 10px',
+                        fontSize: '9px',
+                        fontFamily: "'Jost', sans-serif",
+                        fontWeight: '600',
+                        letterSpacing: '0.2em',
+                        textTransform: 'uppercase',
+                        zIndex: 2,
+                    }}>
+                        Sold Out
                     </div>
+                )}
+
+                {/* Add to cart button — appears on hover */}
+                {!isSoldOut && (
+                    <button
+                        onClick={handleAddToCart}
+                        className="card-cta"
+                        style={{
+                            position: 'absolute',
+                            bottom: '0',
+                            left: '0',
+                            right: '0',
+                            backgroundColor: '#1A1714',
+                            color: '#FAF8F4',
+                            border: 'none',
+                            padding: '14px',
+                            fontFamily: "'Jost', sans-serif",
+                            fontSize: '10px',
+                            fontWeight: '400',
+                            letterSpacing: '0.2em',
+                            textTransform: 'uppercase',
+                            cursor: 'pointer',
+                            opacity: 0,
+                            transform: 'translateY(100%)',
+                            transition: 'all 0.3s ease',
+                            zIndex: 2,
+                        }}
+                    >
+                        Ajouter au panier
+                    </button>
                 )}
             </div>
 
-            <div style={{ padding: '18px 20px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '10px', color: '#C3AB7E', fontWeight: '800', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.08em' }}>{product.category || 'Collection'}</span>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '14px', lineHeight: 1.3 }}>{product.name_fr || product.name || 'Produit sans nom'}</h3>
+            {/* Card Info */}
+            <div style={{
+                paddingTop: '14px',
+                paddingBottom: '8px',
+                textAlign: 'center',
+            }}>
+                {/* Product name */}
+                <p style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: '14px',
+                    fontWeight: '300',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: '#1A1714',
+                    margin: '0 0 6px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                }}>
+                    {product.name_fr || product.name}
+                </p>
 
-                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-
-                    {/* ── Price block ── */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <span style={{
-                                fontSize: '26px', fontWeight: '400', color: '#1a1a1a', letterSpacing: '-0.02em'
-                            }}>
-                                {(product.price || 0).toLocaleString('fr-FR')}
-                            </span>
-                            <span style={{ fontSize: '13px', fontWeight: '500', color: '#C3AB7E', letterSpacing: '0.05em' }}>DA</span>
-                        </div>
-                        {hasDiscount && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '11px', color: '#b0b0b0', textDecoration: 'line-through' }}>{product.original_price.toLocaleString('fr-FR')} DA</span>
-                                <span style={{ fontSize: '10px', fontWeight: '800', color: '#fff', background: '#C3AB7E', borderRadius: '4px', padding: '1px 5px' }}>-{discountPercent}%</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* ── Bag button – circular ── */}
-                    <button
-                        onClick={handleAddToCart}
-                        disabled={isSoldOut}
-                        style={{
-                            width: '42px', height: '42px', borderRadius: '50%',
-                            background: isSoldOut ? '#f3f3f3' : '#111',
-                            border: 'none',
-                            color: isSoldOut ? '#ccc' : 'white',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: isSoldOut ? 'none' : '0 4px 14px rgba(0,0,0,0.18)',
-                            transition: 'all 0.22s ease',
-                            cursor: isSoldOut ? 'not-allowed' : 'pointer'
-                        }}
-                        onMouseEnter={(e) => {
-                            if (!isSoldOut) {
-                                e.currentTarget.style.background = '#C3AB7E';
-                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(195,171,126,0.40)';
-                                e.currentTarget.style.transform = 'scale(1.08)';
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            if (!isSoldOut) {
-                                e.currentTarget.style.background = '#111';
-                                e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.18)';
-                                e.currentTarget.style.transform = 'scale(1)';
-                            }
-                        }}
-                    >
-                        {isSoldOut ? <Plus size={17} style={{ transform: 'rotate(45deg)' }} /> : <Bag size={17} strokeWidth={1.5} />}
-                    </button>
-                </div>
+                {/* Price */}
+                <p style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: '21px',
+                    fontWeight: '500',
+                    fontStyle: 'italic',
+                    color: '#1A1714',
+                    margin: '0',
+                }}>
+                    {product.price?.toLocaleString('fr-FR')}
+                    <span style={{
+                        fontFamily: "'Jost', sans-serif",
+                        fontSize: '11px',
+                        fontWeight: '300',
+                        fontStyle: 'normal',
+                        color: '#6B6458',
+                        marginLeft: '5px',
+                        letterSpacing: '0.1em',
+                    }}>
+                        DA
+                    </span>
+                </p>
             </div>
         </div>
     );

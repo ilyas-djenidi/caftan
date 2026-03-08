@@ -241,6 +241,12 @@ select {
   }
 }
 
+/* ── Product Card Hover ──────────────────────────────── */
+.product-card:hover .card-cta {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
 /* ── Global Layout Fixes ─────────────────────────────── */
 
 /* Fix horizontal scroll on ALL screens */

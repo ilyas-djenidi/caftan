@@ -48,9 +48,9 @@ export default function CollectionGrid({ category, title, subtitle }) {
             {/* Grid */}
             <main className="container mx-auto px-4 md:px-10" style={{ paddingBottom: '160px' }}>
                 {loading ? (
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <div key={i} style={{ height: '400px', backgroundColor: '#F0EDE8', borderRadius: '24px' }} className="animate-pulse" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EDE8' }} className="animate-pulse" />
                         ))}
                     </div>
                 ) : products.length === 0 ? (
@@ -61,7 +61,7 @@ export default function CollectionGrid({ category, title, subtitle }) {
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
                             {products.map((product) => (
                                 <ProductCard
                                     key={product.id}

@@ -55,7 +55,7 @@ export default function Cart() {
                                                         {item.size && `Taille: ${item.size}`} {item.color && ` • Couleur: ${item.color}`}
                                                     </p>
                                                 </div>
-                                                <span style={{ fontSize: '18px', fontWeight: '800' }}>{((item.product?.price || 0) * item.quantity).toLocaleString()} DA</span>
+                                                <span style={{ fontSize: '18px', fontWeight: '800' }}>{((item.product?.price || 0) * item.quantity).toLocaleString('fr-FR')} DA</span>
                                             </div>
 
                                             <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '16px' }}>
@@ -81,12 +81,12 @@ export default function Cart() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <span style={{ color: '#6b7280' }}>Sous-total</span>
-                                    <span style={{ fontWeight: '700' }}>{totalPrice.toLocaleString()} DA</span>
+                                    <span style={{ fontWeight: '700' }}>{totalPrice.toLocaleString('fr-FR')} DA</span>
                                 </div>
                                 <div style={{ height: '1px', backgroundColor: '#f0ede8', margin: '20px 0' }} />
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                     <span style={{ fontSize: '18px', fontWeight: '800' }}>Total</span>
-                                    <span style={{ fontSize: '32px', fontWeight: '800', color: '#111111' }}>{totalPrice.toLocaleString()} DA</span>
+                                    <span style={{ fontSize: '32px', fontWeight: '800', color: '#111111' }}>{totalPrice.toLocaleString('fr-FR')} DA</span>
                                 </div>
                                 <Link to="/checkout" style={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#111111', color: 'white',
