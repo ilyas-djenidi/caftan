@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Sparkles, Check, ChevronRight, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Sparkles, Check } from 'lucide-react';
 import { getPacks } from '../api/packs.api';
 import { useCartStore } from '../store/cartStore';
 import { getImageUrl } from '../utils';
+import { useTranslation } from 'react-i18next';
 
 export default function Packs() {
+    const { t, i18n } = useTranslation();
     const [packs, setPacks] = useState([]);
     const [loading, setLoading] = useState(true);
     const { addItem, openDrawer } = useCartStore();
@@ -36,13 +38,23 @@ export default function Packs() {
         openDrawer();
     };
 
+    const getPackName = (pack) => {
+        if (i18n.language === 'ar' && pack.name_ar) return pack.name_ar;
+        return pack.name_fr;
+    };
+
+    const getPackDesc = (pack) => {
+        if (i18n.language === 'ar' && pack.description_ar) return pack.description_ar;
+        return pack.description_fr;
+    };
+
     return (
         <div className="min-h-screen bg-white">
             <header className="text-center container mx-auto px-4 md:px-10" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
-                <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.4em' }}>ÉDITION LIMITÉE</span>
-                <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontFamily: 'serif', marginTop: '16px' }}>Les Packs</h1>
+                <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.4em' }}>{t('packs.label')}</span>
+                <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontFamily: 'serif', marginTop: '16px' }}>{t('packs.title')}</h1>
                 <p style={{ color: '#9ca3af', fontSize: '16px', marginTop: '20px', maxWidth: '600px', margin: '20px auto 0' }}>
-                    Des ensembles prestigieux conçus pour les moments les plus inoubliables. Le raffinement ultime pour votre grand jour.
+                    {t('packs.desc')}
                 </p>
             </header>
 
@@ -71,23 +83,19 @@ export default function Packs() {
                                 }}
                                 className="flex-col md:flex-row"
                             >
-                                {/* Image Section — reorder on mobile (always on top) */}
+                                {/* Image Section */}
                                 <div
-                                    style={{
-                                        flex: 1,
-                                        position: 'relative',
-                                        order: 0
-                                    }}
+                                    style={{ flex: 1, position: 'relative', order: 0 }}
                                     className="min-h-[300px] md:min-h-[500px]"
                                 >
                                     <img
                                         src={getImageUrl(pack.image_url)}
-                                        alt={pack.name_fr}
+                                        alt={getPackName(pack)}
                                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                                     />
                                     {pack.is_sold_out && (
                                         <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <span style={{ backgroundColor: 'white', color: '#111111', padding: '12px 24px', borderRadius: '12px', fontWeight: '800' }}>ÉPUISÉ</span>
+                                            <span style={{ backgroundColor: 'white', color: '#111111', padding: '12px 24px', borderRadius: '12px', fontWeight: '800' }}>{t('packs.soldOut')}</span>
                                         </div>
                                     )}
                                 </div>
@@ -96,12 +104,12 @@ export default function Packs() {
                                 <div style={{ flex: 1, padding: 'clamp(24px, 5vw, 80px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
                                         <Sparkles size={20} style={{ color: '#C3AB7E' }} />
-                                        <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.2em' }}>PACK D'EXCEPTION</span>
+                                        <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.2em' }}>{t('packs.badge')}</span>
                                     </div>
 
-                                    <h2 style={{ fontSize: 'clamp(24px, 3vw, 40px)', fontFamily: 'serif', margin: '0 0 24px' }}>{pack.name_fr}</h2>
+                                    <h2 style={{ fontSize: 'clamp(24px, 3vw, 40px)', fontFamily: 'serif', margin: '0 0 24px' }}>{getPackName(pack)}</h2>
                                     <p style={{ color: '#6b7280', fontSize: '16px', lineHeight: '1.8', marginBottom: '40px' }}>
-                                        {pack.description_fr}
+                                        {getPackDesc(pack)}
                                     </p>
 
                                     {/* Items list */}
@@ -118,8 +126,8 @@ export default function Packs() {
 
                                     <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
                                         <div>
-                                            <span style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'line-through', display: 'block' }}>{pack.original_price?.toLocaleString()} DA</span>
-                                            <span style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: '800', color: '#111111' }}>{pack.price?.toLocaleString()} DA</span>
+                                            <span style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'line-through', display: 'block' }}>{pack.original_price?.toLocaleString('fr-FR')} DA</span>
+                                            <span style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: '800', color: '#111111' }}>{pack.price?.toLocaleString('fr-FR')} DA</span>
                                         </div>
                                         <button
                                             disabled={pack.is_sold_out}
@@ -133,7 +141,7 @@ export default function Packs() {
                                             }}
                                             className={!pack.is_sold_out ? "hover:scale-105 active:scale-95 shadow-xl shadow-gray-200" : ""}
                                         >
-                                            RESERVER MAINTENANT
+                                            {t('packs.reserve')}
                                         </button>
                                     </div>
                                 </div>

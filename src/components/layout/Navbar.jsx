@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingBag, Heart, ChevronDown } from 'lucide-react';
+import { Menu, X, ShoppingBag, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../../store/cartStore';
 import { useWishlistStore } from '../../store/wishlistStore';
+import { useTranslation } from 'react-i18next';
+
+const LANGUAGES = [
+    { code: 'fr', label: 'FR' },
+    { code: 'en', label: 'EN' },
+    { code: 'ar', label: 'AR' },
+];
 
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -11,6 +18,12 @@ export default function Navbar() {
     const location = useLocation();
     const { items, openDrawer } = useCartStore();
     const { items: wishlistItems } = useWishlistStore();
+    const { t, i18n } = useTranslation();
+
+    const changeLanguage = (code) => {
+        i18n.changeLanguage(code);
+        localStorage.setItem('lang', code);
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -27,13 +40,8 @@ export default function Navbar() {
         );
     }, [isScrolled]);
 
-    const navLinks = [
-        { label: 'Collections', to: '/caftans' },
-        { label: 'Packs', to: '/packs' },
-        { label: 'Contact', to: '/contact' },
-    ];
-
     const isHome = location.pathname === '/';
+    const iconColor = isScrolled || !isHome ? '#111111' : '#ffffff';
 
     return (
         <>
@@ -53,13 +61,13 @@ export default function Navbar() {
                 alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
-                {/* Hamburger Menu Icon — Left */}
+                {/* Left: Hamburger */}
                 <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
                     <button
                         onClick={() => setIsSidebarOpen(true)}
                         style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            color: isScrolled || !isHome ? '#111111' : '#ffffff',
+                            color: iconColor,
                             display: 'flex', alignItems: 'center', gap: '12px'
                         }}
                         className="group"
@@ -82,10 +90,40 @@ export default function Navbar() {
                     </Link>
                 </div>
 
-                {/* Right: Icons */}
-                <div style={{ display: 'flex' }} className="flex-1 items-center justify-end gap-10">
+                {/* Right: Language Switcher + Icons */}
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '16px' }}>
+                    {/* Language Switcher */}
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '2px',
+                        backgroundColor: (isScrolled || !isHome) ? '#F0EBE0' : 'rgba(255,255,255,0.15)',
+                        borderRadius: '20px',
+                        padding: '3px',
+                    }}>
+                        {LANGUAGES.map(({ code, label }) => (
+                            <button
+                                key={code}
+                                onClick={() => changeLanguage(code)}
+                                style={{
+                                    padding: '4px 10px',
+                                    borderRadius: '16px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '10px',
+                                    fontWeight: '800',
+                                    letterSpacing: '0.08em',
+                                    transition: 'all 0.2s',
+                                    backgroundColor: i18n.language === code ? '#B8963E' : 'transparent',
+                                    color: i18n.language === code ? '#fff' : iconColor,
+                                }}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Icon buttons */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <Link to="/wishlist" style={{ color: isScrolled || !isHome ? '#111111' : '#ffffff', position: 'relative' }}>
+                        <Link to="/wishlist" style={{ color: iconColor, position: 'relative' }}>
                             <Heart size={20} strokeWidth={1.5} />
                             {wishlistItems.length > 0 && (
                                 <span style={{
@@ -103,7 +141,7 @@ export default function Navbar() {
                             onClick={openDrawer}
                             style={{
                                 background: 'none', border: 'none', cursor: 'pointer',
-                                color: isScrolled || !isHome ? '#111111' : '#ffffff',
+                                color: iconColor,
                                 position: 'relative'
                             }}>
                             <ShoppingBag size={20} strokeWidth={1.5} />
@@ -141,23 +179,27 @@ export default function Navbar() {
                         />
                         {/* Sidebar */}
                         <motion.div
-                            initial={{ x: '-100%' }}
+                            initial={{ x: i18n.language === 'ar' ? '100%' : '-100%' }}
                             animate={{ x: 0 }}
-                            exit={{ x: '-100%' }}
+                            exit={{ x: i18n.language === 'ar' ? '100%' : '-100%' }}
                             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
                             style={{
-                                position: 'fixed', top: 0, left: 0, bottom: 0,
+                                position: 'fixed', top: 0,
+                                ...(i18n.language === 'ar' ? { right: 0 } : { left: 0 }),
+                                bottom: 0,
                                 width: '320px', backgroundColor: '#FAF8F4',
-                                zIndex: 110, padding: '32px 0 40px 40px',
+                                zIndex: 110,
+                                padding: i18n.language === 'ar' ? '32px 40px 40px 0' : '32px 0 40px 40px',
                                 display: 'flex', flexDirection: 'column',
-                                boxShadow: '20px 0 60px rgba(0,0,0,0.1)'
+                                boxShadow: i18n.language === 'ar' ? '-20px 0 60px rgba(0,0,0,0.1)' : '20px 0 60px rgba(0,0,0,0.1)'
                             }}
                         >
                             {/* Close Button */}
                             <button
                                 onClick={() => setIsSidebarOpen(false)}
                                 style={{
-                                    position: 'absolute', top: '24px', right: '24px',
+                                    position: 'absolute', top: '24px',
+                                    ...(i18n.language === 'ar' ? { left: '24px' } : { right: '24px' }),
                                     background: 'none', border: 'none', cursor: 'pointer',
                                     color: '#6B6458', transition: 'color 0.3s'
                                 }}
@@ -178,11 +220,11 @@ export default function Navbar() {
 
                             <nav style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 {[
-                                    { label: 'Caftans', to: '/caftans' },
-                                    { label: 'Les Sacs', to: '/sacs' },
-                                    { label: 'Accessoires', to: '/accessoires' },
-                                    { label: 'Packs', to: '/packs' },
-                                    { label: 'Contact', to: '/contact' }
+                                    { labelKey: 'nav.caftans', to: '/caftans' },
+                                    { labelKey: 'nav.bags', to: '/sacs' },
+                                    { labelKey: 'nav.accessories', to: '/accessoires' },
+                                    { labelKey: 'nav.packs', to: '/packs' },
+                                    { labelKey: 'nav.contact', to: '/contact' }
                                 ].map((link) => (
                                     <Link
                                         key={link.to}
@@ -196,10 +238,34 @@ export default function Navbar() {
                                         }}
                                         className="hover:text-[#C3AB7E] transition-colors"
                                     >
-                                        {link.label}
+                                        {t(link.labelKey)}
                                     </Link>
                                 ))}
                             </nav>
+
+                            {/* Language switcher in sidebar too */}
+                            <div style={{ marginTop: 'auto', paddingTop: '40px' }}>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    {LANGUAGES.map(({ code, label }) => (
+                                        <button
+                                            key={code}
+                                            onClick={() => changeLanguage(code)}
+                                            style={{
+                                                padding: '8px 16px',
+                                                borderRadius: '20px',
+                                                border: '1px solid',
+                                                borderColor: i18n.language === code ? '#B8963E' : '#E8E2D6',
+                                                backgroundColor: i18n.language === code ? '#B8963E' : 'transparent',
+                                                color: i18n.language === code ? 'white' : '#6B6458',
+                                                fontSize: '11px', fontWeight: '800',
+                                                cursor: 'pointer', transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </motion.div>
                     </>
                 )}

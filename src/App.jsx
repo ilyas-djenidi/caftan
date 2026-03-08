@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import Home from './pages/Home';
 import Caftans from './pages/Caftans';
 import Sacs from './pages/Sacs';
@@ -31,7 +32,13 @@ import HeroManager from './pages/admin/HeroManager';
 
 // Storefront layout wrapper — renders Navbar + CartDrawer + FloatingIcons + page + Footer
 function StorefrontLayout() {
-    const location = useLocation();
+    const { i18n } = useTranslation();
+
+    useEffect(() => {
+        const dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.setAttribute('dir', dir);
+        document.documentElement.setAttribute('lang', i18n.language);
+    }, [i18n.language]);
 
     return (
         <div className="min-h-screen flex flex-col bg-white">

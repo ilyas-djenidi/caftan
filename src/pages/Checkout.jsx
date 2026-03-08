@@ -9,8 +9,10 @@ import {
 import { useCartStore } from '../store/cartStore';
 import { supabase } from '../lib/supabase';
 import { ALGERIA_CITIES, WILAYAS } from '../utils';
+import { useTranslation } from 'react-i18next';
 
 export default function Checkout() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { items, clearCart } = useCartStore();
     const totalPrice = items.reduce((sum, item) => sum + ((item.product?.price || 0) * item.quantity), 0);
@@ -111,9 +113,9 @@ export default function Checkout() {
                     }}>
                         <CheckCircle size={48} />
                     </div>
-                    <h1 style={{ fontSize: '40px', fontFamily: 'serif', marginBottom: '16px' }}>Merci pour votre commande !</h1>
+                    <h1 style={{ fontSize: '40px', fontFamily: 'serif', marginBottom: '16px' }}>{t('checkout.successTitle')}</h1>
                     <p style={{ color: '#6b7280', fontSize: '18px', marginBottom: '32px' }}>
-                        Votre commande <strong style={{ color: '#111111' }}>{orderSuccess.order_number}</strong> a été enregistrée avec succès. Nous vous contacterons par téléphone pour valider l'expédition.
+                        {t('checkout.successDesc')} <strong style={{ color: '#111111' }}>{orderSuccess.order_number}</strong>
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <Link to="/" style={{
@@ -121,7 +123,7 @@ export default function Checkout() {
                             borderRadius: '16px', textDecoration: 'none', fontWeight: '800',
                             fontSize: '14px', letterSpacing: '0.1em', textTransform: 'uppercase',
                             display: 'block'
-                        }}>Retour à l'accueil</Link>
+                        }}>{t('wishlist.back')}</Link>
                     </div>
                 </div>
             </div>
@@ -148,15 +150,15 @@ export default function Checkout() {
                             color: '#1A1714',
                             margin: '0 0 3px',
                         }}>
-                            Vos Informations
+                            {t('checkout.step1')}
                         </h1>
                         <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '12px', color: '#9ca3af', fontWeight: '300', margin: '0 0 10px' }}>
-                            Complétez vos détails de livraison
+                            {t('checkout.fullName')}
                         </p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '600', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>① Informations</span>
+                            <span style={{ fontSize: '11px', fontWeight: '600', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>① {t('checkout.step1')}</span>
                             <div style={{ width: '16px', height: '1px', backgroundColor: '#E8E2D6' }} />
-                            <span style={{ fontSize: '11px', fontWeight: '400', fontFamily: "'Jost', sans-serif", color: '#9ca3af' }}>② Vérification</span>
+                            <span style={{ fontSize: '11px', fontWeight: '400', fontFamily: "'Jost', sans-serif", color: '#9ca3af' }}>② {t('checkout.step2')}</span>
                         </div>
                     </div>
 
@@ -177,7 +179,7 @@ export default function Checkout() {
                                     fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
                                     color: '#1A1714', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px',
                                 }}>
-                                    Nom Complet
+                                    {t('checkout.fullName')}
                                     <span style={{ color: '#9ca3af', fontWeight: '300', fontSize: '12px' }}>(Ex: Amira Rahmani)</span>
                                 </label>
                                 <input
@@ -200,7 +202,7 @@ export default function Checkout() {
                                     fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
                                     color: '#1A1714', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px',
                                 }}>
-                                    Numéro de Téléphone
+                                    {t('checkout.phone')}
                                     <span style={{ color: '#9ca3af', fontWeight: '300', fontSize: '12px' }}>(05xx xx xx xx)</span>
                                 </label>
                                 <input
@@ -238,7 +240,7 @@ export default function Checkout() {
                                     onFocus={e => e.target.style.borderColor = '#B8963E'}
                                     onBlur={e => e.target.style.borderColor = 'transparent'}
                                 >
-                                    <option value="">Sélectionner une wilaya</option>
+                                    <option value="">{t('checkout.selectWilaya')}</option>
                                     {WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}
                                 </select>
                             </div>
@@ -248,7 +250,7 @@ export default function Checkout() {
                                 <label style={{
                                     fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
                                     color: '#1A1714', marginBottom: '5px',
-                                }}>Commune</label>
+                                }}>{t('checkout.city')}</label>
                                 <select
                                     required name="city" value={formData.city} onChange={handleInput}
                                     disabled={!formData.wilaya}
@@ -263,7 +265,7 @@ export default function Checkout() {
                                     onFocus={e => e.target.style.borderColor = '#B8963E'}
                                     onBlur={e => e.target.style.borderColor = 'transparent'}
                                 >
-                                    <option value="">Sélectionner une commune</option>
+                                    <option value="">{t('checkout.selectCity')}</option>
                                     {formData.wilaya && ALGERIA_CITIES[formData.wilaya]?.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
@@ -274,7 +276,7 @@ export default function Checkout() {
                             <label style={{
                                 fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
                                 color: '#1A1714', marginBottom: '5px', display: 'block',
-                            }}>Adresse Détaillée</label>
+                            }}>{t('checkout.streetAddress')}</label>
                             <textarea
                                 required name="address" value={formData.address} onChange={handleInput}
                                 placeholder="Rue, quartier, n° de porte..."

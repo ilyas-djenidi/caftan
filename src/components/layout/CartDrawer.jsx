@@ -4,8 +4,10 @@ import { useCartStore } from '../../store/cartStore';
 import { ShoppingBag, X, Trash2, ArrowRight } from 'lucide-react';
 import { getImageUrl } from '../../utils';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 export default function CartDrawer() {
+    const { t } = useTranslation();
     const { items, isDrawerOpen, closeDrawer, updateQuantity, removeItem } = useCartStore();
     const navigate = useNavigate();
 
@@ -56,7 +58,7 @@ export default function CartDrawer() {
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <ShoppingBag size={20} strokeWidth={1.5} />
-                                <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', letterSpacing: '-0.01em' }}>Votre Panier</h2>
+                                <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', letterSpacing: '-0.01em' }}>{t('cart.title')}</h2>
                                 <span style={{
                                     backgroundColor: '#111111', color: 'white',
                                     fontSize: '10px', fontWeight: 'bold',
@@ -80,7 +82,7 @@ export default function CartDrawer() {
                                     height: '100%', display: 'flex', flexDirection: 'column',
                                     alignItems: 'center', justifyContent: 'center', gap: '20px'
                                 }}>
-                                    <p style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>Votre panier est vide</p>
+                                    <p style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>{t('cart.empty')}</p>
                                     <button
                                         onClick={closeDrawer}
                                         style={{
@@ -88,7 +90,7 @@ export default function CartDrawer() {
                                             color: 'white', border: 'none', borderRadius: '12px',
                                             fontSize: '11px', fontWeight: '800', letterSpacing: '0.1em',
                                             cursor: 'pointer'
-                                        }}>DÉCOUVRIR</button>
+                                        }}>{t('cart.explore')}</button>
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -194,12 +196,12 @@ export default function CartDrawer() {
                             }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '13px', color: '#6b7280' }}>Sous-total</span>
+                                        <span style={{ fontSize: '13px', color: '#6b7280' }}>{t('cart.subtotal')}</span>
                                         <span style={{ fontSize: '15px', fontWeight: '600' }}>{total.toLocaleString('fr-FR')} DA</span>
                                     </div>
                                     <div style={{ height: '1px', backgroundColor: '#F0EDE8' }} />
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '14px', fontWeight: '700', color: '#111111' }}>TOTAL</span>
+                                        <span style={{ fontSize: '14px', fontWeight: '700', color: '#111111' }}>{t('cart.total')}</span>
                                         <span style={{ fontSize: '18px', fontWeight: '800', color: '#C3AB7E' }}>{total.toLocaleString('fr-FR')} DA</span>
                                     </div>
                                 </div>
@@ -222,7 +224,7 @@ export default function CartDrawer() {
                                         gap: '8px'
                                     }}
                                 >
-                                    COMMANDER <ArrowRight size={18} />
+                                    {t('cart.checkout')} <ArrowRight size={18} />
                                 </button>
                             </div>
                         )}

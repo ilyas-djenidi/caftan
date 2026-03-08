@@ -1,0 +1,140 @@
+{
+    "nav": {
+        "collections": "Collections",
+        "caftans": "Caftans",
+        "bags": "Les Sacs",
+        "accessories": "Accessoires",
+        "packs": "Packs",
+        "contact": "Contact"
+    },
+    "cart": {
+        "title": "Votre Panier",
+        "empty": "Votre panier est vide",
+        "emptyDesc": "Découvrez notre collection et ajoutez vos pièces favorites.",
+        "explore": "EXPLORER",
+        "subtotal": "Sous-total",
+        "total": "TOTAL",
+        "checkout": "COMMANDER",
+        "items": "article(s)",
+        "remove": "Supprimer"
+    },
+    "wishlist": {
+        "title": "Mes Favoris",
+        "back": "Retour à l'accueil",
+        "saved": "{{count}} articles enregistrés dans votre liste de souhaits.",
+        "empty": "Votre liste est vide",
+        "emptyDesc": "Explorez nos collections et enregistrez vos pièces préférées pour les retrouver plus tard.",
+        "explore": "EXPLORER LA BOUTIQUE"
+    },
+    "home": {
+        "hero": {
+            "subtitle": "L'ÉLÉGANCE À L'ÉTAT PUR",
+            "brand": "MAISON",
+            "brand2": "caftans",
+            "tagline": "L'excellence du savoir-faire traditionnel au service de votre élégance.",
+            "cta": "DÉCOUVRIR LA COLLECTION",
+            "packs": "NOS PACKS"
+        },
+        "categories": {
+            "title": "Nos Collections",
+            "subtitle": "Chaque pièce est une œuvre d'art"
+        },
+        "featured": {
+            "label": "SÉLECTION DU MOMENT",
+            "title": "Pièces d'Exception",
+            "viewAll": "VOIR TOUT"
+        },
+        "newsletter": {
+            "label": "RESTEZ INFORMÉE",
+            "title": "Rejoignez l'élite",
+            "desc": "Recevez en exclusivité nos nouvelles collections, offres privées et conseils de style.",
+            "placeholder": "Votre adresse email",
+            "cta": "S'ABONNER"
+        }
+    },
+    "product": {
+        "addToCart": "Ajouter au panier",
+        "size": "Taille",
+        "color": "Couleur",
+        "quantity": "Quantité",
+        "description": "Description",
+        "details": "Détails & Entretien",
+        "outOfStock": "Rupture de stock",
+        "reviews": "avis",
+        "leaveReview": "Laisser un avis",
+        "shareExperience": "PARTAGER VOTRE EXPÉRIENCE",
+        "yourName": "Votre nom",
+        "yourRating": "Note",
+        "yourReview": "Votre avis",
+        "submit": "ENVOYER L'AVIS",
+        "tabs": {
+            "description": "Description",
+            "details": "Détails & Entretien",
+            "reviews": "Avis"
+        }
+    },
+    "checkout": {
+        "step1": "Informations",
+        "step2": "Vérification",
+        "bagSummary": "Bag Summary",
+        "items": "items",
+        "qty": "Qty",
+        "subtotal": "Subtotal",
+        "total": "Total",
+        "recap": "Récapitulatif",
+        "client": "Client",
+        "address": "Adresse",
+        "edit": "← Modifier",
+        "confirm": "Confirmer la commande",
+        "fullName": "Nom complet",
+        "phone": "Numéro de téléphone",
+        "wilaya": "Wilaya",
+        "city": "Commune",
+        "streetAddress": "Adresse",
+        "selectWilaya": "Sélectionner une wilaya",
+        "selectCity": "Sélectionner une commune",
+        "continue": "Continuer →",
+        "successTitle": "Commande Confirmée",
+        "successDesc": "Merci pour votre confiance. Notre équipe vous contactera très rapidement.",
+        "continueShopping": "CONTINUER LES ACHATS"
+    },
+    "contact": {
+        "label": "NOUS CONTACTER",
+        "title": "Envoyez-nous\nun Message",
+        "name": "Nom",
+        "email": "Email",
+        "message": "Message",
+        "namePlaceholder": "Votre nom",
+        "emailPlaceholder": "votre@email.com",
+        "messagePlaceholder": "Votre message...",
+        "send": "ENVOYER LE MESSAGE",
+        "successMsg": "Message envoyé avec succès !",
+        "errorMsg": "Une erreur est survenue."
+    },
+    "packs": {
+        "label": "ÉDITION LIMITÉE",
+        "title": "Les Packs",
+        "desc": "Des ensembles prestigieux conçus pour les moments les plus inoubliables. Le raffinement ultime pour votre grand jour.",
+        "badge": "PACK D'EXCEPTION",
+        "soldOut": "ÉPUISÉ",
+        "reserve": "RESERVER MAINTENANT"
+    },
+    "footer": {
+        "rights": "© {{year}} Maison du Caftans. Tous droits réservés.",
+        "collections": "Collections",
+        "caftans": "Caftans",
+        "sacs": "Sacs",
+        "accessories": "Accessoires",
+        "packs": "Packs",
+        "service": "Service Client",
+        "contact": "Contact",
+        "delivery": "Livraison",
+        "returns": "Retours",
+        "follow": "Nous Suivre"
+    },
+    "notFound": {
+        "title": "Page non trouvée",
+        "desc": "La page que vous recherchez n'existe pas.",
+        "back": "Retour à l'accueil"
+    }
+}

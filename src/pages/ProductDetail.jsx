@@ -10,8 +10,10 @@ import LogoLoader from '../components/shared/LogoLoader';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { getImageUrl, formatPrice } from '../utils';
+import { useTranslation } from 'react-i18next';
 
 export default function ProductDetail() {
+    const { t, i18n } = useTranslation();
     const { id } = useParams();
     const navigate = useNavigate();
     const [product, setProduct] = useState(null);
@@ -253,7 +255,7 @@ export default function ProductDetail() {
                     <div className="lg:col-span-7 flex flex-col justify-start">
                         <div style={{ marginBottom: '8px' }}>
                             <h1 style={{ fontSize: 'clamp(22px, 2.5vw, 32px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 8px', color: '#1A1714', fontWeight: '500' }}>
-                                {product.name_fr || product.name}
+                                {i18n.language === 'ar' && product.name_ar ? product.name_ar : (product.name_fr || product.name)}
                             </h1>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -262,7 +264,7 @@ export default function ProductDetail() {
                                         <Star key={s} size={13} fill={s <= Math.round(averageRating) ? "currentColor" : "none"} strokeWidth={1} />
                                     ))}
                                 </div>
-                                <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} avis)</span>
+                                <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} {t('product.reviews')})</span>
                             </div>
 
                             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: '400', color: '#1A1714', margin: '0 0 16px' }}>
@@ -274,14 +276,14 @@ export default function ProductDetail() {
                         {product.stock_count === 0 && (
                             <div className="flex items-center gap-2 text-sm font-medium text-red-500 bg-red-50 p-3 rounded-xl w-fit" style={{ marginBottom: '12px' }}>
                                 <XCircle size={14} />
-                                <span>Rupture de stock</span>
+                                <span>{t('product.outOfStock')}</span>
                             </div>
                         )}
 
                         {/* Selectors — Sizes */}
                         {sizes.length > 0 && (
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '10px', fontWeight: '600' }}>Taille</label>
+                                <label style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '10px', fontWeight: '600' }}>{t('product.size')}</label>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                     {sizes.map(s => (
                                         <button key={s.id} onClick={() => setSelectedSize(s.value)}
@@ -303,7 +305,7 @@ export default function ProductDetail() {
                         {colors.length > 0 && (
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '10px', fontWeight: '600' }}>
-                                    Couleur
+                                    {t('product.color')}
                                     {selectedColor && (
                                         <span style={{ fontStyle: 'italic', fontFamily: "'Cormorant Garamond', serif", color: '#B8963E', fontWeight: '400', textTransform: 'none', letterSpacing: '0', fontSize: '13px' }}>
                                             {colors.find(c => c.value === selectedColor)?.label || ''}
@@ -345,7 +347,7 @@ export default function ProductDetail() {
                                 }}
                                 className="hover:bg-[#B8963E] active:scale-95"
                             >
-                                <ShoppingBag size={17} /> Ajouter au panier
+                                <ShoppingBag size={17} /> {t('product.addToCart')}
                             </button>
 
                             <button onClick={() => toggle(product)}
@@ -366,8 +368,8 @@ export default function ProductDetail() {
                         <div style={{ marginTop: '20px', borderTop: '1px solid #f0ede8', paddingTop: '20px' }}>
                             <div className="flex gap-10 border-b border-[#f0ede8] overflow-x-auto no-scrollbar">
                                 {[
-                                    { key: 'description', label: 'Description' },
-                                    { key: 'details', label: 'Détails & Entretien' },
+                                    { key: 'description', label: t('product.tabs.description') },
+                                    { key: 'details', label: t('product.tabs.details') },
                                 ].map(tab => (
                                     <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                                         style={{
@@ -389,17 +391,20 @@ export default function ProductDetail() {
                                     {activeTab === 'description' && (
                                         <motion.div key="desc" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
                                             <p style={{ fontSize: '14px', lineHeight: '1.7', color: '#6B6458', fontWeight: '400', fontFamily: "'Jost', sans-serif", margin: 0 }}>
-                                                {product.description_fr || (product.category === 'Caftans' ? "Magnifique caftan de notre nouvelle collection. Qualité supérieure et finition artisanale." : "Magnifique article de notre nouvelle collection. Qualité supérieure et finition artisanale.")}
+                                                {i18n.language === 'ar' && product.description_ar
+                                                    ? product.description_ar
+                                                    : (product.description_fr || (product.category === 'Caftans' ? t('product.defaultCaftanDescription') : t('product.defaultProductDescription')))
+                                                }
                                             </p>
                                         </motion.div>
                                     )}
                                     {activeTab === 'details' && (
                                         <motion.div key="det" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
                                             <ul style={{ fontSize: '13px', lineHeight: '2', color: '#6B6458', fontFamily: "'Jost', sans-serif", paddingLeft: '18px', margin: 0 }} className="list-disc marker:text-[#C3AB7E]">
-                                                <li>Tissu de haute qualité soigneusement sélectionné</li>
-                                                <li>Finitions artisanales et broderies délicates</li>
-                                                <li>Nettoyage à sec uniquement recommandé</li>
-                                                <li>Livré dans son coffret Maison du Caftans exclusif</li>
+                                                <li>{t('product.details.fabric')}</li>
+                                                <li>{t('product.details.finish')}</li>
+                                                <li>{t('product.details.care')}</li>
+                                                <li>{t('product.details.packaging')}</li>
                                             </ul>
                                         </motion.div>
                                     )}
@@ -441,23 +446,23 @@ export default function ProductDetail() {
                                         <Sparkles size={32} />
                                     </div>
                                     <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontStyle: 'italic', color: '#1A1714', marginBottom: '16px' }}>
-                                        Merci pour votre avis !
+                                        {t('product.reviewThanksTitle')}
                                     </h3>
                                     <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '14px', color: '#6B6458', fontWeight: '300' }}>
-                                        Votre témoignage a été enregistré avec succès.
+                                        {t('product.reviewThanksMessage')}
                                     </p>
                                 </div>
                             ) : (
                                 <div>
                                     <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B8963E', marginBottom: '12px', textAlign: 'center' }}>
-                                        PARTAGER VOTRE EXPÉRIENCE
+                                        {t('product.shareExperience')}
                                     </p>
                                     <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '32px', fontStyle: 'italic', fontWeight: '400', marginBottom: '60px', color: '#1A1714', textAlign: 'center' }}>
-                                        Laisser un avis
+                                        {t('product.leaveReview')}
                                     </h3>
                                     <form onSubmit={handleReviewSubmit} className="space-y-8">
                                         <div className="flex flex-col items-center">
-                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Votre nom</label>
+                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>{t('product.yourName')}</label>
                                             <input
                                                 required
                                                 type="text"
@@ -483,7 +488,7 @@ export default function ProductDetail() {
                                             />
                                         </div>
                                         <div className="flex flex-col items-center">
-                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Note</label>
+                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>{t('product.rating')}</label>
                                             <div className="flex gap-2">
                                                 {[1, 2, 3, 4, 5].map((s) => (
                                                     <button key={s} type="button" onMouseEnter={() => setHoverRating(s)} onMouseLeave={() => setHoverRating(0)} onClick={() => setNewReview({ ...newReview, rating: s })} className="text-[#B8963E] transition-transform hover:scale-125">
@@ -493,7 +498,7 @@ export default function ProductDetail() {
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-center">
-                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>Votre avis</label>
+                                            <label style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>{t('product.yourReview')}</label>
                                             <textarea
                                                 required
                                                 rows="4"
@@ -521,7 +526,7 @@ export default function ProductDetail() {
                                         </div>
                                         <div className="flex justify-center">
                                             <button type="submit" disabled={isSubmitting} style={{ width: '100%', maxWidth: '300px', height: '56px', backgroundColor: '#1A1714', color: '#FAF8F4', fontWeight: '500', fontSize: '12px', letterSpacing: '0.2em', textTransform: 'uppercase', border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer', position: 'relative', overflow: 'hidden' }} className="group">
-                                                <span className="relative z-10">{isSubmitting ? 'Envoi...' : 'Envoyer mon avis'}</span>
+                                                <span className="relative z-10">{isSubmitting ? t('product.submitting') : t('product.submitReview')}</span>
                                                 <div className="absolute inset-0 bg-[#B8963E] translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out z-0" />
                                             </button>
                                         </div>
@@ -534,10 +539,10 @@ export default function ProductDetail() {
                         <div className="space-y-0" style={{ marginTop: '20px' }}>
                             <div>
                                 <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B8963E' }}>
-                                    TÉMOIGNAGES
+                                    {t('product.testimonials')}
                                 </p>
                                 <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '36px', fontStyle: 'italic', fontWeight: '400', color: '#1A1714', marginTop: '16px' }}>
-                                    Avis Clients ({reviews.length})
+                                    {t('product.customerReviews', { count: reviews.length })}
                                 </h3 >
                             </div>
 
@@ -578,7 +583,7 @@ export default function ProductDetail() {
                                     ) : (
                                         <div className="py-10">
                                             <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '20px', color: '#9ca3af' }}>
-                                                Aucun avis pour le moment.
+                                                {t('product.noReviewsYet')}
                                             </p>
                                         </div>
                                     )}

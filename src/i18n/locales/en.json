@@ -1,0 +1,140 @@
+{
+    "nav": {
+        "collections": "Collections",
+        "caftans": "Caftans",
+        "bags": "Bags",
+        "accessories": "Accessories",
+        "packs": "Packs",
+        "contact": "Contact"
+    },
+    "cart": {
+        "title": "Your Cart",
+        "empty": "Your cart is empty",
+        "emptyDesc": "Discover our collection and add your favourite pieces.",
+        "explore": "EXPLORE",
+        "subtotal": "Subtotal",
+        "total": "TOTAL",
+        "checkout": "CHECKOUT",
+        "items": "item(s)",
+        "remove": "Remove"
+    },
+    "wishlist": {
+        "title": "My Favourites",
+        "back": "Back to home",
+        "saved": "{{count}} items saved in your wishlist.",
+        "empty": "Your wishlist is empty",
+        "emptyDesc": "Explore our collections and save your favourite pieces to find them later.",
+        "explore": "EXPLORE THE STORE"
+    },
+    "home": {
+        "hero": {
+            "subtitle": "PURE ELEGANCE",
+            "brand": "MAISON",
+            "brand2": "caftans",
+            "tagline": "The excellence of traditional craftsmanship at the service of your elegance.",
+            "cta": "DISCOVER THE COLLECTION",
+            "packs": "OUR PACKS"
+        },
+        "categories": {
+            "title": "Our Collections",
+            "subtitle": "Each piece is a work of art"
+        },
+        "featured": {
+            "label": "CURRENT SELECTION",
+            "title": "Exceptional Pieces",
+            "viewAll": "VIEW ALL"
+        },
+        "newsletter": {
+            "label": "STAY INFORMED",
+            "title": "Join the elite",
+            "desc": "Receive exclusively our new collections, private offers and style tips.",
+            "placeholder": "Your email address",
+            "cta": "SUBSCRIBE"
+        }
+    },
+    "product": {
+        "addToCart": "Add to cart",
+        "size": "Size",
+        "color": "Color",
+        "quantity": "Quantity",
+        "description": "Description",
+        "details": "Details & Care",
+        "outOfStock": "Out of stock",
+        "reviews": "reviews",
+        "leaveReview": "Leave a review",
+        "shareExperience": "SHARE YOUR EXPERIENCE",
+        "yourName": "Your name",
+        "yourRating": "Rating",
+        "yourReview": "Your review",
+        "submit": "SUBMIT REVIEW",
+        "tabs": {
+            "description": "Description",
+            "details": "Details & Care",
+            "reviews": "Reviews"
+        }
+    },
+    "checkout": {
+        "step1": "Information",
+        "step2": "Review",
+        "bagSummary": "Bag Summary",
+        "items": "items",
+        "qty": "Qty",
+        "subtotal": "Subtotal",
+        "total": "Total",
+        "recap": "Summary",
+        "client": "Client",
+        "address": "Address",
+        "edit": "← Edit",
+        "confirm": "Confirm order",
+        "fullName": "Full name",
+        "phone": "Phone number",
+        "wilaya": "Wilaya",
+        "city": "City",
+        "streetAddress": "Address",
+        "selectWilaya": "Select a wilaya",
+        "selectCity": "Select a city",
+        "continue": "Continue →",
+        "successTitle": "Order Confirmed",
+        "successDesc": "Thank you for your trust. Our team will contact you very soon.",
+        "continueShopping": "CONTINUE SHOPPING"
+    },
+    "contact": {
+        "label": "CONTACT US",
+        "title": "Send us\na Message",
+        "name": "Name",
+        "email": "Email",
+        "message": "Message",
+        "namePlaceholder": "Your name",
+        "emailPlaceholder": "your@email.com",
+        "messagePlaceholder": "Your message...",
+        "send": "SEND MESSAGE",
+        "successMsg": "Message sent successfully!",
+        "errorMsg": "An error occurred."
+    },
+    "packs": {
+        "label": "LIMITED EDITION",
+        "title": "The Packs",
+        "desc": "Prestigious sets designed for the most unforgettable moments. The ultimate refinement for your special day.",
+        "badge": "EXCEPTIONAL PACK",
+        "soldOut": "SOLD OUT",
+        "reserve": "RESERVE NOW"
+    },
+    "footer": {
+        "rights": "© {{year}} Maison du Caftans. All rights reserved.",
+        "collections": "Collections",
+        "caftans": "Caftans",
+        "sacs": "Bags",
+        "accessories": "Accessories",
+        "packs": "Packs",
+        "service": "Customer Service",
+        "contact": "Contact",
+        "delivery": "Delivery",
+        "returns": "Returns",
+        "follow": "Follow Us"
+    },
+    "notFound": {
+        "title": "Page not found",
+        "desc": "The page you are looking for does not exist.",
+        "back": "Back to home"
+    }
+}
