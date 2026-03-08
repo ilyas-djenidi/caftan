@@ -271,3 +271,54 @@ body {
     padding-right: 40px !important;
   }
 }
+
+/* ── Responsive Admin Tables (Flex Cards) ── */
+@media (max-width: 768px) {
+  .mobile-card-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-card-table thead {
+    display: none !important;
+  }
+
+  .mobile-card-table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .mobile-card-table tr {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border: 1px solid #F0EDE8;
+    border-radius: 16px;
+    padding: 16px 12px;
+    background-color: #ffffff;
+    transition: background 0.2s;
+  }
+
+  .mobile-card-table td {
+    display: block !important;
+    border: none !important;
+    padding: 4px 8px !important;
+    text-align: left !important;
+    width: auto !important;
+  }
+
+  .mobile-card-table td.mobile-hidden-closed {
+    display: none !important;
+  }
+
+  /* Allow full width fields when expanded or explicitly set */
+  .mobile-card-table td.w-full-mobile {
+    width: 100% !important;
+    margin-top: 8px;
+    border-top: 1px solid #F8F8F8 !important;
+    padding-top: 12px !important;
+  }
+}

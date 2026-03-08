@@ -163,7 +163,7 @@ const Orders = () => {
                 WebkitOverflowScrolling: 'touch',
                 boxShadow: '0 4px 30px rgba(0,0,0,0.02)'
             }}>
-                <table className="w-full text-left border-collapse" style={{ minWidth: '750px' }}>
+                <table className="w-full text-left border-collapse mobile-card-table" style={{ minWidth: '750px' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid #F0EDE8', backgroundColor: '#ffffff' }}>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Commande</th>
@@ -203,7 +203,7 @@ const Orders = () => {
                                             className="hover:bg-[rgba(255,255,255,0.5)] cursor-default transition-colors"
                                         >
                                             {/* Order Info */}
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td style={{ padding: '16px 24px' }} className={`w-full-mobile ${!isOpened ? 'mobile-hidden-closed' : ''}`}>
                                                 <div className="flex flex-col gap-0.5">
                                                     <span className="font-bold text-[#111111]" style={{ whiteSpace: 'nowrap' }}>#{order.order_number}</span>
                                                     <span className="text-[11px] text-gray-400 font-bold uppercase">
@@ -215,21 +215,21 @@ const Orders = () => {
                                             {/* Customer */}
                                             <td style={{ padding: '16px 24px' }}>
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className="font-bold text-[#111111]">{order.customer_name}</span>
+                                                    <span className="font-bold text-[#111111] leading-tight">{order.customer_name}</span>
                                                     <span className="text-xs text-gray-400 font-medium">{order.customer_phone}</span>
                                                 </div>
                                             </td>
 
                                             {/* Total */}
                                             <td style={{ padding: '16px 24px' }}>
-                                                <div className="flex flex-col gap-0.5">
+                                                <div className="flex flex-col gap-0.5 items-end md:items-start text-right md:text-left">
                                                     <span className="font-bold text-[#111111]">{order.total_price || 0} DA</span>
                                                     <span className="text-[10px] text-[#C3AB7E] font-bold uppercase tracking-wider">{order.payment_method || 'COD'}</span>
                                                 </div>
                                             </td>
 
                                             {/* Status */}
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td style={{ padding: '16px 24px' }} className={`w-full-mobile ${!isOpened ? 'mobile-hidden-closed' : ''}`}>
                                                 <div style={{
                                                     display: 'inline-flex', alignItems: 'center', gap: '8px',
                                                     padding: '6px 14px', borderRadius: '100px',

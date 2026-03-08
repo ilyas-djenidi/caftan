@@ -12,6 +12,7 @@ export default function Contact() {
         email: '',
         message: ''
     });
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -34,8 +35,9 @@ export default function Contact() {
                 }
                 throw error;
             }
-            toast.success(t('contact.successMsg'));
+            setIsSuccess(true);
             setFormData({ name: '', email: '', message: '' });
+            setTimeout(() => setIsSuccess(false), 5000); // Hide after 5 seconds
         } catch (error) {
             console.error('Contact error:', error);
             toast.error(t('contact.errorMsg'));
@@ -172,6 +174,25 @@ export default function Contact() {
                                 }
                             </button>
                         </div>
+
+                        {/* Success Message Inline */}
+                        {isSuccess && (
+                            <div style={{
+                                marginTop: '8px',
+                                padding: '12px 16px',
+                                backgroundColor: '#f0fdf4',
+                                border: '1px solid #bbf7d0',
+                                borderRadius: '10px',
+                                color: '#166534',
+                                textAlign: 'center',
+                                fontFamily: "'Jost', sans-serif",
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                animation: 'fadeIn 0.3s ease-in-out'
+                            }}>
+                                ✅ {t('contact.successMsg') || "Votre message a été envoyé avec succès !"}
+                            </div>
+                        )}
                     </form>
                 </div>
             </div>

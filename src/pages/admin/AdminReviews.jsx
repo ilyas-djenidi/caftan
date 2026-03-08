@@ -88,12 +88,12 @@ export default function AdminReviews() {
                 overflow: 'hidden',
                 boxShadow: '0 4px 30px rgba(0,0,0,0.02)'
             }}>
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse mobile-card-table">
                     <thead>
                         <tr style={{ borderBottom: '1px solid #F0EDE8', backgroundColor: '#ffffff' }}>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Auteur & Produit</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Note</th>
-                            <th className="hidden md:table-cell" style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Commentaire</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Commentaire</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>Actions</th>
                         </tr>
@@ -130,10 +130,10 @@ export default function AdminReviews() {
                                         </div>
                                     </td>
 
-                                    <td className="hidden md:table-cell" style={{ padding: '16px 24px', maxWidth: '300px' }}>
+                                    <td className="w-full-mobile md:w-auto" style={{ padding: '16px 24px', maxWidth: '300px' }}>
                                         <div className="flex items-start gap-2">
-                                            <MessageSquare size={14} className="text-gray-300 mt-1 flex-shrink-0" />
-                                            <p className="text-sm text-gray-600 line-clamp-2">{review.comment}</p>
+                                            <MessageSquare size={14} className="text-gray-300 mt-1 flex-shrink-0 hidden sm:block" />
+                                            <p className="text-sm text-gray-600 line-clamp-2" style={{ textAlign: 'left' }}>{review.comment}</p>
                                         </div>
                                     </td>
 
@@ -155,7 +155,7 @@ export default function AdminReviews() {
                                                     onClick={() => handleUpdateStatus(review.id, 'approved')}
                                                     disabled={updatingId === review.id}
                                                     title="Approuver"
-                                                    className="p-2 rounded-full text-green-600 hover:bg-green-50 disabled:opacity-50 transition-colors"
+                                                    className="p-2 rounded-full text-green-600 hover:bg-green-50 disabled:opacity-50 transition-colors flex items-center justify-center shrink-0"
                                                 >
                                                     <CheckCircle2 size={18} />
                                                 </button>
@@ -165,7 +165,7 @@ export default function AdminReviews() {
                                                     onClick={() => handleUpdateStatus(review.id, 'rejected')}
                                                     disabled={updatingId === review.id}
                                                     title="Rejeter"
-                                                    className="p-2 rounded-full text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                                    className="p-2 rounded-full text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center shrink-0"
                                                 >
                                                     <XCircle size={18} />
                                                 </button>
@@ -174,7 +174,7 @@ export default function AdminReviews() {
                                                 onClick={() => handleDelete(review.id)}
                                                 disabled={updatingId === review.id}
                                                 title="Supprimer"
-                                                className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                                className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center shrink-0"
                                             >
                                                 {updatingId === review.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                                             </button>

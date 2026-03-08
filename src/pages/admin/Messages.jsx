@@ -89,12 +89,12 @@ export default function Messages() {
                 overflow: 'hidden',
                 boxShadow: '0 4px 30px rgba(0,0,0,0.02)'
             }}>
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse mobile-card-table">
                     <thead>
                         <tr style={{ borderBottom: '1px solid #F0EDE8', backgroundColor: '#ffffff' }}>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Expéditeur</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Sujet</th>
-                            <th className="hidden md:table-cell" style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Message</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Message</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>Actions</th>
                         </tr>
@@ -113,12 +113,12 @@ export default function Messages() {
                         ) : (
                             filtered.map((msg) => (
                                 <tr key={msg.id} className={`transition-colors ${!msg.is_read ? 'bg-[#fdfbf7]' : 'hover:bg-[#FAFAFA]'}`}>
-                                    <td style={{ padding: '16px 24px' }}>
+                                    <td style={{ padding: '16px 24px' }} className="w-full-mobile md:w-auto">
                                         <div className="flex items-center gap-3">
                                             <div style={{ width: '40px', height: '40px', backgroundColor: '#f0ede8', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                                 <UserCircle2 size={20} style={{ color: '#C3AB7E' }} />
                                             </div>
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex flex-col gap-1 items-start text-left">
                                                 <span className={`text-[#111111] ${!msg.is_read ? 'font-bold' : 'font-medium'}`}>{msg.sender_name || 'Inconnu'}</span>
                                                 <span className="text-xs text-[#C3AB7E] font-medium">{msg.email}</span>
                                                 <span className="text-[10px] text-gray-400 uppercase font-bold mt-1">
@@ -128,7 +128,7 @@ export default function Messages() {
                                         </div>
                                     </td>
 
-                                    <td style={{ padding: '16px 24px' }}>
+                                    <td style={{ padding: '16px 24px' }} className="w-full-mobile md:w-auto">
                                         <div className="flex items-center gap-2">
                                             <span style={{ fontSize: '13px', fontWeight: !msg.is_read ? '700' : '500', color: '#111111' }}>
                                                 {msg.subject || 'Sans sujet'}
@@ -137,10 +137,10 @@ export default function Messages() {
                                         </div>
                                     </td>
 
-                                    <td className="hidden md:table-cell" style={{ padding: '16px 24px', maxWidth: '300px' }}>
+                                    <td style={{ padding: '16px 24px', maxWidth: '300px' }} className="w-full-mobile md:w-auto">
                                         <div className="flex items-start gap-2">
-                                            <MessageSquare size={14} className="text-gray-300 mt-1 flex-shrink-0" />
-                                            <p className="text-sm text-gray-600 line-clamp-2">{msg.body}</p>
+                                            <MessageSquare size={14} className="text-gray-300 mt-1 flex-shrink-0 hidden sm:block" />
+                                            <p className="text-sm text-gray-600 line-clamp-2" style={{ textAlign: 'left' }}>{msg.body}</p>
                                         </div>
                                     </td>
 
@@ -162,7 +162,7 @@ export default function Messages() {
                                                     onClick={() => markAsRead(msg.id)}
                                                     disabled={updatingId === msg.id}
                                                     title="Marquer comme lu"
-                                                    className="p-2 rounded-full text-[#C3AB7E] hover:bg-[#C3AB7E]/10 disabled:opacity-50 transition-colors"
+                                                    className="p-2 rounded-full text-[#C3AB7E] hover:bg-[#C3AB7E]/10 disabled:opacity-50 transition-colors flex items-center justify-center shrink-0"
                                                 >
                                                     {updatingId === msg.id ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
                                                 </button>
@@ -171,7 +171,7 @@ export default function Messages() {
                                                 onClick={() => handleDelete(msg.id)}
                                                 disabled={updatingId === msg.id}
                                                 title="Supprimer"
-                                                className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                                className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors flex items-center justify-center shrink-0"
                                             >
                                                 {updatingId === msg.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                                             </button>
