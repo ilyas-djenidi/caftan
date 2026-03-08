@@ -6,10 +6,12 @@ import toast from 'react-hot-toast';
 import { getProducts } from '../api/products.api';
 import ProductCard from '../components/shared/ProductCard';
 import LogoLoader from '../components/shared/LogoLoader';
+import { useTranslation } from 'react-i18next';
 
 import { supabase } from '../lib/supabase';
 
 export default function Home() {
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const [featuredProducts, setFeaturedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -75,10 +77,10 @@ export default function Home() {
     }, []);
 
     const categories = [
-        { name: 'Caftans', to: '/caftans', image: '/images/cat_caftans.jpg', count: `${categoryCounts.caftans} Modèles` },
-        { name: 'Sacs', to: '/sacs', image: '/images/cat_sacs.jpg', count: `${categoryCounts.sacs} Styles` },
-        { name: 'Accessoires', to: '/accessoires', image: '/images/cat_acc.jpg', count: `${categoryCounts.accessoires} Pièces` },
-        { name: 'Packs', to: '/packs', image: '/images/cat_packs.jpg', count: 'Édition Spéciale' },
+        { name: t('nav.caftans'), to: '/caftans', image: '/images/cat_caftans.jpg', count: `${categoryCounts.caftans} ${t('product.quantity')}` },
+        { name: t('nav.bags'), to: '/sacs', image: '/images/cat_sacs.jpg', count: `${categoryCounts.sacs} ${t('product.quantity')}` },
+        { name: t('nav.accessories'), to: '/accessoires', image: '/images/cat_acc.jpg', count: `${categoryCounts.accessoires} ${t('product.quantity')}` },
+        { name: t('nav.packs'), to: '/packs', image: '/images/cat_packs.jpg', count: t('packs.label') },
     ];
 
     if (loading) return <LogoLoader />;
@@ -125,7 +127,7 @@ export default function Home() {
                             color: '#C3AB7E', fontSize: '10px', fontWeight: '600',
                             letterSpacing: '0.45em', textTransform: 'uppercase',
                             fontFamily: "'Inter', sans-serif",
-                        }}>L'ÉLÉGANCE À L'ÉTAT PUR</span>
+                        }}>{t('home.hero.subtitle')}</span>
                     </div>
 
                     {/* Title */}
@@ -139,7 +141,8 @@ export default function Home() {
                         letterSpacing: '-0.01em',
                     }}>
                         {(() => {
-                            const words = heroData.title_fr.split(' ');
+                            const title = i18n.language === 'ar' ? heroData.title_ar || 'Maison du Caftans' : (i18n.language === 'en' ? heroData.title_en || 'Maison du Caftans' : heroData.title_fr);
+                            const words = title.split(' ');
                             if (words.length > 1) {
                                 return (
                                     <>
@@ -148,7 +151,7 @@ export default function Home() {
                                     </>
                                 );
                             }
-                            return heroData.title_fr;
+                            return title;
                         })()}
                     </h1>
 
@@ -158,7 +161,7 @@ export default function Home() {
                         color: 'rgba(255,255,255,0.65)', fontSize: '15px',
                         lineHeight: '1.75', marginBottom: '40px', maxWidth: '420px',
                     }}>
-                        {heroData.subtitle_fr}
+                        {i18n.language === 'ar' ? (heroData.subtitle_ar || heroData.subtitle_fr) : (i18n.language === 'en' ? (heroData.subtitle_en || heroData.subtitle_fr) : heroData.subtitle_fr)}
                     </p>
 
                     {/* CTAs */}
@@ -171,7 +174,7 @@ export default function Home() {
                             fontFamily: "'Inter', sans-serif",
                             transition: 'all 0.3s',
                         }} className="hover:scale-105">
-                            {heroData.cta_text_fr}
+                            {t('home.hero.cta')}
                         </Link>
                         <Link to="/packs" style={{
                             color: 'white', padding: '16px 32px',
@@ -182,7 +185,7 @@ export default function Home() {
                             border: '1px solid rgba(255,255,255,0.3)',
                             transition: 'all 0.3s',
                         }} className="hover:border-[#C3AB7E] hover:text-[#C3AB7E]">
-                            NOS PACKS
+                            {t('home.hero.packs')}
                         </Link>
                     </div>
                 </motion.div>
@@ -220,8 +223,8 @@ export default function Home() {
                 <div className="container mx-auto px-10">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '60px' }}>
                         <div>
-                            <span style={{ color: '#C3AB7E', fontSize: '10px', fontWeight: '800', letterSpacing: '0.3em', textTransform: 'uppercase' }}>EXPLOREZ</span>
-                            <h2 style={{ fontSize: '40px', fontFamily: 'serif', margin: '8px 0 0' }}>Nos Univers</h2>
+                            <span style={{ color: '#C3AB7E', fontSize: '10px', fontWeight: '800', letterSpacing: '0.3em', textTransform: 'uppercase' }}>{t('home.categories.subtitle')}</span>
+                            <h2 style={{ fontSize: '40px', fontFamily: 'serif', margin: '8px 0 0' }}>{t('home.categories.title')}</h2>
                         </div>
                     </div>
 
@@ -261,9 +264,9 @@ export default function Home() {
             <section style={{ padding: '0 0 80px', backgroundColor: '#ffffff' }}>
                 <div className="container mx-auto px-10">
                     <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-                        <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>Sélection Exclusive</h2>
+                        <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>{t('home.featured.title')}</h2>
                         <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '500px', margin: '16px auto 0' }}>
-                            Nos pièces les plus convoitées, choisies pour leur qualité exceptionnelle et leur design intemporel.
+                            {t('home.featured.label')}
                         </p>
                     </div>
 
@@ -291,7 +294,7 @@ export default function Home() {
                             textDecoration: 'none', borderBottom: '2px solid #C3AB7E',
                             paddingBottom: '8px'
                         }}>
-                            VOIR TOUTE LA BOUTIQUE <ArrowRight size={16} />
+                            {t('home.featured.viewAll')} <ArrowRight size={16} />
                         </Link>
                     </div>
                 </div>
@@ -300,26 +303,26 @@ export default function Home() {
             {/* CONTACT FORM SECTION */}
             <section style={{ padding: 'clamp(60px, 8vw, 100px) 20px', backgroundColor: '#fafaf9' }} className="mx-5 md:mx-10 mb-[100px] rounded-[40px]">
                 <div style={{ maxWidth: '560px', margin: '0 auto' }}>
-                    <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.3em', display: 'block', textAlign: 'center', marginBottom: '12px' }}>NOUS CONTACTER</span>
-                    <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontFamily: 'serif', textAlign: 'center', marginBottom: '40px', lineHeight: 1.2 }}>Envoyez-nous<br />un Message</h2>
+                    <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.3em', display: 'block', textAlign: 'center', marginBottom: '12px' }}>{t('contact.label')}</span>
+                    <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontFamily: 'serif', textAlign: 'center', marginBottom: '40px', lineHeight: 1.2, whiteSpace: 'pre-line' }}>{t('contact.title')}</h2>
 
                     <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                             <div>
-                                <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>Nom</label>
-                                <input required value={contactData.name} onChange={e => setContactData({ ...contactData, name: e.target.value })} placeholder="Votre nom" style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
+                                <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>{t('contact.name')}</label>
+                                <input required value={contactData.name} onChange={e => setContactData({ ...contactData, name: e.target.value })} placeholder={t('contact.namePlaceholder')} style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
                             </div>
                             <div>
-                                <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>Email</label>
-                                <input required type="email" value={contactData.email} onChange={e => setContactData({ ...contactData, email: e.target.value })} placeholder="votre@email.com" style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
+                                <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>{t('contact.email')}</label>
+                                <input required type="email" value={contactData.email} onChange={e => setContactData({ ...contactData, email: e.target.value })} placeholder={t('contact.emailPlaceholder')} style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
                             </div>
                         </div>
                         <div>
-                            <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>Message</label>
-                            <textarea required rows="4" value={contactData.message} onChange={e => setContactData({ ...contactData, message: e.target.value })} placeholder="Votre message..." style={{ width: '100%', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', resize: 'none', paddingTop: '10px', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
+                            <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>{t('contact.message')}</label>
+                            <textarea required rows="4" value={contactData.message} onChange={e => setContactData({ ...contactData, message: e.target.value })} placeholder={t('contact.messagePlaceholder')} style={{ width: '100%', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', resize: 'none', paddingTop: '10px', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
                         </div>
                         <button disabled={contactLoading} type="submit" style={{ height: '52px', backgroundColor: '#111', color: 'white', fontWeight: '800', fontSize: '12px', letterSpacing: '0.1em', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: 'none', cursor: contactLoading ? 'not-allowed' : 'pointer', transition: 'background-color 0.3s' }} className="hover:bg-[#C3AB7E]">
-                            {contactLoading ? <Loader2 size={18} className="animate-spin" /> : <>ENVOYER LE MESSAGE <Send size={15} /></>}
+                            {contactLoading ? <Loader2 size={18} className="animate-spin" /> : <>{t('contact.send')} <Send size={15} /></>}
                         </button>
                     </form>
                 </div>

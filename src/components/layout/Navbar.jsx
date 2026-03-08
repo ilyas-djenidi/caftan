@@ -92,35 +92,6 @@ export default function Navbar() {
 
                 {/* Right: Language Switcher + Icons */}
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '16px' }}>
-                    {/* Language Switcher */}
-                    <div style={{
-                        display: 'flex', alignItems: 'center', gap: '2px',
-                        backgroundColor: (isScrolled || !isHome) ? '#F0EBE0' : 'rgba(255,255,255,0.15)',
-                        borderRadius: '20px',
-                        padding: '3px',
-                    }}>
-                        {LANGUAGES.map(({ code, label }) => (
-                            <button
-                                key={code}
-                                onClick={() => changeLanguage(code)}
-                                style={{
-                                    padding: '4px 10px',
-                                    borderRadius: '16px',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    fontSize: '10px',
-                                    fontWeight: '800',
-                                    letterSpacing: '0.08em',
-                                    transition: 'all 0.2s',
-                                    backgroundColor: i18n.language === code ? '#B8963E' : 'transparent',
-                                    color: i18n.language === code ? '#fff' : iconColor,
-                                }}
-                            >
-                                {label}
-                            </button>
-                        ))}
-                    </div>
-
                     {/* Icon buttons */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <Link to="/wishlist" style={{ color: iconColor, position: 'relative' }}>
