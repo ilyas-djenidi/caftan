@@ -280,7 +280,7 @@ export default function ProductDetail() {
                     </div>
 
                     {/* Right: Info Section */}
-                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: '40px', paddingBottom: '80px', paddingLeft: '16px' }} className="lg:pl-0">
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: 'calc(var(--navbar-height) + 40px)', paddingBottom: '80px', paddingLeft: '16px' }} className="lg:pl-0">
 
                         {/* Desktop Title Block */}
                         <div className="hidden lg:block" style={{ marginBottom: '8px' }}>
