@@ -39,15 +39,14 @@ export default function CollectionGrid({ category, title, subtitle }) {
     return (
         <div className="min-h-screen bg-white" style={{ overflowX: 'hidden', paddingTop: 'calc(var(--navbar-height) + 32px)' }}>
             {/* Header */}
-            <header className="container mx-auto px-4 md:px-10 mb-40 text-center">
+            <header className="container mx-auto px-4 md:px-10" style={{ marginBottom: '100px', textAlign: 'center' }}>
                 <span style={{ color: '#C3AB7E', fontSize: '10px', fontWeight: '800', letterSpacing: '0.3em', textTransform: 'uppercase' }}>COLLECTION</span>
                 <h1 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontFamily: 'serif', marginTop: '12px' }}>{title}</h1>
                 {subtitle && <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '600px', margin: '16px auto 0' }}>{subtitle}</p>}
-
             </header>
 
             {/* Grid */}
-            <main className="container mx-auto px-4 md:px-10" style={{ paddingBottom: '0' }}>
+            <main className="container mx-auto px-4 md:px-10" style={{ paddingBottom: '160px' }}>
                 {loading ? (
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                         {Array.from({ length: 8 }).map((_, i) => (
