@@ -44,6 +44,18 @@ export const useAdminStore = create(
                 }
             },
 
+            deleteOrder: async (id) => {
+                try {
+                    const { deleteOrder: apiDeleteOrder } = await import('../api/orders.api');
+                    await apiDeleteOrder(id);
+                    const orders = get().orders.filter(o => o.id !== id);
+                    set({ orders });
+                } catch (error) {
+                    console.error('deleteOrder error:', error);
+                    throw error;
+                }
+            },
+
             fetchStats: async () => {
                 try {
                     const today = new Date().toISOString().split('T')[0];

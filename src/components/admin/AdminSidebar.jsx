@@ -11,21 +11,23 @@ const navItems = [
     { icon: Tags, label: 'Promotions', to: '/admin/promos' },
     { icon: ImageIcon, label: 'Gérer la Vitrine', to: '/admin/hero' },
     { icon: MessageCircle, label: 'Messages', to: '/admin/messages', badgeKey: 'messages' },
+    { icon: MessageCircle, label: 'Avis', to: '/admin/reviews', badgeKey: 'reviews' },
 ];
 
 export default function AdminSidebar({ isOpen, onClose }) {
     const navigate = useNavigate();
-    const [counts, setCounts] = useState({ orders: 0, messages: 0 });
+    const [counts, setCounts] = useState({ orders: 0, messages: 0, reviews: 0 });
 
     useEffect(() => { fetchCounts(); }, []);
 
     const fetchCounts = async () => {
         try {
-            const [{ count: orders }, { count: messages }] = await Promise.all([
+            const [{ count: orders }, { count: messages }, { count: reviews }] = await Promise.all([
                 supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_read', false)
+                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_read', false),
+                supabase.from('product_reviews').select('*', { count: 'exact', head: true }).eq('status', 'pending')
             ]);
-            setCounts({ orders: orders || 0, messages: messages || 0 });
+            setCounts({ orders: orders || 0, messages: messages || 0, reviews: reviews || 0 });
         } catch (error) {
             console.error(error);
         }
@@ -107,17 +109,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
                     }}
                 >
                     <ArrowLeft size={18} /> Retour au site
-                </button>
-                <button
-                    onClick={() => { localStorage.removeItem('admin_token'); navigate('/admin/nad-auth'); }}
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: '12px',
-                        color: '#ef4444', background: 'none', border: 'none',
-                        padding: '14px 16px', cursor: 'pointer', fontSize: '14px',
-                        fontWeight: '700', borderRadius: '14px', width: '100%', textAlign: 'left'
-                    }}
-                >
-                    <LogOut size={18} /> Déconnexion
                 </button>
             </div>
         </div>

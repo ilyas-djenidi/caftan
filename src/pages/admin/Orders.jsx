@@ -37,12 +37,13 @@ const ORDER_STATUSES = [
 ];
 
 const Orders = () => {
-    const { orders, fetchOrders, updateOrderStatus, fetchStats } = useAdminStore();
+    const { orders, fetchOrders, updateOrderStatus, fetchStats, deleteOrder } = useAdminStore();
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [expandedOrder, setExpandedOrder] = useState(null);
     const [updatingId, setUpdatingId] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
 
     useEffect(() => {
         const load = async () => {
@@ -65,8 +66,24 @@ const Orders = () => {
         }
     };
 
+    const handleDeleteOrder = async (id, e) => {
+        if (e) e.stopPropagation();
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette commande ? Cette action est irréversible.")) {
+            setDeletingId(id);
+            try {
+                await deleteOrder(id);
+                await fetchStats();
+                setExpandedOrder(null);
+            } catch (error) {
+                console.error('Error deleting order:', error);
+            } finally {
+                setDeletingId(null);
+            }
+        }
+    };
+
     const filteredOrders = orders.filter(order => {
-        const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
+        const matchesStatus = statusFilter === 'ALL' || order.status?.toUpperCase() === statusFilter;
         const matchesSearch =
             (order.order_number?.toLowerCase().includes(searchTerm.toLowerCase())) ||
             (order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -75,7 +92,7 @@ const Orders = () => {
     });
 
     const getStatusInfo = (status) => {
-        return ORDER_STATUSES.find(s => s.value === status) || ORDER_STATUSES[0];
+        return ORDER_STATUSES.find(s => s.value === status?.toUpperCase()) || ORDER_STATUSES[0];
     };
 
     return (
@@ -117,20 +134,20 @@ const Orders = () => {
                         msOverflowStyle: 'none',
                         scrollbarWidth: 'none'
                     }} className="no-scrollbar">
-                        {['ALL', 'PENDING', 'SHIPPED', 'DELIVERED'].map((s) => (
+                        {[{ value: 'ALL', label: 'TOUT' }, ...ORDER_STATUSES].map((s) => (
                             <button
-                                key={s}
-                                onClick={() => setStatusFilter(s)}
+                                key={s.value}
+                                onClick={() => setStatusFilter(s.value)}
                                 style={{
                                     padding: '8px 16px', borderRadius: '11px',
                                     fontSize: '11px', fontWeight: '800', border: 'none',
-                                    backgroundColor: statusFilter === s ? '#111111' : 'transparent',
-                                    color: statusFilter === s ? 'white' : '#9ca3af',
+                                    backgroundColor: statusFilter === s.value ? '#111111' : 'transparent',
+                                    color: statusFilter === s.value ? 'white' : '#9ca3af',
                                     cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase',
                                     flexShrink: 0
                                 }}
                             >
-                                {s === 'ALL' ? 'TOUT' : s}
+                                {s.label}
                             </button>
                         ))}
                     </div>
@@ -179,7 +196,8 @@ const Orders = () => {
                                             onClick={() => setExpandedOrder(isOpened ? null : order.id)}
                                             style={{
                                                 transition: 'background 0.15s',
-                                                backgroundColor: isOpened ? 'rgba(255,255,255,0.6)' : 'transparent'
+                                                backgroundColor: isOpened ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                                opacity: deletingId === order.id ? 0.5 : 1
                                             }}
                                             className="hover:bg-[rgba(255,255,255,0.5)] cursor-default flex flex-col sm:table-row"
                                         >
@@ -247,8 +265,8 @@ const Orders = () => {
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Statut:</span>
                                                                     <select
-                                                                        value={order.status}
-                                                                        onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                                                                        value={order.status?.toUpperCase()}
+                                                                        onChange={(e) => handleStatusUpdate(order.id, e.target.value.toLowerCase())}
                                                                         disabled={updatingId === order.id}
                                                                         style={{
                                                                             padding: '6px 12px', borderRadius: '10px',
@@ -305,7 +323,18 @@ const Orders = () => {
 
                                                         {/* Delivery Section */}
                                                         <div>
-                                                            <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-6">Détails de livraison</h4>
+                                                            <div className="flex items-center justify-between mb-6">
+                                                                <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Détails de livraison</h4>
+                                                                <button
+                                                                    onClick={(e) => handleDeleteOrder(order.id, e)}
+                                                                    disabled={deletingId === order.id}
+                                                                    className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', fontSize: '12px', fontWeight: '700' }}
+                                                                >
+                                                                    {deletingId === order.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                                                    Supprimer
+                                                                </button>
+                                                            </div>
                                                             <div className="flex flex-col gap-6">
                                                                 {/* Map / Address Card */}
                                                                 <div style={{

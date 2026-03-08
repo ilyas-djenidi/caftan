@@ -29,6 +29,7 @@ import PacksAdmin from './pages/admin/Packs';
 import Messages from './pages/admin/Messages';
 import Promos from './pages/admin/Promos';
 import HeroManager from './pages/admin/HeroManager';
+import AdminReviews from './pages/admin/AdminReviews';
 
 // Storefront layout wrapper — renders Navbar + CartDrawer + FloatingIcons + page + Footer
 function StorefrontLayout() {
@@ -77,6 +78,7 @@ function App() {
                     <Route path="messages" element={<Messages />} />
                     <Route path="promos" element={<Promos />} />
                     <Route path="hero" element={<HeroManager />} />
+                    <Route path="reviews" element={<AdminReviews />} />
                 </Route>
 
                 {/* ── Storefront routes — wrapped with Navbar + Footer ── */}
