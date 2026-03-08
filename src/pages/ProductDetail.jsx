@@ -226,11 +226,11 @@ export default function ProductDetail() {
                 )}
             </AnimatePresence>
 
-            <main style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: 'var(--navbar-height)' }}
-                className="max-w-[1400px] mx-auto md:px-[48px]">
+            <main style={{ paddingTop: '0', paddingLeft: '0', paddingRight: '16px' }}
+                className="max-w-[1400px] mx-auto md:pr-[48px] md:pl-[0px]">
 
                 {/* Mobile Title Block (Above Image) */}
-                <div className="block lg:hidden" style={{ marginBottom: '12px' }}>
+                <div className="block lg:hidden" style={{ marginBottom: '12px', paddingLeft: '16px', paddingTop: 'calc(var(--navbar-height) + 16px)' }}>
                     <h1 style={{ fontSize: 'clamp(22px, 6vw, 30px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 6px', color: '#1A1714', fontWeight: '600' }}>
                         {i18n.language === 'ar' && product.name_ar ? product.name_ar : (product.name_fr || product.name)}
                     </h1>
@@ -248,14 +248,22 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Product Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-4 lg:gap-10" style={{ alignItems: 'start' }}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-16" style={{ alignItems: 'start', gap: '24px 0' }}>
 
                     {/* Left: Main Image */}
-                    <div style={{ marginTop: '0', paddingTop: '0', height: 'fit-content' }}>
+                    <div
+                        className="lg:sticky lg:top-[var(--navbar-height)]"
+                        style={{
+                            width: '100%',
+                            height: 'calc(100vh - var(--navbar-height))',
+                            overflow: 'hidden',
+                            margin: '0',
+                            padding: '0',
+                        }}
+                    >
                         <div
                             onClick={() => setLightboxOpen(true)}
-                            style={{ overflow: 'hidden', cursor: 'zoom-in', position: 'relative', borderRadius: '12px' }}
-                            className="w-full aspect-[3/4] lg:aspect-auto lg:sticky lg:top-[80px] lg:h-[calc(100vh-120px)]"
+                            style={{ width: '100%', height: '100%', cursor: 'zoom-in', position: 'relative' }}
                         >
                             <AnimatePresence mode="wait">
                                 <motion.img
@@ -265,14 +273,14 @@ export default function ProductDetail() {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.4 }}
-                                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'top', display: 'block' }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center top', display: 'block' }}
                                 />
                             </AnimatePresence>
                         </div>
                     </div>
 
                     {/* Right: Info Section */}
-                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: '0', marginTop: '0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: '40px', paddingBottom: '80px', paddingLeft: '16px' }} className="lg:pl-0">
 
                         {/* Desktop Title Block */}
                         <div className="hidden lg:block" style={{ marginBottom: '8px' }}>
