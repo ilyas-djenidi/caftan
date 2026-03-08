@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../store/cartStore';
+import { ShoppingBag, X, Trash2, ArrowRight } from 'lucide-react';
 import { getImageUrl } from '../../utils';
+import { toast } from 'react-hot-toast';
 
 export default function CartDrawer() {
     const { items, isDrawerOpen, closeDrawer, updateQuantity, removeItem } = useCartStore();
@@ -12,7 +14,7 @@ export default function CartDrawer() {
 
     const handleCheckout = () => {
         closeDrawer();
-        navigate('/panier');
+        navigate('/checkout');
     };
 
     return (
@@ -49,23 +51,30 @@ export default function CartDrawer() {
                     >
                         {/* Header */}
                         <div style={{
-                            padding: '30px', display: 'flex', justifyContent: 'space-between',
+                            padding: '24px 20px', display: 'flex', justifyContent: 'space-between',
                             alignItems: 'center', borderBottom: '1px solid #F0EDE8'
                         }}>
-                            <div>
-                                <h2 style={{ margin: 0, fontFamily: 'serif', fontSize: '24px', fontWeight: '700' }}>PANIER</h2>
-                                <p style={{ margin: '4px 0 0', fontSize: '10px', fontWeight: '800', color: '#9ca3af', letterSpacing: '0.1em' }}>
-                                    {items.length} {items.length > 1 ? 'ARTICLES' : 'ARTICLE'}
-                                </p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <ShoppingBag size={20} strokeWidth={1.5} />
+                                <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '700', letterSpacing: '-0.01em' }}>Votre Panier</h2>
+                                <span style={{
+                                    backgroundColor: '#111111', color: 'white',
+                                    fontSize: '10px', fontWeight: 'bold',
+                                    padding: '2px 8px', borderRadius: '12px'
+                                }}>
+                                    {items.length}
+                                </span>
                             </div>
                             <button onClick={closeDrawer} style={{
                                 background: 'none', border: 'none', cursor: 'pointer',
-                                padding: '10px', color: '#111111'
-                            }}>✕</button>
+                                padding: '4px', color: '#111111'
+                            }}>
+                                <X size={24} strokeWidth={1} />
+                            </button>
                         </div>
 
                         {/* Items */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '30px' }} className="scrollbar-hide">
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }} className="scrollbar-hide">
                             {items.length === 0 ? (
                                 <div style={{
                                     height: '100%', display: 'flex', flexDirection: 'column',
@@ -85,87 +94,89 @@ export default function CartDrawer() {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                     {items.map((item) => {
                                         const p = item.product || {};
-
-                                        // Fixed: resolve image correctly from Supabase images array
                                         const primaryImage = p.images?.find(img => img.is_primary)?.image_url
                                             || p.images?.[0]?.image_url
                                             || p.cover_image_url
                                             || p.image_url;
-                                        const img = primaryImage;
+
+                                        const sizeText = item.size || 'NO SIZE';
+                                        const colorText = item.colorName || item.color || 'NO COLOR';
 
                                         return (
                                             <div key={item.key} style={{
-                                                display: 'flex', gap: '20px',
-                                                paddingBottom: '20px',
-                                                borderBottom: '1px solid rgba(195,171,126,0.12)'
+                                                display: 'flex', gap: '16px',
+                                                position: 'relative'
                                             }}>
-
                                                 {/* Product image */}
                                                 <div style={{
-                                                    width: '90px', height: '110px', flexShrink: 0,
-                                                    borderRadius: '12px', overflow: 'hidden',
-                                                    backgroundColor: '#ffffff',
-                                                    border: '1px solid rgba(195,171,126,0.2)'
+                                                    width: '80px', height: '80px', flexShrink: 0,
+                                                    borderRadius: '8px', overflow: 'hidden',
+                                                    backgroundColor: '#f9f9f9'
                                                 }}>
                                                     <img
-                                                        src={img ? getImageUrl(img) : '/placeholder.jpg'}
+                                                        src={primaryImage ? getImageUrl(primaryImage) : '/placeholder.jpg'}
                                                         alt={p.name_fr || p.name}
                                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                     />
                                                 </div>
 
                                                 {/* Item details */}
-                                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-
-                                                    {/* Name + remove */}
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                                                        <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#111111', lineHeight: '1.3' }}>
-                                                            {/* Fixed: show name_fr first */}
-                                                            {p.name_fr || p.name}
+                                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                                    <div>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingRight: '24px' }}>
+                                                            <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#111111', lineHeight: '1.2' }}>
+                                                                {p.name_fr || p.name}
+                                                            </h3>
+                                                        </div>
+                                                        <p style={{
+                                                            margin: '4px 0 0',
+                                                            fontSize: '11px',
+                                                            color: '#9ca3af',
+                                                            fontWeight: '600',
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.05em'
+                                                        }}>
+                                                            {sizeText} • {colorText}
                                                         </p>
-                                                        <button onClick={() => removeItem(item.key)} style={{
+                                                    </div>
+
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                                                        {/* Qty controls */}
+                                                        <div style={{
+                                                            display: 'flex', alignItems: 'center',
+                                                            gap: '12px', backgroundColor: '#f9f9f9',
+                                                            padding: '4px 12px', borderRadius: '8px'
+                                                        }}>
+                                                            <button
+                                                                onClick={() => updateQuantity(item.key, item.quantity - 1)}
+                                                                disabled={item.quantity <= 1}
+                                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: item.quantity <= 1 ? '#e5e7eb' : '#111111' }}>−</button>
+                                                            <span style={{ fontSize: '13px', fontWeight: '700', minWidth: '16px', textAlign: 'center' }}>{item.quantity}</span>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const success = updateQuantity(item.key, item.quantity + 1);
+                                                                    if (p.stock_count !== undefined && item.quantity >= p.stock_count) {
+                                                                        toast.error("Limite de stock atteinte.");
+                                                                    }
+                                                                }}
+                                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#111111' }}>+</button>
+                                                        </div>
+                                                        <span style={{ fontSize: '14px', fontWeight: '800', color: '#111111' }}>
+                                                            {((p.price || 0) * item.quantity).toLocaleString('fr-FR')} DA
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Trash icon at top right of the item */}
+                                                    <button
+                                                        onClick={() => removeItem(item.key)}
+                                                        style={{
+                                                            position: 'absolute', top: 0, right: 0,
                                                             background: 'none', border: 'none', cursor: 'pointer',
-                                                            color: '#9ca3af', fontSize: '14px', flexShrink: 0,
-                                                            padding: '2px', lineHeight: 1
-                                                        }}>✕</button>
-                                                    </div>
-
-                                                    {/* Price — fixed: use product.price */}
-                                                    <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: '#111111' }}>
-                                                        {((p.price || 0) * item.quantity).toLocaleString()} DA
-                                                    </p>
-
-                                                    {/* Attrs */}
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                        {item.size && (
-                                                            <span style={{ fontSize: '10px', fontWeight: '800', backgroundColor: '#ffffff', padding: '2px 8px', borderRadius: '4px', border: '1px solid #F0EDE8' }}>
-                                                                {item.size}
-                                                            </span>
-                                                        )}
-                                                        {item.color && (
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: '800', backgroundColor: '#ffffff', padding: '2px 8px', borderRadius: '4px', border: '1px solid #F0EDE8' }}>
-                                                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
-                                                                {item.colorName || item.color}
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Qty controls */}
-                                                    <div style={{
-                                                        marginTop: 'auto', display: 'flex', alignItems: 'center',
-                                                        gap: '12px', backgroundColor: '#ffffff',
-                                                        width: 'fit-content', padding: '4px 10px', borderRadius: '8px',
-                                                        border: '1px solid #F0EDE8'
-                                                    }}>
-                                                        <button
-                                                            onClick={() => updateQuantity(item.key, item.quantity - 1)}
-                                                            disabled={item.quantity <= 1}
-                                                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: item.quantity <= 1 ? '#e5e7eb' : '#111111' }}>−</button>
-                                                        <span style={{ fontSize: '13px', fontWeight: '700', minWidth: '20px', textAlign: 'center' }}>{item.quantity}</span>
-                                                        <button
-                                                            onClick={() => updateQuantity(item.key, item.quantity + 1)}
-                                                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#111111' }}>+</button>
-                                                    </div>
+                                                            color: '#9ca3af', padding: '4px'
+                                                        }}
+                                                    >
+                                                        <Trash2 size={16} strokeWidth={1.5} />
+                                                    </button>
                                                 </div>
                                             </div>
                                         );
@@ -176,31 +187,43 @@ export default function CartDrawer() {
 
                         {/* Footer */}
                         {items.length > 0 && (
-                            <div style={{ padding: '30px', borderTop: '1px solid #F0EDE8', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                                    <span style={{ fontSize: '10px', fontWeight: '800', color: '#9ca3af', letterSpacing: '0.1em' }}>TOTAL</span>
-                                    <span style={{ fontSize: '24px', fontFamily: 'serif', fontWeight: '700', color: '#111111' }}>{total.toLocaleString()} DA</span>
+                            <div style={{
+                                padding: '24px 20px',
+                                borderTop: '1px solid #F0EDE8',
+                                backgroundColor: 'white'
+                            }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '13px', color: '#6b7280' }}>Sous-total</span>
+                                        <span style={{ fontSize: '15px', fontWeight: '600' }}>{total.toLocaleString('fr-FR')} DA</span>
+                                    </div>
+                                    <div style={{ height: '1px', backgroundColor: '#F0EDE8' }} />
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '14px', fontWeight: '700', color: '#111111' }}>TOTAL</span>
+                                        <span style={{ fontSize: '18px', fontWeight: '800', color: '#C3AB7E' }}>{total.toLocaleString('fr-FR')} DA</span>
+                                    </div>
                                 </div>
-                                <p style={{ margin: 0, fontSize: '10px', color: '#9ca3af', fontWeight: '600' }}>
-                                    TAXES ET LIVRAISON CALCULÉES À LA COMMANDE
-                                </p>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <button
-                                        onClick={handleCheckout}
-                                        style={{
-                                            padding: '18px', backgroundColor: '#111111', color: 'white',
-                                            border: 'none', borderRadius: '14px', fontSize: '12px',
-                                            fontWeight: '800', letterSpacing: '0.15em', cursor: 'pointer',
-                                            boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
-                                        }}>COMMANDER</button>
-                                    <button
-                                        onClick={handleCheckout}
-                                        style={{
-                                            padding: '14px', backgroundColor: 'transparent', color: '#111111',
-                                            border: 'none', fontSize: '11px', fontWeight: '800',
-                                            letterSpacing: '0.1em', cursor: 'pointer'
-                                        }}>VOIR LE PANIER</button>
-                                </div>
+                                <button
+                                    onClick={handleCheckout}
+                                    style={{
+                                        width: '100%',
+                                        height: '52px',
+                                        backgroundColor: '#111111',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        fontSize: '13px',
+                                        fontWeight: '800',
+                                        letterSpacing: '0.1em',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px'
+                                    }}
+                                >
+                                    COMMANDER <ArrowRight size={18} />
+                                </button>
                             </div>
                         )}
                     </motion.div>

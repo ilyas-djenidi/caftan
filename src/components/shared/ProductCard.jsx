@@ -9,7 +9,7 @@ const ProductCard = ({ product, onClick }) => {
 
     if (!product) return null;
 
-    const isSoldOut = product.stock_qty <= 0 || product.is_sold_out;
+    const isSoldOut = product.stock_count === 0 || product.is_sold_out;
     const hasDiscount = product.is_on_sale && product.original_price;
     const discountPercent = hasDiscount ? Math.round(((product.original_price - (product.price || 0)) / (product.original_price || 1)) * 100) : 0;
 
@@ -46,7 +46,12 @@ const ProductCard = ({ product, onClick }) => {
                 <img
                     src={imageUrl || '/placeholder.jpg'}
                     alt={product.name_fr || product.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        filter: isSoldOut ? 'grayscale(100%) opacity(0.7)' : 'none'
+                    }}
                     className="group-hover:scale-[1.04] transition-transform duration-700"
                 />
 
@@ -71,8 +76,23 @@ const ProductCard = ({ product, onClick }) => {
                 </button>
 
                 {isSoldOut && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ background: '#111', color: 'white', padding: '8px 16px', borderRadius: '8px', fontSize: '10px', fontWeight: '800' }}>ÉPUISÉ</span>
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                        <div style={{
+                            background: 'rgba(26, 23, 20, 0.85)',
+                            color: 'white',
+                            padding: '16px 32px',
+                            borderRadius: '2px',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            letterSpacing: '0.3em',
+                            textTransform: 'uppercase',
+                            fontFamily: "'Jost', sans-serif",
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                            textAlign: 'center'
+                        }}>
+                            SOLD OUT
+                        </div>
                     </div>
                 )}
             </div>
@@ -90,13 +110,13 @@ const ProductCard = ({ product, onClick }) => {
                                 fontSize: '26px', fontWeight: '800', color: '#1a1a1a',
                                 fontFamily: "'Cormorant Garamond', serif", letterSpacing: '-0.02em'
                             }}>
-                                {(product.price || 0).toLocaleString()}
+                                {(product.price || 0).toLocaleString('fr-FR')}
                             </span>
                             <span style={{ fontSize: '13px', fontWeight: '700', color: '#C3AB7E', letterSpacing: '0.05em' }}>DA</span>
                         </div>
                         {hasDiscount && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '11px', color: '#b0b0b0', textDecoration: 'line-through' }}>{product.original_price.toLocaleString()} DA</span>
+                                <span style={{ fontSize: '11px', color: '#b0b0b0', textDecoration: 'line-through' }}>{product.original_price.toLocaleString('fr-FR')} DA</span>
                                 <span style={{ fontSize: '10px', fontWeight: '800', color: '#fff', background: '#C3AB7E', borderRadius: '4px', padding: '1px 5px' }}>-{discountPercent}%</span>
                             </div>
                         )}

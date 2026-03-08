@@ -129,144 +129,338 @@ export default function Checkout() {
     }
 
     return (
-        <div className="min-h-screen bg-[#fafafa]">
-            <main className="container mx-auto px-4 md:px-10 pb-0" style={{ paddingTop: 'calc(var(--navbar-height) + 40px)' }}>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-
-                    {/* Left: Checkout Form */}
-                    <div className="lg:col-span-7">
-                        <header className="mb-12">
-                            <h1 style={{ fontSize: '40px', fontFamily: 'serif', margin: 0 }}>Finaliser la commande</h1>
-                            {/* Steps bar — flex-wrap for mobile */}
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '24px', rowGap: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: step >= 1 ? '#111111' : '#9ca3af' }}>
-                                    <span style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800' }}>1</span>
-                                    <span style={{ fontSize: '13px', fontWeight: '700' }}>Informations</span>
-                                </div>
-                                <div style={{ height: '1px', width: '40px', backgroundColor: '#f0ede8', alignSelf: 'center' }} />
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: step >= 2 ? '#111111' : '#9ca3af' }}>
-                                    <span style={{ width: '24px', height: '24px', borderRadius: '50%', border: '1px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '800' }}>2</span>
-                                    <span style={{ fontSize: '13px', fontWeight: '700' }}>Vérification</span>
-                                </div>
-                            </div>
-                        </header>
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {step === 1 ? (
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>Nom Complet</label>
-                                            <input required name="fullName" value={formData.fullName} onChange={handleInput} placeholder="Ex: Amina Benali" style={{ width: '100%', height: '60px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }} className="focus:border-[#C3AB7E] bg-white" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>Téléphone</label>
-                                            <input required name="phone" value={formData.phone} onChange={handleInput} placeholder="05XX XX XX XX" style={{ width: '100%', height: '60px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }} className="focus:border-[#C3AB7E] bg-white" />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>Wilaya</label>
-                                            <select required name="wilaya" value={formData.wilaya} onChange={handleInput} style={{ width: '100%', height: '60px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }} className="focus:border-[#C3AB7E] bg-white">
-                                                <option value="">Sélectionner votre wilaya</option>
-                                                {WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>Commune</label>
-                                            <select required name="city" value={formData.city} onChange={handleInput} disabled={!formData.wilaya} style={{ width: '100%', height: '60px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', fontSize: '14px', opacity: !formData.wilaya ? 0.5 : 1, boxSizing: 'border-box' }} className="focus:border-[#C3AB7E] bg-white">
-                                                <option value="">Sélectionner votre commune</option>
-                                                {formData.wilaya && ALGERIA_CITIES[formData.wilaya]?.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>Adresse Détaillée</label>
-                                        <textarea required name="address" value={formData.address} onChange={handleInput} placeholder="Rue, quartier, n° de porte..." rows="3" style={{ width: '100%', padding: '20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', fontSize: '14px', resize: 'none', boxSizing: 'border-box' }} className="focus:border-[#C3AB7E] bg-white" />
-                                    </div>
-
-                                    <button type="submit" style={{ width: '100%', height: '72px', backgroundColor: '#111111', color: 'white', borderRadius: '24px', fontWeight: '800', fontSize: '14px', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '20px', border: 'none', cursor: 'pointer' }} className="hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-                                        Continuer vers la vérification <ArrowRight size={20} />
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="space-y-8">
-                                    <div style={{ padding: '40px', backgroundColor: 'white', borderRadius: '32px', border: '1px solid #f0ede8' }}>
-                                        <h3 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '24px' }}>Récapitulatif de livraison</h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                                            <div>
-                                                <p style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '800', textTransform: 'uppercase', marginBottom: '4px' }}>Destinataire</p>
-                                                <p style={{ fontWeight: '700' }}>{formData.fullName}</p>
-                                                <p>{formData.phone}</p>
-                                            </div>
-                                            <div>
-                                                <p style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '800', textTransform: 'uppercase', marginBottom: '4px' }}>Adresse</p>
-                                                <p style={{ fontWeight: '700' }}>{formData.wilaya} - {formData.city}</p>
-                                                <p>{formData.address}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <button disabled={loading} type="submit" style={{ width: '100%', height: '72px', backgroundColor: '#111111', color: 'white', borderRadius: '24px', fontWeight: '800', fontSize: '14px', letterSpacing: '0.2em', textTransform: 'uppercase', border: 'none', cursor: loading ? 'default' : 'pointer' }} className="hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-                                        {loading ? <Loader2 className="animate-spin" /> : <>Confirmer ma commande <CheckCircle size={20} /></>}
-                                    </button>
-
-                                    <button onClick={() => setStep(1)} style={{ width: '100%', background: 'none', border: 'none', color: '#9ca3af', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }} className="hover:text-[#111111]">Modifier mes informations</button>
-                                </div>
-                            )}
-                        </form>
-                    </div>
-
-                    {/* Right: Order Summary */}
-                    <div className="lg:col-span-5">
-                        <div style={{ padding: '40px', backgroundColor: 'white', borderRadius: '40px', position: 'sticky', top: '140px', border: '1px solid #f0ede8' }}>
-                            <h3 style={{ fontSize: '20px', fontFamily: 'serif', marginBottom: '32px' }}>Votre Panier</h3>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '32px' }}>
-                                {items.map((item) => (
-                                    <div key={item.key} style={{ display: 'flex', gap: '16px' }}>
-                                        <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#f9f9f9', flexShrink: 0 }}>
-                                            <img
-                                                src={
-                                                    item.product?.images?.find(img => img.is_primary)?.image_url
-                                                    || item.product?.images?.[0]?.image_url
-                                                    || item.product?.image_url
-                                                    || '/placeholder.jpg'
-                                                }
-                                                alt={item.product?.name_fr}
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>{item.product?.name_fr}</h4>
-                                            <p style={{ fontSize: '12px', color: '#9ca3af' }}>
-                                                Qté: {item.quantity} {item.size && `• ${item.size}`} {item.color && `• ${item.color}`}
-                                            </p>
-                                            <p style={{ fontSize: '14px', fontWeight: '800', marginTop: '4px' }}>{((item.product?.price || 0) * item.quantity).toLocaleString()} DA</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div style={{ height: '1px', backgroundColor: '#f0ede8', margin: '24px 0' }} />
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                                    <span style={{ color: '#6b7280' }}>Sous-total</span>
-                                    <span style={{ fontWeight: '700' }}>{totalPrice.toLocaleString()} DA</span>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f0ede8' }}>
-                                    <span style={{ fontSize: '18px', fontWeight: '800' }}>Total</span>
-                                    <span style={{ fontSize: '24px', fontWeight: '800', color: '#C3AB7E' }}>{totalPrice.toLocaleString()} DA</span>
-                                </div>
-                            </div>
+        <div style={{
+            minHeight: '100vh',
+            backgroundColor: '#FAF8F4',
+            paddingTop: 'calc(var(--navbar-height, 100px) + 12px)',
+            paddingBottom: '20px',
+            paddingLeft: '24px',
+            paddingRight: '24px',
+        }}>
+            {step === 1 ? (
+                <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+                    {/* Page Title Block — outside the card */}
+                    <div style={{ textAlign: 'left', marginBottom: '14px' }}>
+                        <h1 style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontSize: '24px',
+                            fontWeight: '500',
+                            color: '#1A1714',
+                            margin: '0 0 3px',
+                        }}>
+                            Vos Informations
+                        </h1>
+                        <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '12px', color: '#9ca3af', fontWeight: '300', margin: '0 0 10px' }}>
+                            Complétez vos détails de livraison
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '600', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>① Informations</span>
+                            <div style={{ width: '16px', height: '1px', backgroundColor: '#E8E2D6' }} />
+                            <span style={{ fontSize: '11px', fontWeight: '400', fontFamily: "'Jost', sans-serif", color: '#9ca3af' }}>② Vérification</span>
                         </div>
                     </div>
 
+                    {/* Card — all fields + button inside */}
+                    <div style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: '14px',
+                        padding: '20px 22px 18px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                    }}>
+                        {/* Row 1: Name + Phone */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                            {/* Full Name */}
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label style={{
+                                    fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                    color: '#1A1714', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px',
+                                }}>
+                                    Nom Complet
+                                    <span style={{ color: '#9ca3af', fontWeight: '300', fontSize: '12px' }}>(Ex: Amira Rahmani)</span>
+                                </label>
+                                <input
+                                    required name="fullName" value={formData.fullName} onChange={handleInput}
+                                    placeholder="Amira Rahmani"
+                                    style={{
+                                        width: '100%', padding: '10px 14px', backgroundColor: '#F5F5F5',
+                                        border: '1.5px solid transparent', borderRadius: '10px',
+                                        fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                        color: '#1A1714', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box',
+                                    }}
+                                    onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                    onBlur={e => e.target.style.borderColor = 'transparent'}
+                                />
+                            </div>
+
+                            {/* Phone */}
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label style={{
+                                    fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                    color: '#1A1714', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px',
+                                }}>
+                                    Numéro de Téléphone
+                                    <span style={{ color: '#9ca3af', fontWeight: '300', fontSize: '12px' }}>(05xx xx xx xx)</span>
+                                </label>
+                                <input
+                                    required type="tel" name="phone" value={formData.phone} onChange={handleInput}
+                                    placeholder="0555 55 55 55"
+                                    style={{
+                                        width: '100%', padding: '10px 14px', backgroundColor: '#F5F5F5',
+                                        border: '1.5px solid transparent', borderRadius: '10px',
+                                        fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                        color: '#1A1714', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box',
+                                    }}
+                                    onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                    onBlur={e => e.target.style.borderColor = 'transparent'}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Row 2: Wilaya + Commune */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                            {/* Wilaya */}
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label style={{
+                                    fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                    color: '#1A1714', marginBottom: '5px',
+                                }}>Wilaya</label>
+                                <select
+                                    required name="wilaya" value={formData.wilaya} onChange={handleInput}
+                                    style={{
+                                        width: '100%', padding: '10px 14px', backgroundColor: '#F5F5F5',
+                                        border: '1.5px solid transparent', borderRadius: '10px',
+                                        fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                        color: '#1A1714', outline: 'none', appearance: 'none',
+                                        transition: 'border-color 0.2s', boxSizing: 'border-box',
+                                    }}
+                                    onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                    onBlur={e => e.target.style.borderColor = 'transparent'}
+                                >
+                                    <option value="">Sélectionner une wilaya</option>
+                                    {WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Commune */}
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <label style={{
+                                    fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                    color: '#1A1714', marginBottom: '5px',
+                                }}>Commune</label>
+                                <select
+                                    required name="city" value={formData.city} onChange={handleInput}
+                                    disabled={!formData.wilaya}
+                                    style={{
+                                        width: '100%', padding: '10px 14px', backgroundColor: '#F5F5F5',
+                                        border: '1.5px solid transparent', borderRadius: '10px',
+                                        fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                        color: '#1A1714', outline: 'none', appearance: 'none',
+                                        transition: 'border-color 0.2s', opacity: !formData.wilaya ? 0.5 : 1,
+                                        boxSizing: 'border-box',
+                                    }}
+                                    onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                    onBlur={e => e.target.style.borderColor = 'transparent'}
+                                >
+                                    <option value="">Sélectionner une commune</option>
+                                    {formData.wilaya && ALGERIA_CITIES[formData.wilaya]?.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Row 3: Address — full width */}
+                        <div style={{ marginBottom: '12px' }}>
+                            <label style={{
+                                fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                color: '#1A1714', marginBottom: '5px', display: 'block',
+                            }}>Adresse Détaillée</label>
+                            <textarea
+                                required name="address" value={formData.address} onChange={handleInput}
+                                placeholder="Rue, quartier, n° de porte..."
+                                rows={2}
+                                style={{
+                                    width: '100%', padding: '10px 14px', backgroundColor: '#F5F5F5',
+                                    border: '1.5px solid transparent', borderRadius: '10px',
+                                    fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                    color: '#1A1714', outline: 'none', transition: 'border-color 0.2s',
+                                    resize: 'none', boxSizing: 'border-box',
+                                }}
+                                onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                onBlur={e => e.target.style.borderColor = 'transparent'}
+                            />
+                        </div>
+
+                        {/* Continue button — inside card */}
+                        <button
+                            onClick={handleSubmit}
+                            style={{
+                                width: '100%', height: '44px',
+                                backgroundColor: '#1A1714', color: '#FAF8F4',
+                                border: 'none', borderRadius: '10px',
+                                fontFamily: "'Jost', sans-serif", fontSize: '11px',
+                                fontWeight: '400', letterSpacing: '0.2em',
+                                textTransform: 'uppercase', cursor: 'pointer',
+                                marginTop: '6px', display: 'flex',
+                                alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                transition: 'background 0.3s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#B8963E'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#1A1714'}
+                        >
+                            Continuer <span>→</span>
+                        </button>
+                    </div>
                 </div>
-            </main>
+            ) : (
+                <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+                    {/* Page Title Block */}
+                    <div style={{ textAlign: 'left', marginBottom: '14px' }}>
+                        <h1 style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontSize: '24px',
+                            fontWeight: '500',
+                            color: '#1A1714',
+                            margin: '0 0 3px',
+                        }}>Vérification</h1>
+                        <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '12px', color: '#9ca3af', fontWeight: '300', margin: '0 0 10px' }}>
+                            Vérifiez votre commande avant de confirmer
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '400', fontFamily: "'Jost', sans-serif", color: '#9ca3af' }}>① Informations</span>
+                            <div style={{ width: '16px', height: '1px', backgroundColor: '#E8E2D6' }} />
+                            <span style={{ fontSize: '11px', fontWeight: '600', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>② Vérification</span>
+                        </div>
+                    </div>
+
+                    {/* Verification Card */}
+                    <div style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: '14px',
+                        padding: '20px 22px 18px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                    }}>
+                        {/* Bag Summary Section */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <h3 style={{
+                                fontSize: '11px', fontFamily: "'Jost', sans-serif",
+                                fontWeight: '600', letterSpacing: '0.12em',
+                                textTransform: 'uppercase', color: '#1A1714', margin: 0
+                            }}>Bag Summary</h3>
+                            <span style={{
+                                backgroundColor: '#F5F5F5', color: '#6B6458',
+                                fontSize: '10px', fontFamily: "'Jost', sans-serif",
+                                padding: '3px 10px', borderRadius: '20px'
+                            }}>
+                                {items.length} items
+                            </span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+                            {items.map((item) => (
+                                <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <p style={{
+                                            fontSize: '13px', fontFamily: "'Cormorant Garamond', serif",
+                                            fontWeight: '500', color: '#1A1714', margin: '0 0 2px'
+                                        }}>{item.product?.name_fr}</p>
+                                        <p style={{
+                                            fontSize: '11px', fontFamily: "'Jost', sans-serif",
+                                            color: '#6B6458', margin: 0
+                                        }}>Qty: {item.quantity}</p>
+                                    </div>
+                                    <p style={{
+                                        fontSize: '13px', fontFamily: "'Jost', sans-serif",
+                                        fontWeight: '400', color: '#1A1714', margin: 0
+                                    }}>
+                                        {((item.product?.price || 0) * item.quantity).toLocaleString()} DA
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ height: '1px', backgroundColor: '#E8E2D6', margin: '0 0 10px' }} />
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#6B6458' }}>Subtotal</span>
+                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>{totalPrice.toLocaleString()} DA</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '13px', fontFamily: "'Jost', sans-serif", fontWeight: '600', color: '#1A1714' }}>Total</span>
+                                <span style={{ fontSize: '16px', fontFamily: "'Jost', sans-serif", fontWeight: '700', color: '#B8963E' }}>{totalPrice.toLocaleString()} DA</span>
+                            </div>
+                        </div>
+
+                        <div style={{ height: '1px', backgroundColor: '#E8E2D6', margin: '0 0 12px' }} />
+
+                        {/* Recapitulatif Section */}
+                        <h3 style={{
+                            fontSize: '11px', fontFamily: "'Jost', sans-serif",
+                            fontWeight: '600', letterSpacing: '0.12em',
+                            textTransform: 'uppercase', color: '#1A1714',
+                            marginBottom: '10px'
+                        }}>Récapitulatif</h3>
+
+                        <div style={{ display: 'flex', gap: '24px', marginBottom: '14px' }}>
+                            <div style={{ flex: 1 }}>
+                                <p style={{
+                                    fontSize: '10px', fontFamily: "'Jost', sans-serif",
+                                    color: '#6B6458', fontWeight: '600',
+                                    textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.1em'
+                                }}>Client</p>
+                                <p style={{ fontSize: '13px', fontFamily: "'Jost', sans-serif", fontWeight: '500', color: '#1A1714', margin: '0 0 2px' }}>{formData.fullName}</p>
+                                <p style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#6B6458', margin: 0 }}>{formData.phone}</p>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <p style={{
+                                    fontSize: '10px', fontFamily: "'Jost', sans-serif",
+                                    color: '#6B6458', fontWeight: '600',
+                                    textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.1em'
+                                }}>Adresse</p>
+                                <p style={{ fontSize: '13px', fontFamily: "'Jost', sans-serif", fontWeight: '500', color: '#1A1714', margin: '0 0 2px' }}>{formData.wilaya} – {formData.city}</p>
+                                <p style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#9ca3af', margin: 0 }}>{formData.address}</p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <button
+                                onClick={() => setStep(1)}
+                                style={{
+                                    width: '100%', height: '40px',
+                                    backgroundColor: 'transparent', color: '#1A1714',
+                                    borderRadius: '10px', fontFamily: "'Jost', sans-serif",
+                                    fontWeight: '400', fontSize: '11px',
+                                    letterSpacing: '0.2em', textTransform: 'uppercase',
+                                    border: '1px solid #E8E2D6', cursor: 'pointer'
+                                }}
+                            >
+                                ← Modifier
+                            </button>
+                            <button
+                                disabled={loading}
+                                onClick={handleSubmit}
+                                style={{
+                                    width: '100%', height: '44px',
+                                    backgroundColor: '#1A1714', color: '#FAF8F4',
+                                    borderRadius: '10px', fontFamily: "'Jost', sans-serif",
+                                    fontWeight: '400', fontSize: '11px',
+                                    letterSpacing: '0.2em', textTransform: 'uppercase', border: 'none',
+                                    cursor: loading ? 'default' : 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                    transition: 'background 0.3s',
+                                }}
+                                onMouseEnter={e => !loading && (e.currentTarget.style.backgroundColor = '#B8963E')}
+                                onMouseLeave={e => !loading && (e.currentTarget.style.backgroundColor = '#1A1714')}
+                            >
+                                {loading ? <Loader2 size={16} className="animate-spin" /> : <>Confirmer la commande ✓</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

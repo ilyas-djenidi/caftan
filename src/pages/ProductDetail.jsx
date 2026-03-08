@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Heart, ChevronLeft, ChevronRight, Star, Shield, Truck, RefreshCw, Plus, Minus, Sparkles } from 'lucide-react';
+import { ShoppingBag, Heart, ChevronLeft, ChevronRight, Star, Shield, Truck, RefreshCw, Plus, Minus, Sparkles, XCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { getProduct, getProducts } from '../api/products.api';
 import { getReviews, createReview } from '../api/reviews.api';
 import ProductCard from '../components/shared/ProductCard';
@@ -26,6 +27,7 @@ export default function ProductDetail() {
     const [newReview, setNewReview] = useState({ author_name: '', rating: 5, comment: '' });
     const [hoverRating, setHoverRating] = useState(0);
     const [hasReviewed, setHasReviewed] = useState(false);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
 
     const { addItem, openDrawer } = useCartStore();
     const { toggle, isWishlisted } = useWishlistStore();
@@ -111,8 +113,13 @@ export default function ProductDetail() {
     const handleAddToCart = () => {
         const sizeToAdd = selectedSize || (sizes[0]?.value) || null;
         const colorToAdd = selectedColor || (colors[0]?.value) || null;
-        addItem(product, sizeToAdd, colorToAdd, quantity);
-        openDrawer();
+        const success = addItem(product, sizeToAdd, colorToAdd, quantity);
+
+        if (success) {
+            openDrawer();
+        } else {
+            toast.error("Limite de stock atteinte pour cet article.");
+        }
     };
 
     const handleReviewSubmit = async (e) => {
@@ -153,16 +160,80 @@ export default function ProductDetail() {
         : 0;
 
     return (
-        <div className="bg-white" style={{ paddingBottom: '120px' }}>
-            <main style={{ paddingLeft: '20px', paddingRight: '20px', paddingTop: 'calc(var(--navbar-height) + 40px)' }}
+        <div className="bg-white" style={{ paddingBottom: '60px' }}>
+
+            {/* Lightbox Overlay */}
+            <AnimatePresence>
+                {lightboxOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setLightboxOpen(false)}
+                        style={{
+                            position: 'fixed', inset: 0, zIndex: 9999,
+                            backgroundColor: 'rgba(0,0,0,0.88)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: '20px',
+                        }}
+                    >
+                        {/* Close button */}
+                        <button
+                            onClick={() => setLightboxOpen(false)}
+                            style={{
+                                position: 'absolute', top: '20px', right: '20px',
+                                background: 'rgba(255,255,255,0.15)', border: 'none',
+                                color: 'white', width: '44px', height: '44px',
+                                borderRadius: '50%', fontSize: '22px', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                backdropFilter: 'blur(8px)',
+                            }}
+                        >
+                            ✕
+                        </button>
+                        {/* Big image */}
+                        <motion.img
+                            key={currentImageIndex}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={e => e.stopPropagation()}
+                            src={getImageUrl(images[currentImageIndex]?.image_url)}
+                            alt={product.name_fr || product.name}
+                            style={{
+                                maxWidth: '90vw', maxHeight: '88vh',
+                                objectFit: 'contain', borderRadius: '16px',
+                                boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
+                                cursor: 'default',
+                            }}
+                        />
+                        {/* Prev / Next inside lightbox */}
+                        {images.length > 1 && (
+                            <>
+                                <button onClick={e => { e.stopPropagation(); setCurrentImageIndex(p => p === 0 ? images.length - 1 : p - 1); }}
+                                    style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '44px', height: '44px', borderRadius: '50%', fontSize: '22px', cursor: 'pointer', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    ‹
+                                </button>
+                                <button onClick={e => { e.stopPropagation(); setCurrentImageIndex(p => p === images.length - 1 ? 0 : p + 1); }}
+                                    style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '44px', height: '44px', borderRadius: '50%', fontSize: '22px', cursor: 'pointer', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    ›
+                                </button>
+                            </>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <main style={{ paddingLeft: '20px', paddingRight: '20px', paddingTop: 'calc(var(--navbar-height) + 20px)' }}
                 className="max-w-[1400px] mx-auto md:px-[48px]">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-10">
 
                     {/* Left: Main Image */}
-                    <div className="lg:col-span-6 space-y-4">
+                    <div className="lg:col-span-5">
                         <div
-                            style={{ backgroundColor: '#F0EBE0', borderRadius: '40px', overflow: 'hidden' }}
-                            className="w-full aspect-[4/3] max-h-[420px] lg:aspect-[3/4] lg:max-h-[600px] lg:sticky lg:top-[120px]"
+                            onClick={() => setLightboxOpen(true)}
+                            style={{ overflow: 'hidden', cursor: 'zoom-in', position: 'relative', aspectRatio: '1/1', backgroundColor: '#F0EBE0' }}
+                            className="w-full lg:sticky lg:top-[100px]"
                         >
                             <AnimatePresence mode="wait">
                                 <motion.img
@@ -171,187 +242,190 @@ export default function ProductDetail() {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.5 }}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    transition={{ duration: 0.4 }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                                 />
                             </AnimatePresence>
-
-                            {images.length > 1 && (
-                                <div className="absolute inset-0 flex items-center justify-between px-6 z-10 pointer-events-none">
-                                    <button onClick={() => setCurrentImageIndex(prev => (prev === 0 ? images.length - 1 : prev - 1))} className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center shadow-lg pointer-events-auto transition-transform hover:scale-110"><ChevronLeft /></button>
-                                    <button onClick={() => setCurrentImageIndex(prev => (prev === images.length - 1 ? 0 : prev + 1))} className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center shadow-lg pointer-events-auto transition-transform hover:scale-110"><ChevronRight /></button>
-                                </div>
-                            )}
                         </div>
                     </div>
 
                     {/* Right: Info Section */}
-                    {/* Right: Info Section */}
-                    <div className="lg:col-span-6 flex flex-col justify-start">
-                        <div className="mb-12">
-                            <h1 style={{ fontSize: 'clamp(30px, 4vw, 44px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 12px', color: '#1A1714', fontWeight: '500', marginBottom: '12px' }}>
+                    <div className="lg:col-span-7 flex flex-col justify-start">
+                        <div style={{ marginBottom: '8px' }}>
+                            <h1 style={{ fontSize: 'clamp(22px, 2.5vw, 32px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 8px', color: '#1A1714', fontWeight: '500' }}>
                                 {product.name_fr || product.name}
                             </h1>
 
-                            <div className="flex items-center gap-3 mb-8" style={{ marginBottom: '24px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                 <div className="flex text-[#C3AB7E]">
                                     {[1, 2, 3, 4, 5].map(s => (
-                                        <Star key={s} size={14} fill={s <= Math.round(averageRating) ? "currentColor" : "none"} strokeWidth={1} />
+                                        <Star key={s} size={13} fill={s <= Math.round(averageRating) ? "currentColor" : "none"} strokeWidth={1} />
                                     ))}
                                 </div>
-                                <span style={{ fontSize: '12px', letterSpacing: '0.05em', color: '#6B6458', fontWeight: '400' }}>
-                                    {averageRating || 0} ({reviews.length} avis)
-                                </span>
+                                <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} avis)</span>
                             </div>
 
-                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '38px', fontWeight: '400', color: '#1A1714', margin: 0, marginTop: '32px' }}>
-                                {product.price?.toLocaleString()} <span style={{ fontSize: '14px', fontFamily: "'Jost', sans-serif", color: '#B8963E', fontWeight: '500', marginLeft: '4px' }}>DA</span>
+                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: '400', color: '#1A1714', margin: '0 0 16px' }}>
+                                {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '13px', fontFamily: "'Jost', sans-serif", color: '#B8963E', fontWeight: '500' }}>DA</span>
                             </p>
                         </div>
 
-                        {/* Thumbnails */}
-                        {images.length > 1 && (
-                            <div className="flex flex-wrap gap-3 mb-14">
-                                {images.map((img, i) => (
-                                    <div
-                                        key={i}
-                                        onClick={() => setCurrentImageIndex(i)}
-                                        style={{
-                                            width: '64px', height: '64px', borderRadius: '16px', overflow: 'hidden', cursor: 'pointer',
-                                            border: currentImageIndex === i ? '1.5px solid #B8963E' : '1px solid #f0ede8',
-                                            padding: '2px', transition: 'all 0.3s ease'
-                                        }}
-                                        className="hover:border-[#B8963E]"
-                                    >
-                                        <img src={getImageUrl(img.image_url)} className="w-full h-full object-cover rounded-[12px]" alt="" />
-                                    </div>
-                                ))}
+                        {/* Stock Info */}
+                        {product.stock_count === 0 && (
+                            <div className="flex items-center gap-2 text-sm font-medium text-red-500 bg-red-50 p-3 rounded-xl w-fit" style={{ marginBottom: '12px' }}>
+                                <XCircle size={14} />
+                                <span>Rupture de stock</span>
                             </div>
                         )}
 
-                        <div className="space-y-14">
-                            {/* Sizes */}
-                            {sizes.length > 0 && (
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '18px', fontWeight: '600' }}>Taille</label>
-                                    <div className="flex flex-wrap gap-3">
-                                        {sizes.map(s => (
-                                            <button key={s.id} onClick={() => setSelectedSize(s.value)}
-                                                style={{
-                                                    minWidth: '64px', height: '52px', borderRadius: '16px',
-                                                    border: selectedSize === s.value ? '2px solid #1A1714' : '1px solid #E8E2D6',
-                                                    backgroundColor: selectedSize === s.value ? '#1A1714' : 'transparent',
-                                                    color: selectedSize === s.value ? 'white' : '#1A1714',
-                                                    fontWeight: '500', fontSize: '14px', transition: 'all 0.2s', cursor: 'pointer',
-                                                    padding: '0 24px', fontFamily: "'Jost', sans-serif"
-                                                }}
-                                            >
-                                                {s.value}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Colors */}
-                            {colors.length > 0 && (
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '18px', fontWeight: '600' }}>Couleur</label>
-                                    <div className="flex flex-wrap gap-4">
-                                        {colors.map(c => (
-                                            <button key={c.id} onClick={() => setSelectedColor(c.value)}
-                                                style={{
-                                                    width: '44px', height: '44px', borderRadius: '50%',
-                                                    border: selectedColor === c.value ? '2px solid #B8963E' : '1px solid #E8E2D6',
-                                                    padding: '4px', transition: 'all 0.3s', cursor: 'pointer', backgroundColor: 'transparent'
-                                                }}
-                                            >
-                                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: c.value, boxShadow: 'inset 0 0 6px rgba(0,0,0,0.1)' }} />
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Actions */}
-                            <div className="flex flex-col sm:flex-row gap-4 pt-6" style={{ marginTop: '40px' }}>
-                                <div className="flex items-center justify-between w-full sm:w-auto bg-[#FAF8F4] border border-[#E8E2D6] px-5 rounded-[20px] h-[60px] min-w-[150px]">
-                                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-2 hover:text-[#B8963E] transition-colors"><Minus size={18} /></button>
-                                    <span style={{ fontWeight: '600', fontSize: '16px', color: '#1A1714', fontFamily: "'Jost', sans-serif" }}>{quantity}</span>
-                                    <button onClick={() => setQuantity(q => q + 1)} className="p-2 hover:text-[#B8963E] transition-colors"><Plus size={18} /></button>
-                                </div>
-
-                                <button onClick={handleAddToCart}
-                                    style={{
-                                        backgroundColor: '#1A1714', color: '#FAF8F4',
-                                        height: '60px', borderRadius: '20px', fontWeight: '600',
-                                        fontSize: '12px', letterSpacing: '0.2em', textTransform: 'uppercase',
-                                        border: 'none', cursor: 'pointer', transition: 'all 0.4s ease'
-                                    }}
-                                    className="w-full sm:flex-1 hover:bg-[#B8963E] flex items-center justify-center gap-3 active:scale-95 shadow-lg shadow-black/5"
-                                >
-                                    <ShoppingBag size={20} /> Ajouter au panier
-                                </button>
-
-                                <button onClick={() => toggle(product)}
-                                    style={{
-                                        height: '60px', width: '60px', borderRadius: '20px',
-                                        border: '1px solid #E8E2D6',
-                                        color: isWishlisted(product.id) ? '#ef4444' : '#1A1714',
-                                        cursor: 'pointer', background: '#ffffff', transition: 'all 0.3s'
-                                    }}
-                                    className="flex items-center justify-center hover:border-[#1A1714] shadow-sm"
-                                >
-                                    <Heart size={24} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} strokeWidth={1.5} />
-                                </button>
-                            </div>
-
-                            {/* Tabs Section */}
-                            <div className="pt-12" style={{ marginTop: '40px', borderTop: '1px solid #f0ede8', paddingTop: '40px', paddingBottom: '40px' }}>
-                                <div className="flex gap-10 border-b border-[#f0ede8] overflow-x-auto no-scrollbar">
-                                    {[
-                                        { key: 'description', label: 'Description' },
-                                        { key: 'details', label: 'Détails & Entretien' },
-                                    ].map(tab => (
-                                        <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                        {/* Selectors — Sizes */}
+                        {sizes.length > 0 && (
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '10px', fontWeight: '600' }}>Taille</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {sizes.map(s => (
+                                        <button key={s.id} onClick={() => setSelectedSize(s.value)}
                                             style={{
-                                                fontSize: '11px', fontWeight: activeTab === tab.key ? '600' : '400',
-                                                letterSpacing: '0.2em', textTransform: 'uppercase',
-                                                color: activeTab === tab.key ? '#1A1714' : '#6B6458',
-                                                paddingBottom: '20px', borderBottom: activeTab === tab.key ? '2px solid #B8963E' : '2px solid transparent',
-                                                cursor: 'pointer', transition: 'all 0.2s', marginBottom: '-1px',
-                                                flexShrink: 0, whiteSpace: 'nowrap', backgroundColor: 'transparent'
+                                                minWidth: '48px', height: '40px', borderRadius: '10px',
+                                                border: selectedSize === s.value ? '2px solid #1A1714' : '1px solid #E8E2D6',
+                                                backgroundColor: selectedSize === s.value ? '#1A1714' : 'transparent',
+                                                color: selectedSize === s.value ? 'white' : '#1A1714',
+                                                fontWeight: '500', fontSize: '12px', transition: 'all 0.2s', cursor: 'pointer',
+                                                padding: '0 14px', fontFamily: "'Jost', sans-serif"
+                                            }}
+                                        >{s.value}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Selectors — Colors */}
+                        {colors.length > 0 && (
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '10px', fontWeight: '600' }}>
+                                    Couleur
+                                    {selectedColor && (
+                                        <span style={{ fontStyle: 'italic', fontFamily: "'Cormorant Garamond', serif", color: '#B8963E', fontWeight: '400', textTransform: 'none', letterSpacing: '0', fontSize: '13px' }}>
+                                            {colors.find(c => c.value === selectedColor)?.label || ''}
+                                        </span>
+                                    )}
+                                </label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                    {colors.map(c => (
+                                        <button key={c.id} onClick={() => setSelectedColor(c.value)}
+                                            title={c.label}
+                                            style={{
+                                                width: '36px', height: '36px', borderRadius: '50%',
+                                                border: selectedColor === c.value ? '2px solid #B8963E' : '1.5px solid #E8E2D6',
+                                                padding: '3px', transition: 'all 0.3s', cursor: 'pointer', backgroundColor: 'transparent',
+                                                boxShadow: selectedColor === c.value ? '0 0 0 3px rgba(184,150,62,0.25)' : 'none'
                                             }}
                                         >
-                                            {tab.label}
+                                            <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: c.value }} />
                                         </button>
                                     ))}
                                 </div>
+                            </div>
+                        )}
+                        {/* Actions */}
+                        <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FAF8F4', border: '1px solid #E8E2D6', padding: '0 16px', borderRadius: '14px', height: '48px', minWidth: '130px' }}>
+                                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-1 hover:text-[#B8963E] transition-colors"><Minus size={16} /></button>
+                                <span style={{ fontWeight: '600', fontSize: '15px', color: '#1A1714', fontFamily: "'Jost', sans-serif", padding: '0 12px' }}>{quantity}</span>
+                                <button onClick={() => setQuantity(q => Math.min(product.stock_count || 99, q + 1))} className="p-1 hover:text-[#B8963E] transition-colors"><Plus size={16} /></button>
+                            </div>
 
-                                <div className="pt-10" style={{ marginTop: '20px' }}>
-                                    <AnimatePresence mode="wait">
-                                        {activeTab === 'description' && (
-                                            <motion.div key="desc" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-                                                <p style={{ fontSize: '15px', lineHeight: '1.8', color: '#6B6458', fontWeight: '400', fontFamily: "'Jost', sans-serif" }}>
-                                                    {product.description_fr || "Magnifique sacs de notre nouvelle collection. Qualité supérieure et finition artisanale."}
-                                                </p>
-                                            </motion.div>
-                                        )}
-                                        {activeTab === 'details' && (
-                                            <motion.div key="det" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-                                                <ul style={{ fontSize: '15px', lineHeight: '2.2', color: '#6B6458', fontWeight: '400', fontFamily: "'Jost', sans-serif" }} className="space-y-2 list-disc pl-5 marker:text-[#C3AB7E]">
-                                                    <li>Tissu de haute qualité soigneusement sélectionné</li>
-                                                    <li>Finitions artisanales et broderies délicates</li>
-                                                    <li>Nettoyage à sec uniquement recommandé</li>
-                                                    <li>Livré dans son coffret Maison du Caftans exclusif</li>
-                                                </ul>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
+                            <button onClick={handleAddToCart}
+                                style={{
+                                    flex: 1, backgroundColor: '#1A1714', color: '#FAF8F4',
+                                    height: '48px', borderRadius: '14px', fontWeight: '600',
+                                    fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                                    border: 'none', cursor: 'pointer', transition: 'all 0.3s',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                                }}
+                                className="hover:bg-[#B8963E] active:scale-95"
+                            >
+                                <ShoppingBag size={17} /> Ajouter au panier
+                            </button>
+
+                            <button onClick={() => toggle(product)}
+                                style={{
+                                    height: '48px', width: '48px', borderRadius: '14px',
+                                    border: '1px solid #E8E2D6',
+                                    color: isWishlisted(product.id) ? '#ef4444' : '#1A1714',
+                                    cursor: 'pointer', background: '#ffffff', transition: 'all 0.3s',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}
+                                className="hover:border-[#1A1714]"
+                            >
+                                <Heart size={20} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} strokeWidth={1.5} />
+                            </button>
+                        </div>
+
+                        {/* Tabs Section */}
+                        <div style={{ marginTop: '20px', borderTop: '1px solid #f0ede8', paddingTop: '20px' }}>
+                            <div className="flex gap-10 border-b border-[#f0ede8] overflow-x-auto no-scrollbar">
+                                {[
+                                    { key: 'description', label: 'Description' },
+                                    { key: 'details', label: 'Détails & Entretien' },
+                                ].map(tab => (
+                                    <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                                        style={{
+                                            fontSize: '11px', fontWeight: activeTab === tab.key ? '600' : '400',
+                                            letterSpacing: '0.2em', textTransform: 'uppercase',
+                                            color: activeTab === tab.key ? '#1A1714' : '#6B6458',
+                                            paddingBottom: '20px', borderBottom: activeTab === tab.key ? '2px solid #B8963E' : '2px solid transparent',
+                                            cursor: 'pointer', transition: 'all 0.2s', marginBottom: '-1px',
+                                            flexShrink: 0, whiteSpace: 'nowrap', backgroundColor: 'transparent'
+                                        }}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div style={{ paddingTop: '16px' }}>
+                                <AnimatePresence mode="wait">
+                                    {activeTab === 'description' && (
+                                        <motion.div key="desc" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
+                                            <p style={{ fontSize: '14px', lineHeight: '1.7', color: '#6B6458', fontWeight: '400', fontFamily: "'Jost', sans-serif", margin: 0 }}>
+                                                {product.description_fr || (product.category === 'Caftans' ? "Magnifique caftan de notre nouvelle collection. Qualité supérieure et finition artisanale." : "Magnifique article de notre nouvelle collection. Qualité supérieure et finition artisanale.")}
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                    {activeTab === 'details' && (
+                                        <motion.div key="det" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
+                                            <ul style={{ fontSize: '13px', lineHeight: '2', color: '#6B6458', fontFamily: "'Jost', sans-serif", paddingLeft: '18px', margin: 0 }} className="list-disc marker:text-[#C3AB7E]">
+                                                <li>Tissu de haute qualité soigneusement sélectionné</li>
+                                                <li>Finitions artisanales et broderies délicates</li>
+                                                <li>Nettoyage à sec uniquement recommandé</li>
+                                                <li>Livré dans son coffret Maison du Caftans exclusif</li>
+                                            </ul>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Thumbnails — below tabs */}
+                                {images.length > 1 && (
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
+                                        {images.map((img, i) => (
+                                            <div
+                                                key={i}
+                                                onClick={() => setCurrentImageIndex(i)}
+                                                style={{
+                                                    width: '56px', height: '56px', overflow: 'hidden',
+                                                    cursor: 'pointer', flexShrink: 0,
+                                                    border: currentImageIndex === i ? '1.5px solid #B8963E' : '1.5px solid transparent',
+                                                    transition: 'border-color 0.2s'
+                                                }}
+                                            >
+                                                <img src={getImageUrl(img.image_url)} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        <div style={{ marginTop: '32px' }}></div>
                     </div>
                 </div>
 
@@ -515,24 +589,49 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Related Products Section */}
-                {relatedProducts.length > 0 && (
-                    <div style={{ marginTop: '80px', paddingTop: '60px', borderTop: '1px solid #f0ede8' }}>
-                        <div className="flex flex-col items-center">
-                            <h2 style={{ fontSize: 'clamp(32px, 4vw, 40px)', fontFamily: "'Cormorant Garamond', serif", margin: 0 }}>
-                                Vous aimerez aussi
-                            </h2>
+                {
+                    relatedProducts.length > 0 && (
+                        <div style={{ marginTop: '80px', paddingTop: '60px', borderTop: '1px solid #f0ede8' }}>
+                            <div className="flex flex-col items-center">
+                                <h2 style={{ fontSize: 'clamp(32px, 4vw, 40px)', fontFamily: "'Cormorant Garamond', serif", margin: 0 }}>
+                                    Vous aimerez aussi
+                                </h2>
+                            </div>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8" style={{ marginTop: '40px' }}>
+                                {relatedProducts.map(rp => (
+                                    <ProductCard key={rp.id} product={rp} onClick={() => {
+                                        navigate(`/product/${rp.id}`);
+                                        window.scrollTo(0, 0);
+                                    }} />
+                                ))}
+                            </div>
                         </div>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8" style={{ marginTop: '40px' }}>
-                            {relatedProducts.map(rp => (
-                                <ProductCard key={rp.id} product={rp} onClick={() => {
-                                    navigate(`/product/${rp.id}`);
-                                    window.scrollTo(0, 0);
-                                }} />
-                            ))}
-                        </div>
-                    </div>
-                )}
+                    )
+                }
             </main>
+
+            {/* Sticky Sold Out Banner */}
+            {product.stock_count === 0 && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: '#1A1714',
+                    color: 'white',
+                    padding: '20px',
+                    textAlign: 'center',
+                    zIndex: 50,
+                    letterSpacing: '0.4em',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    fontFamily: "'Jost', sans-serif",
+                    borderTop: '1px solid rgba(255,255,255,0.1)',
+                    boxShadow: '0 -10px 30px rgba(0,0,0,0.2)'
+                }}>
+                    SOLD OUT
+                </div>
+            )}
         </div>
     );
 }

@@ -20,8 +20,22 @@ export default function Products() {
     const [totalItems, setTotalItems] = useState(0);
 
     const [newImagePreviews, setNewImagePreviews] = useState([]);
-    const [tempColor, setTempColor] = useState('#000000');
-    const [tempColorName, setTempColorName] = useState('');
+    const [selectedPresetColor, setSelectedPresetColor] = useState(null);
+
+    const PRESET_COLORS = [
+        { name: 'Ivoire', hex: '#F0EBE0' },
+        { name: 'Blanc', hex: '#FFFFFF' },
+        { name: 'Noir', hex: '#1A1714' },
+        { name: 'Bordeaux', hex: '#8B1A1A' },
+        { name: 'Rouge', hex: '#C0392B' },
+        { name: 'Bleu nuit', hex: '#1A1A4E' },
+        { name: 'Vert', hex: '#2D5A27' },
+        { name: 'Beige', hex: '#D4B896' },
+        { name: 'Doré', hex: '#B8963E' },
+        { name: 'Rose', hex: '#E8C4C4' },
+        { name: 'Gris', hex: '#9CA3AF' },
+        { name: 'Caramel', hex: '#C68642' },
+    ];
 
     const [formData, setFormData] = useState({
         name_fr: '',
@@ -67,8 +81,7 @@ export default function Products() {
 
     const handleOpenModal = (product = null) => {
         setNewImagePreviews([]);
-        setTempColor('#000000');
-        setTempColorName('');
+        setSelectedPresetColor(null);
 
         if (product) {
             setEditingProduct(product);
@@ -230,16 +243,16 @@ export default function Products() {
                         <div key={product.id} style={{ backgroundColor: 'white', borderRadius: '24px', border: '1px solid #f0ede8', overflow: 'hidden' }} className="group">
                             <div style={{ aspectRatio: '1/1', backgroundColor: '#fafafa', position: 'relative' }}>
                                 <img src={product.images?.[0]?.image_url || '/placeholder.jpg'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                    <button onClick={() => handleOpenModal(product)} className="p-3 bg-white rounded-xl hover:scale-110 transition-transform"><Edit2 size={18} /></button>
-                                    <button onClick={() => handleDelete(product.id)} className="p-3 bg-white text-red-500 rounded-xl hover:scale-110 transition-transform"><Trash2 size={18} /></button>
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                    <button onClick={() => handleOpenModal(product)} className="p-5 bg-white rounded-2xl hover:scale-110 transition-all shadow-xl"><Edit2 size={24} /></button>
+                                    <button onClick={() => handleDelete(product.id)} className="p-5 bg-white text-red-500 rounded-2xl hover:scale-110 transition-all shadow-xl"><Trash2 size={24} /></button>
                                 </div>
                             </div>
                             <div style={{ padding: '20px' }}>
                                 <span style={{ fontSize: '10px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase' }}>{product.category}</span>
                                 <h3 style={{ fontSize: '16px', fontWeight: '700', margin: '4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name_fr}</h3>
                                 <div className="flex justify-between items-center mt-2">
-                                    <span style={{ fontWeight: '800' }}>{product.price.toLocaleString()} DA</span>
+                                    <span style={{ fontWeight: '800' }}>{product.price.toLocaleString('fr-FR')} DA</span>
                                     <span style={{ fontSize: '11px', color: product.stock_count > 0 ? '#16a34a' : '#ef4444', fontWeight: '700' }}>
                                         {product.stock_count} EN STOCK
                                     </span>
@@ -409,41 +422,43 @@ export default function Products() {
                             <div>
                                 <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>Couleurs Disponibles</label>
 
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-                                    {(formData.attributes?.filter(a => a.type === 'color') || []).map((color, i) => (
-                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '10px', border: '1px solid #F0EDE8', backgroundColor: 'white' }}>
-                                            <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: color.value, border: '1px solid rgba(0,0,0,0.1)' }} />
-                                            <span style={{ fontSize: '12px', fontWeight: '700' }}>{color.label}</span>
-                                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, attributes: prev.attributes.filter((_, idx) => idx !== prev.attributes.findIndex(a => a.type === 'color' && a.value === color.value)) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '16px', padding: 0 }}>×</button>
+                                {/* Selected colors chips */}
+                                {(formData.attributes?.filter(a => a.type === 'color') || []).length > 0 && (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+                                        {(formData.attributes?.filter(a => a.type === 'color') || []).map((color, i) => (
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '20px', border: '1px solid #F0EDE8', backgroundColor: 'white' }}>
+                                                <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: color.value, border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }} />
+                                                <span style={{ fontSize: '11px', fontWeight: '600' }}>{color.label}</span>
+                                                <button type="button" onClick={() => setFormData(prev => ({ ...prev, attributes: prev.attributes.filter((_, idx) => idx !== prev.attributes.findIndex(a => a.type === 'color' && a.value === color.value)) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '16px', padding: '0 0 0 2px', lineHeight: 1 }}>×</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Preset color swatches */}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '8px' }}>
+                                    {PRESET_COLORS.map(color => (
+                                        <div
+                                            key={color.hex}
+                                            onClick={() => {
+                                                const exists = formData.attributes?.find(a => a.type === 'color' && a.value === color.hex);
+                                                if (!exists) {
+                                                    setFormData(prev => ({ ...prev, attributes: [...(prev.attributes || []), { type: 'color', value: color.hex, label: color.name, is_available: true }] }));
+                                                }
+                                                setSelectedPresetColor(color);
+                                            }}
+                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                                        >
+                                            <div style={{
+                                                width: '36px', height: '36px', borderRadius: '50%',
+                                                backgroundColor: color.hex,
+                                                border: selectedPresetColor?.hex === color.hex ? '2px solid #B8963E' : '2px solid #E8E2D6',
+                                                boxShadow: selectedPresetColor?.hex === color.hex ? '0 0 0 3px rgba(184,150,62,0.3)' : 'none',
+                                                transition: 'all 0.2s',
+                                            }} />
+                                            <span style={{ fontSize: '9px', fontFamily: "'Jost', sans-serif", fontWeight: '300', color: '#6B6458', textAlign: 'center', letterSpacing: '0.05em' }}>{color.name}</span>
                                         </div>
                                     ))}
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                    <input
-                                        type="color"
-                                        style={{ width: '48px', height: '48px', borderRadius: '12px', border: '1px solid #F0EDE8', cursor: 'pointer', padding: '2px' }}
-                                        value={tempColor}
-                                        onChange={(e) => setTempColor(e.target.value)}
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Nom (ex: Rouge)"
-                                        value={tempColorName}
-                                        onChange={e => setTempColorName(e.target.value)}
-                                        style={{ flex: 1, minWidth: '160px', height: '48px', padding: '0 16px', borderRadius: '12px', border: '1px solid #F0EDE8', outline: 'none', fontSize: '13px' }}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (tempColorName) {
-                                                setFormData(prev => ({ ...prev, attributes: [...(prev.attributes || []), { type: 'color', value: tempColor || '#000000', label: tempColorName, is_available: true }] }));
-                                                setTempColorName('');
-                                                setTempColor('#000000');
-                                            }
-                                        }}
-                                        style={{ height: '48px', padding: '0 20px', borderRadius: '12px', backgroundColor: '#111111', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '800', fontSize: '12px', whiteSpace: 'nowrap' }}
-                                    >+ Ajouter</button>
                                 </div>
                             </div>
 

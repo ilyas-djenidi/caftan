@@ -7,7 +7,6 @@ import Sacs from './pages/Sacs';
 import Accessoires from './pages/Accessoires';
 import Packs from './pages/Packs';
 import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
 import Wishlist from './pages/Wishlist';
 import Contact from './pages/Contact';
 import Checkout from './pages/Checkout';
@@ -32,8 +31,10 @@ import HeroManager from './pages/admin/HeroManager';
 
 // Storefront layout wrapper — renders Navbar + CartDrawer + FloatingIcons + page + Footer
 function StorefrontLayout() {
+    const location = useLocation();
+
     return (
-        <div className="min-h-screen flex flex-col bg-white" style={{ overflowX: 'hidden' }}>
+        <div className="min-h-screen flex flex-col bg-white">
             <Navbar />
             <CartDrawer />
             <FloatingIcons />
@@ -79,7 +80,6 @@ function App() {
                     <Route path="/accessoires" element={<Accessoires />} />
                     <Route path="/packs" element={<Packs />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
-                    <Route path="/panier" element={<Cart />} />
                     <Route path="/wishlist" element={<Wishlist />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/checkout" element={<Checkout />} />

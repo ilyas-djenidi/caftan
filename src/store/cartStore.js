@@ -15,10 +15,18 @@ export const useCartStore = create(
                 const key = `${product.id}-${size}-${color}`;
                 const existing = items.find((i) => i.key === key);
 
+                const currentQty = existing ? existing.quantity : 0;
+                const newQty = currentQty + quantity;
+
+                // Stock guard
+                if (product.stock_count !== undefined && product.stock_count !== null && newQty > product.stock_count) {
+                    return false; // Indicate failure to add
+                }
+
                 if (existing) {
                     set({
                         items: items.map((i) =>
-                            i.key === key ? { ...i, quantity: i.quantity + quantity } : i
+                            i.key === key ? { ...i, quantity: newQty } : i
                         ),
                     });
                 } else {
@@ -29,6 +37,7 @@ export const useCartStore = create(
                         ],
                     });
                 }
+                return true; // Indicate success
             },
 
             removeItem: (key) => {
@@ -40,6 +49,12 @@ export const useCartStore = create(
                     set({ items: get().items.filter((i) => i.key !== key) });
                     return;
                 }
+
+                const item = get().items.find(i => i.key === key);
+                if (item && item.product.stock_count !== undefined && item.product.stock_count !== null && quantity > item.product.stock_count) {
+                    return; // Prevent exceeding stock
+                }
+
                 set({
                     items: get().items.map((i) =>
                         i.key === key ? { ...i, quantity } : i

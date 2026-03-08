@@ -198,7 +198,8 @@ export const updateProduct = async (id, formData) => {
 
         const { data: currentImages } = await supabase.from('product_images').select('*').eq('product_id', id);
         if (currentImages) {
-            const toDelete = currentImages.filter(img => !existingImages.includes(img.id));
+            const existingIds = existingImages.map(img => img.id);
+            const toDelete = currentImages.filter(img => !existingIds.includes(img.id));
             if (toDelete.length > 0) {
                 const filePaths = toDelete.map(img => img.image_url.split('/caftan-images/')[1]).filter(Boolean);
                 if (filePaths.length > 0) {

@@ -111,9 +111,12 @@ export default function Home() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
                     style={{
-                        position: 'absolute', bottom: 'clamp(10%, 15vh, 25%)', left: '7%',
+                        position: 'absolute',
+                        bottom: 'clamp(10%, 15vh, 25%)',
+                        left: '7%',
                         maxWidth: '560px', zIndex: 10,
                     }}
+                    className="max-sm:!bottom-auto max-sm:!top-[22%]"
                 >
                     {/* Eyebrow */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>

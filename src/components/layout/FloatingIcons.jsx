@@ -2,7 +2,7 @@ import { ShoppingBag } from 'lucide-react'; // Changed icons
 import { useCartStore } from '../../store/cartStore';
 
 const FloatingIcons = () => {
-    const { items, setIsCartOpen } = useCartStore();
+    const { items, openDrawer } = useCartStore();
     const itemCount = items?.reduce((total, item) => total + item.quantity, 0) || 0;
 
     const btnBase = {
@@ -36,7 +36,7 @@ const FloatingIcons = () => {
         >
             {/* Quality Bag Icon Button */}
             <button
-                onClick={() => setIsCartOpen(true)}
+                onClick={() => openDrawer()}
                 title="Mon Panier"
                 style={btnBase}
                 onMouseEnter={(e) => {
