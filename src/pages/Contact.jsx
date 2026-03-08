@@ -20,14 +20,20 @@ export default function Contact() {
             const { error } = await supabase
                 .from('messages')
                 .insert([{
-                    name: formData.name,
+                    sender_name: formData.name,
                     email: formData.email,
                     subject: '',
-                    message: formData.message,
+                    body: formData.message,
                     status: 'unread'
                 }]);
 
-            if (error) throw error;
+            if (error) {
+                // Check if the error is the missing column error, or let it throw naturally
+                if (error.code === 'PGRST204') {
+                    console.warn("Supabase schema missing 'email' column in 'messages'.");
+                }
+                throw error;
+            }
             toast.success(t('contact.successMsg'));
             setFormData({ name: '', email: '', message: '' });
         } catch (error) {
@@ -48,21 +54,21 @@ export default function Contact() {
                 <h1 style={{ fontSize: 'clamp(32px, 4vw, 44px)', fontFamily: 'serif', marginBottom: '40px', lineHeight: 1.1, textAlign: 'center', whiteSpace: 'pre-line' }}>{t('contact.title')}</h1>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="space-y-1">
-                            <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af' }}>{t('contact.name')}</label>
-                            <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', transition: 'border-color 0.3s', backgroundColor: 'transparent' }} className="focus:border-[#111]" placeholder={t('contact.namePlaceholder')} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>{t('contact.name')}</label>
+                            <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', backgroundColor: '#fafafa' }} className="focus:border-[#C3AB7E] transition-colors" placeholder={t('contact.namePlaceholder')} />
                         </div>
-                        <div className="space-y-1">
-                            <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af' }}>{t('contact.email')}</label>
-                            <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', transition: 'border-color 0.3s', backgroundColor: 'transparent' }} className="focus:border-[#111]" placeholder={t('contact.emailPlaceholder')} />
+                        <div className="space-y-2">
+                            <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>{t('contact.email')}</label>
+                            <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', backgroundColor: '#fafafa' }} className="focus:border-[#C3AB7E] transition-colors" placeholder={t('contact.emailPlaceholder')} />
                         </div>
                     </div>
-                    <div className="space-y-1">
-                        <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af' }}>{t('contact.message')}</label>
-                        <textarea required rows="5" value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} style={{ width: '100%', borderBottom: '1px solid #e5e7eb', outline: 'none', transition: 'border-color 0.3s', backgroundColor: 'transparent', resize: 'none', paddingTop: '12px' }} className="focus:border-[#111]" placeholder={t('contact.messagePlaceholder')} />
+                    <div className="space-y-2">
+                        <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#111111' }}>{t('contact.message')}</label>
+                        <textarea required rows="5" value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} style={{ width: '100%', padding: '20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', backgroundColor: '#fafafa', resize: 'none' }} className="focus:border-[#C3AB7E] transition-colors" placeholder={t('contact.messagePlaceholder')} />
                     </div>
-                    <button disabled={loading} type="submit" style={{ width: '100%', height: '52px', backgroundColor: '#111111', color: 'white', fontWeight: '800', fontSize: '12px', letterSpacing: '0.1em', marginTop: '16px' }} className="hover:bg-[#C3AB7E] transition-colors flex items-center justify-center gap-3">
+                    <button disabled={loading} type="submit" style={{ width: '100%', height: '56px', backgroundColor: '#111111', color: 'white', borderRadius: '16px', fontWeight: '800', fontSize: '12px', letterSpacing: '0.1em', marginTop: '32px' }} className="hover:bg-[#C3AB7E] transition-colors flex items-center justify-center gap-3">
                         {loading ? <Loader2 className="animate-spin" /> : <>{t('contact.send')} <Send size={16} /></>}
                     </button>
                 </form>

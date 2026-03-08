@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Mail, Search, Trash2, Check, Clock, User, MessageSquare, Loader2 } from 'lucide-react';
+import { Mail, Search, Trash2, Check, Clock, User, MessageSquare, Loader2, CheckCircle2, UserCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import toast from 'react-hot-toast';
@@ -8,9 +8,8 @@ import toast from 'react-hot-toast';
 export default function Messages() {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedMessage, setSelectedMessage] = useState(null);
+    const [updatingId, setUpdatingId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [mobileView, setMobileView] = useState('list'); // 'list' or 'detail'
 
     useEffect(() => {
         fetchMessages();
@@ -32,111 +31,157 @@ export default function Messages() {
     };
 
     const markAsRead = async (id) => {
+        setUpdatingId(id);
         try {
             await supabase.from('messages').update({ is_read: true }).eq('id', id);
             setMessages(messages.map(m => m.id === id ? { ...m, is_read: true } : m));
+            toast.success("Message marqué comme lu");
         } catch (error) {
             toast.error('Erreur');
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce message ?")) return;
+        setUpdatingId(id);
+        try {
+            await supabase.from('messages').delete().eq('id', id);
+            setMessages(messages.filter(m => m.id !== id));
+            toast.success("Message supprimé");
+        } catch (error) {
+            toast.error('Erreur lors de la suppression');
+        } finally {
+            setUpdatingId(null);
         }
     };
 
     const filtered = messages.filter(m =>
-        m.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.sender_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.subject?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="space-y-8" style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
-            <header className="flex justify-between items-center">
+        <div className="flex flex-col gap-8 animate-fade-in pb-10" style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Messages Clients</h1>
-                    <p style={{ color: '#9ca3af', fontSize: '14px' }}>{messages.filter(m => !m.is_read).length} messages non lus</p>
+                    <h1 className="text-3xl font-serif font-bold text-[#111111]">Messages Clients</h1>
+                    <p className="text-gray-400 text-sm mt-1 uppercase font-bold tracking-widest">{messages.filter(m => !m.is_read).length} messages non lus</p>
                 </div>
+
                 <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         placeholder="Filtrer les messages..."
-                        style={{ width: '320px', height: '56px', padding: '0 20px 0 52px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none' }}
+                        style={{ width: '100%', maxWidth: '300px', padding: '12px 20px 12px 44px', borderRadius: '15px', border: '1px solid #f0ede8', outline: 'none', backgroundColor: 'white', fontSize: '14px', fontWeight: '500' }}
                     />
                 </div>
-            </header>
+            </div>
 
-            <div style={{ display: 'flex', gap: '24px', height: 'calc(100vh - 180px)', minHeight: '600px' }}>
-                <div style={{
-                    width: '340px', minWidth: '340px',
-                    flex: mobileView === 'detail' ? '0 0 0' : '1',
-                    display: mobileView === 'detail' ? 'none' : 'flex',
-                    flexDirection: 'column'
-                }} className="bg-white rounded-[32px] border border-gray-100 overflow-hidden w-full lg:w-[340px] lg:min-w-[340px] lg:flex flex-col">
-                    <div className="p-6 border-b border-gray-50 bg-gray-50/50">
-                        <span style={{ fontSize: '10px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase', letterSpacing: '0.1em' }}>INBOX</span>
-                    </div>
-                    <div className="overflow-y-auto flex-grow divide-y divide-gray-50">
+            <div style={{
+                backgroundColor: 'white',
+                borderRadius: '30px',
+                border: '1px solid #F0EDE8',
+                overflow: 'hidden',
+                boxShadow: '0 4px 30px rgba(0,0,0,0.02)'
+            }}>
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr style={{ borderBottom: '1px solid #F0EDE8', backgroundColor: '#ffffff' }}>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Expéditeur</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Sujet</th>
+                            <th className="hidden md:table-cell" style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Message</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0EDE8]">
                         {loading ? (
-                            <div className="p-20 flex justify-center"><Loader2 className="animate-spin" /></div>
+                            <tr>
+                                <td colSpan="5" className="py-20 text-center text-[#C3AB7E]">
+                                    <Loader2 className="animate-spin inline-block" size={32} />
+                                </td>
+                            </tr>
                         ) : filtered.length === 0 ? (
-                            <div className="p-10 text-center text-gray-400">Aucun message</div>
-                        ) : filtered.map(msg => (
-                            <div
-                                key={msg.id}
-                                onClick={() => { setSelectedMessage(msg); if (!msg.is_read) markAsRead(msg.id); setMobileView('detail'); }}
-                                style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: selectedMessage?.id === msg.id ? '#fdfbf7' : 'white' }}
-                                className="hover:bg-[#fafafa]"
-                            >
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 style={{ fontSize: '15px', fontWeight: !msg.is_read ? '800' : '600' }}>{msg.name}</h3>
-                                    {!msg.is_read && <div className="w-2 h-2 rounded-full bg-[#C3AB7E]" />}
-                                </div>
-                                <p style={{ fontSize: '13px', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{msg.subject}</p>
-                                <span style={{ fontSize: '11px', color: '#9ca3af', marginTop: '8px', display: 'block' }}>{format(new Date(msg.created_at), 'd MMM, HH:mm', { locale: fr })}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                            <tr>
+                                <td colSpan="5" className="py-20 text-center text-gray-400 italic">Aucun message trouvé</td>
+                            </tr>
+                        ) : (
+                            filtered.map((msg) => (
+                                <tr key={msg.id} className={`transition-colors ${!msg.is_read ? 'bg-[#fdfbf7]' : 'hover:bg-[#FAFAFA]'}`}>
+                                    <td style={{ padding: '16px 24px' }}>
+                                        <div className="flex items-center gap-3">
+                                            <div style={{ width: '40px', height: '40px', backgroundColor: '#f0ede8', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                <UserCircle2 size={20} style={{ color: '#C3AB7E' }} />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`text-[#111111] ${!msg.is_read ? 'font-bold' : 'font-medium'}`}>{msg.sender_name || 'Inconnu'}</span>
+                                                <span className="text-xs text-[#C3AB7E] font-medium">{msg.email}</span>
+                                                <span className="text-[10px] text-gray-400 uppercase font-bold mt-1">
+                                                    {format(new Date(msg.created_at), 'd MMM yyyy, HH:mm', { locale: fr })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
 
-                <div style={{ flex: 1, display: mobileView === 'list' && window.innerWidth < 1024 ? 'none' : 'flex' }}
-                    className="bg-white rounded-[32px] border border-gray-100 p-6 md:p-12 hidden lg:flex flex-col flex-1">
-                    {selectedMessage ? (
-                        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-400">
-                            <header className="flex justify-between items-start flex-wrap gap-4">
-                                <div className="flex gap-4 sm:gap-6 items-center w-full sm:w-auto">
-                                    <button onClick={() => setMobileView('list')} className="lg:hidden p-2 -ml-2 text-gray-400">← Retour</button>
-                                    <div style={{ width: '64px', height: '64px', backgroundColor: '#f0ede8', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <User size={24} style={{ color: '#C3AB7E' }} />
-                                    </div>
-                                    <div style={{ wordBreak: 'break-word' }}>
-                                        <h2 style={{ fontSize: '20px', sm: { fontSize: '24px' }, fontWeight: '700' }}>{selectedMessage.name}</h2>
-                                        <p style={{ color: '#C3AB7E', fontWeight: '700', fontSize: '14px' }}>{selectedMessage.email}</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3 mt-4 sm:mt-0 ml-auto bg-gray-50 rounded-xl">
-                                    <button className="p-3 text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={20} /></button>
-                                </div>
-                            </header>
+                                    <td style={{ padding: '16px 24px' }}>
+                                        <div className="flex items-center gap-2">
+                                            <span style={{ fontSize: '13px', fontWeight: !msg.is_read ? '700' : '500', color: '#111111' }}>
+                                                {msg.subject || 'Sans sujet'}
+                                            </span>
+                                            {!msg.is_read && <div className="w-2 h-2 rounded-full bg-[#C3AB7E]" />}
+                                        </div>
+                                    </td>
 
-                            <div style={{ padding: '40px', backgroundColor: '#fafafa', borderRadius: '32px', position: 'relative' }}>
-                                <div className="absolute -top-3 left-10 p-2 bg-white rounded-lg border border-gray-100">
-                                    <MessageSquare size={16} style={{ color: '#C3AB7E' }} />
-                                </div>
-                                <h4 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>{selectedMessage.subject}</h4>
-                                <p style={{ color: '#4b5563', lineHeight: '1.8', fontSize: '15px', whiteSpace: 'pre-wrap' }}>{selectedMessage.message}</p>
-                            </div>
+                                    <td className="hidden md:table-cell" style={{ padding: '16px 24px', maxWidth: '300px' }}>
+                                        <div className="flex items-start gap-2">
+                                            <MessageSquare size={14} className="text-gray-300 mt-1 flex-shrink-0" />
+                                            <p className="text-sm text-gray-600 line-clamp-2">{msg.body}</p>
+                                        </div>
+                                    </td>
 
-                            <div className="flex items-center gap-4 text-gray-400">
-                                <Clock size={16} />
-                                <span style={{ fontSize: '13px' }}>Reçu le {format(new Date(selectedMessage.created_at), 'PPPP à HH:mm', { locale: fr })}</span>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex-grow flex flex-col items-center justify-center text-center opacity-30">
-                            <Mail size={80} style={{ color: '#C3AB7E', marginBottom: '24px' }} />
-                            <h3 style={{ fontSize: '24px', fontFamily: 'serif' }}>Sélectionnez un message</h3>
-                        </div>
-                    )}
-                </div>
+                                    <td style={{ padding: '16px 24px' }}>
+                                        <span style={{
+                                            padding: '4px 12px', borderRadius: '100px',
+                                            fontSize: '10px', fontWeight: '800', textTransform: 'uppercase',
+                                            backgroundColor: msg.is_read ? '#f1f5f9' : '#fef3c7',
+                                            color: msg.is_read ? '#64748b' : '#d97706'
+                                        }}>
+                                            {msg.is_read ? 'Lu' : 'Non Lu'}
+                                        </span>
+                                    </td>
+
+                                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                                        <div className="flex justify-end gap-2">
+                                            {!msg.is_read && (
+                                                <button
+                                                    onClick={() => markAsRead(msg.id)}
+                                                    disabled={updatingId === msg.id}
+                                                    title="Marquer comme lu"
+                                                    className="p-2 rounded-full text-[#C3AB7E] hover:bg-[#C3AB7E]/10 disabled:opacity-50 transition-colors"
+                                                >
+                                                    {updatingId === msg.id ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handleDelete(msg.id)}
+                                                disabled={updatingId === msg.id}
+                                                title="Supprimer"
+                                                className="p-2 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                            >
+                                                {updatingId === msg.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

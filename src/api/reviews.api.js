@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
  */
 export const getReviews = async (productId) => {
     const { data, error } = await supabase
-        .from('reviews')
+        .from('product_reviews')
         .select('*')
         .eq('product_id', productId)
         .order('created_at', { ascending: false });
@@ -19,7 +19,7 @@ export const getReviews = async (productId) => {
  */
 export const createReview = async (productId, reviewData) => {
     const { data, error } = await supabase
-        .from('reviews')
+        .from('product_reviews')
         .insert({
             product_id: productId,
             author_name: reviewData.author_name,
