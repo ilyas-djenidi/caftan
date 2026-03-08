@@ -266,7 +266,7 @@ export default function ProductDetail() {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.4 }}
-                                    style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'top', display: 'block' }}
                                 />
                             </AnimatePresence>
                         </div>
@@ -353,30 +353,31 @@ export default function ProductDetail() {
                             </div>
                         )}
                         {/* Actions */}
-                        <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FAF8F4', border: '1px solid #E8E2D6', padding: '0 16px', borderRadius: '14px', height: '48px', minWidth: '130px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginTop: '20px', flexWrap: 'nowrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FAF8F4', border: '1px solid #E8E2D6', padding: '0 14px', borderRadius: '14px', height: '48px', flexShrink: 0 }}>
                                 <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-1 hover:text-[#B8963E] transition-colors"><Minus size={16} /></button>
-                                <span style={{ fontWeight: '600', fontSize: '15px', color: '#1A1714', fontFamily: "'Jost', sans-serif", padding: '0 12px' }}>{quantity}</span>
+                                <span style={{ fontWeight: '600', fontSize: '15px', color: '#1A1714', fontFamily: "'Jost', sans-serif", padding: '0 10px' }}>{quantity}</span>
                                 <button onClick={() => setQuantity(q => Math.min(product.stock_count || 99, q + 1))} className="p-1 hover:text-[#B8963E] transition-colors"><Plus size={16} /></button>
                             </div>
 
                             <button onClick={handleAddToCart}
                                 style={{
-                                    flex: 1, backgroundColor: '#1A1714', color: '#FAF8F4',
+                                    flex: 1, minWidth: 0, backgroundColor: '#1A1714', color: '#FAF8F4',
                                     height: '48px', borderRadius: '14px', fontWeight: '600',
-                                    fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                                    fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase',
                                     border: 'none', cursor: 'pointer', transition: 'all 0.3s',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                    whiteSpace: 'nowrap', overflow: 'hidden', padding: '0 12px'
                                 }}
                                 className="hover:bg-[#B8963E] active:scale-95"
                             >
-                                <ShoppingBag size={17} /> {t('product.addToCart')}
+                                <ShoppingBag size={16} style={{ flexShrink: 0 }} /> <span>{t('product.addToCart')}</span>
                             </button>
 
                             <button onClick={() => toggle(product)}
                                 style={{
                                     height: '48px', width: '48px', borderRadius: '14px',
-                                    border: '1px solid #E8E2D6',
+                                    border: '1px solid #E8E2D6', flexShrink: 0,
                                     color: isWishlisted(product.id) ? '#ef4444' : '#1A1714',
                                     cursor: 'pointer', background: '#ffffff', transition: 'all 0.3s',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -458,8 +459,8 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Side-by-Side Reviews & Form Section */}
-                <div style={{ marginTop: '80px' }}>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-start">
+                <div style={{ marginTop: '48px', paddingTop: '40px', borderTop: '1px solid #E8E2D6' }}>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
 
                         {/* Left Column: Review Form or Success Message */}
                         <div>
@@ -480,7 +481,7 @@ export default function ProductDetail() {
                                     <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B8963E', marginBottom: '12px', textAlign: 'center' }}>
                                         {t('product.shareExperience')}
                                     </p>
-                                    <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '32px', fontStyle: 'italic', fontWeight: '400', marginBottom: '60px', color: '#1A1714', textAlign: 'center' }}>
+                                    <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '32px', fontStyle: 'italic', fontWeight: '400', marginBottom: '24px', color: '#1A1714', textAlign: 'center' }}>
                                         {t('product.leaveReview')}
                                     </h3>
                                     <form onSubmit={handleReviewSubmit} className="space-y-8">
