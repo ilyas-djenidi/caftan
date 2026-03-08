@@ -267,8 +267,8 @@ export default function ProductDetail() {
                                 <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} {t('product.reviews')})</span>
                             </div>
 
-                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: '400', color: '#1A1714', margin: '0 0 16px' }}>
-                                {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '13px', fontFamily: "'Jost', sans-serif", color: '#B8963E', fontWeight: '500' }}>DA</span>
+                            <p style={{ fontSize: '28px', fontWeight: '300', color: '#1A1714', margin: '0 0 16px' }}>
+                                {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '13px', color: '#B8963E', fontWeight: '500' }}>DA</span>
                             </p>
                         </div>
 

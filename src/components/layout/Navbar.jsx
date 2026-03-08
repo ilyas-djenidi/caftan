@@ -205,7 +205,8 @@ export default function Navbar() {
                                             fontSize: '22px', fontWeight: '400',
                                             fontFamily: "'Cormorant Garamond', serif",
                                             fontStyle: 'italic',
-                                            color: '#1A1714', textDecoration: 'none'
+                                            color: '#1A1714', textDecoration: 'none',
+                                            textAlign: i18n.language === 'ar' ? 'center' : 'left'
                                         }}
                                         className="hover:text-[#C3AB7E] transition-colors"
                                     >
@@ -216,7 +217,7 @@ export default function Navbar() {
 
                             {/* Language switcher in sidebar too */}
                             <div style={{ marginTop: 'auto', paddingTop: '40px' }}>
-                                <div style={{ display: 'flex', gap: '8px' }}>
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: i18n.language === 'ar' ? 'center' : 'flex-start' }}>
                                     {LANGUAGES.map(({ code, label }) => (
                                         <button
                                             key={code}

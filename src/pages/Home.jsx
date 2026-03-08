@@ -14,6 +14,7 @@ export default function Home() {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const [featuredProducts, setFeaturedProducts] = useState([]);
+    const [caftansProducts, setCaftansProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [contactLoading, setContactLoading] = useState(false);
     const [contactData, setContactData] = useState({ name: '', email: '', message: '' });
@@ -47,8 +48,12 @@ export default function Home() {
         const loadPageData = async () => {
             try {
                 // Fetch Products
-                const { data } = await getProducts({ limit: 20 });
-                setFeaturedProducts(data.products || []);
+                const [featuredRes, caftansRes] = await Promise.all([
+                    getProducts({ limit: 8 }),
+                    getProducts({ category: 'caftans', limit: 8 })
+                ]);
+                setFeaturedProducts(featuredRes.data.products || []);
+                setCaftansProducts(caftansRes.data.products || []);
 
                 // Fetch Hero Settings
                 const { data: heroSettings } = await supabase
@@ -141,13 +146,14 @@ export default function Home() {
                         letterSpacing: '-0.01em',
                     }}>
                         {(() => {
-                            const title = i18n.language === 'ar' ? heroData.title_ar || 'Maison du Caftans' : (i18n.language === 'en' ? heroData.title_en || 'Maison du Caftans' : heroData.title_fr);
+                            const defaultTitle = t('home.hero.brand', { defaultValue: 'Maison' }) + ' ' + t('home.hero.brand2', { defaultValue: 'du Caftans' });
+                            const title = i18n.language === 'ar' ? (heroData.title_ar || defaultTitle) : (i18n.language === 'en' ? (heroData.title_en || defaultTitle) : (heroData.title_fr || defaultTitle));
                             const words = title.split(' ');
                             if (words.length > 1) {
                                 return (
                                     <>
                                         {words.slice(0, -1).join(' ')}<br />
-                                        <em style={{ fontStyle: 'italic', fontWeight: '300' }}>{words.slice(-1)}</em>
+                                        {words.slice(-1)}
                                     </>
                                 );
                             }
@@ -161,7 +167,7 @@ export default function Home() {
                         color: 'rgba(255,255,255,0.65)', fontSize: '15px',
                         lineHeight: '1.75', marginBottom: '40px', maxWidth: '420px',
                     }}>
-                        {i18n.language === 'ar' ? (heroData.subtitle_ar || heroData.subtitle_fr) : (i18n.language === 'en' ? (heroData.subtitle_en || heroData.subtitle_fr) : heroData.subtitle_fr)}
+                        {i18n.language === 'ar' ? (heroData.subtitle_ar || t('home.hero.tagline')) : (i18n.language === 'en' ? (heroData.subtitle_en || t('home.hero.tagline')) : (heroData.subtitle_fr || t('home.hero.tagline')))}
                     </p>
 
                     {/* CTAs */}
@@ -260,7 +266,47 @@ export default function Home() {
                 </div>
             </section >
 
-            {/* FEATURED PRODUCTS */}
+            {/* CAFTANS PRODUCTS */}
+            <section style={{ padding: '0 0 80px', backgroundColor: '#ffffff' }}>
+                <div className="container mx-auto px-10">
+                    <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                        <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>{t('nav.caftans')}</h2>
+                        <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '500px', margin: '16px auto 0' }}>
+                            {t('home.categories.subtitle')}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+                        {loading ? (
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} style={{ height: '400px', backgroundColor: '#F0EDE8', borderRadius: '24px' }} className="animate-pulse" />
+                            ))
+                        ) : (
+                            caftansProducts.slice(0, 4).map((product) => (
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onClick={() => navigate(`/product/${product.id}`)}
+                                />
+                            ))
+                        )}
+                    </div>
+
+                    <div style={{ textAlign: 'center', marginTop: '80px' }}>
+                        <Link to="/caftans" style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '12px',
+                            color: '#111111', fontWeight: '800', fontSize: '11px',
+                            letterSpacing: '0.2em', textTransform: 'uppercase',
+                            textDecoration: 'none', borderBottom: '2px solid #C3AB7E',
+                            paddingBottom: '8px'
+                        }}>
+                            {t('home.featured.viewAll', { defaultValue: 'VOIR TOUT' })} <ArrowRight size={16} />
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* FEATURED PRODUCTS (Exceptional Pieces) */}
             <section style={{ padding: '0 0 80px', backgroundColor: '#ffffff' }}>
                 <div className="container mx-auto px-10">
                     <div style={{ textAlign: 'center', marginBottom: '80px' }}>
@@ -276,7 +322,7 @@ export default function Home() {
                                 <div key={i} style={{ height: '400px', backgroundColor: '#F0EDE8', borderRadius: '24px' }} className="animate-pulse" />
                             ))
                         ) : (
-                            featuredProducts.map((product) => (
+                            featuredProducts.slice(0, 4).map((product) => (
                                 <ProductCard
                                     key={product.id}
                                     product={product}

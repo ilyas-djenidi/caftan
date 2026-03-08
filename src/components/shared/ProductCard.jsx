@@ -107,12 +107,11 @@ const ProductCard = ({ product, onClick }) => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                             <span style={{
-                                fontSize: '26px', fontWeight: '800', color: '#1a1a1a',
-                                fontFamily: "'Cormorant Garamond', serif", letterSpacing: '-0.02em'
+                                fontSize: '26px', fontWeight: '400', color: '#1a1a1a', letterSpacing: '-0.02em'
                             }}>
                                 {(product.price || 0).toLocaleString('fr-FR')}
                             </span>
-                            <span style={{ fontSize: '13px', fontWeight: '700', color: '#C3AB7E', letterSpacing: '0.05em' }}>DA</span>
+                            <span style={{ fontSize: '13px', fontWeight: '500', color: '#C3AB7E', letterSpacing: '0.05em' }}>DA</span>
                         </div>
                         {hasDiscount && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
