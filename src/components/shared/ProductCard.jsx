@@ -1,12 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
-import { useCartStore } from '../../store/cartStore';
 import { useWishlistStore } from '../../store/wishlistStore';
 import { getImageUrl } from '../../utils';
 
 const ProductCard = ({ product, onClick }) => {
     const navigate = useNavigate();
-    const { addItem, openDrawer } = useCartStore();
     const { toggle, isWishlisted } = useWishlistStore();
 
     if (!product) return null;
@@ -20,12 +18,6 @@ const ProductCard = ({ product, onClick }) => {
         (product.images && product.images[0]?.image_url)
     );
 
-    const handleAddToCart = (e) => {
-        e.stopPropagation();
-        if (isSoldOut) return;
-        addItem(product);
-        openDrawer();
-    };
 
     const handleCardClick = () => {
         if (onClick) {
@@ -120,35 +112,6 @@ const ProductCard = ({ product, onClick }) => {
                     </div>
                 )}
 
-                {/* Add to cart button — appears on hover */}
-                {!isSoldOut && (
-                    <button
-                        onClick={handleAddToCart}
-                        className="card-cta"
-                        style={{
-                            position: 'absolute',
-                            bottom: '0',
-                            left: '0',
-                            right: '0',
-                            backgroundColor: '#1A1714',
-                            color: '#FAF8F4',
-                            border: 'none',
-                            padding: '14px',
-                            fontFamily: "'Jost', sans-serif",
-                            fontSize: '10px',
-                            fontWeight: '400',
-                            letterSpacing: '0.2em',
-                            textTransform: 'uppercase',
-                            cursor: 'pointer',
-                            opacity: 0,
-                            transform: 'translateY(100%)',
-                            transition: 'all 0.3s ease',
-                            zIndex: 2,
-                        }}
-                    >
-                        Ajouter au panier
-                    </button>
-                )}
             </div>
 
             {/* Card Info */}
