@@ -254,12 +254,8 @@ export default function ProductDetail() {
                     <div style={{ alignSelf: 'start' }}>
                         <div
                             onClick={() => setLightboxOpen(true)}
-                            style={{
-                                overflow: 'hidden', cursor: 'zoom-in', position: 'relative',
-                                backgroundColor: '#F0EBE0', borderRadius: '12px',
-                                aspectRatio: '3/4',
-                            }}
-                            className="w-full lg:sticky lg:top-[80px] lg:max-h-[calc(100vh-120px)]"
+                            style={{ overflow: 'hidden', cursor: 'zoom-in', position: 'relative', backgroundColor: '#F0EBE0', borderRadius: '12px' }}
+                            className="w-full aspect-[3/4] lg:aspect-auto lg:sticky lg:top-[80px] lg:h-[calc(100vh-120px)]"
                         >
                             <AnimatePresence mode="wait">
                                 <motion.img
@@ -269,7 +265,7 @@ export default function ProductDetail() {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.4 }}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'top center', display: 'block' }}
                                 />
                             </AnimatePresence>
                         </div>
