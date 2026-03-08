@@ -188,12 +188,12 @@ export default function ProductDetail() {
                     {/* Right: Info Section */}
                     {/* Right: Info Section */}
                     <div className="lg:col-span-6 flex flex-col justify-start">
-                        <div className="mb-10">
-                            <h1 style={{ fontSize: 'clamp(30px, 4vw, 44px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 12px', color: '#1A1714', fontWeight: '500' }}>
+                        <div className="mb-12">
+                            <h1 style={{ fontSize: 'clamp(30px, 4vw, 44px)', fontFamily: "'Cormorant Garamond', serif", lineHeight: '1.1', margin: '0 0 12px', color: '#1A1714', fontWeight: '500', marginBottom: '12px' }}>
                                 {product.name_fr || product.name}
                             </h1>
 
-                            <div className="flex items-center gap-3 mb-8">
+                            <div className="flex items-center gap-3 mb-8" style={{ marginBottom: '24px' }}>
                                 <div className="flex text-[#C3AB7E]">
                                     {[1, 2, 3, 4, 5].map(s => (
                                         <Star key={s} size={14} fill={s <= Math.round(averageRating) ? "currentColor" : "none"} strokeWidth={1} />
@@ -204,46 +204,46 @@ export default function ProductDetail() {
                                 </span>
                             </div>
 
-                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '36px', fontWeight: '400', color: '#1A1714', margin: 0 }}>
+                            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '38px', fontWeight: '400', color: '#1A1714', margin: 0, marginTop: '32px' }}>
                                 {product.price?.toLocaleString()} <span style={{ fontSize: '14px', fontFamily: "'Jost', sans-serif", color: '#B8963E', fontWeight: '500', marginLeft: '4px' }}>DA</span>
                             </p>
                         </div>
 
                         {/* Thumbnails */}
                         {images.length > 1 && (
-                            <div className="flex flex-wrap gap-3 mb-10">
+                            <div className="flex flex-wrap gap-3 mb-14">
                                 {images.map((img, i) => (
                                     <div
                                         key={i}
                                         onClick={() => setCurrentImageIndex(i)}
                                         style={{
-                                            width: '64px', height: '64px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
+                                            width: '64px', height: '64px', borderRadius: '16px', overflow: 'hidden', cursor: 'pointer',
                                             border: currentImageIndex === i ? '1.5px solid #B8963E' : '1px solid #f0ede8',
                                             padding: '2px', transition: 'all 0.3s ease'
                                         }}
                                         className="hover:border-[#B8963E]"
                                     >
-                                        <img src={getImageUrl(img.image_url)} className="w-full h-full object-cover rounded-[8px]" alt="" />
+                                        <img src={getImageUrl(img.image_url)} className="w-full h-full object-cover rounded-[12px]" alt="" />
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        <div className="space-y-12">
+                        <div className="space-y-14">
                             {/* Sizes */}
                             {sizes.length > 0 && (
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '16px', fontWeight: '600' }}>Taille</label>
+                                    <label style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '18px', fontWeight: '600' }}>Taille</label>
                                     <div className="flex flex-wrap gap-3">
                                         {sizes.map(s => (
                                             <button key={s.id} onClick={() => setSelectedSize(s.value)}
                                                 style={{
-                                                    minWidth: '60px', height: '48px', borderRadius: '0',
-                                                    border: selectedSize === s.value ? '1px solid #1A1714' : '1px solid #E8E2D6',
+                                                    minWidth: '64px', height: '52px', borderRadius: '16px',
+                                                    border: selectedSize === s.value ? '2px solid #1A1714' : '1px solid #E8E2D6',
                                                     backgroundColor: selectedSize === s.value ? '#1A1714' : 'transparent',
                                                     color: selectedSize === s.value ? 'white' : '#1A1714',
-                                                    fontWeight: '400', fontSize: '13px', transition: 'all 0.2s', cursor: 'pointer',
-                                                    padding: '0 20px', fontFamily: "'Jost', sans-serif"
+                                                    fontWeight: '500', fontSize: '14px', transition: 'all 0.2s', cursor: 'pointer',
+                                                    padding: '0 24px', fontFamily: "'Jost', sans-serif"
                                                 }}
                                             >
                                                 {s.value}
@@ -256,17 +256,17 @@ export default function ProductDetail() {
                             {/* Colors */}
                             {colors.length > 0 && (
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '16px', fontWeight: '600' }}>Couleur</label>
+                                    <label style={{ display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '18px', fontWeight: '600' }}>Couleur</label>
                                     <div className="flex flex-wrap gap-4">
                                         {colors.map(c => (
                                             <button key={c.id} onClick={() => setSelectedColor(c.value)}
                                                 style={{
-                                                    width: '40px', height: '40px', borderRadius: '50%',
-                                                    border: selectedColor === c.value ? '1.5px solid #B8963E' : '1px solid #E8E2D6',
-                                                    padding: '3px', transition: 'all 0.3s', cursor: 'pointer', backgroundColor: 'transparent'
+                                                    width: '44px', height: '44px', borderRadius: '50%',
+                                                    border: selectedColor === c.value ? '2px solid #B8963E' : '1px solid #E8E2D6',
+                                                    padding: '4px', transition: 'all 0.3s', cursor: 'pointer', backgroundColor: 'transparent'
                                                 }}
                                             >
-                                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: c.value, boxShadow: 'inset 0 0 4px rgba(0,0,0,0.1)' }} />
+                                                <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: c.value, boxShadow: 'inset 0 0 6px rgba(0,0,0,0.1)' }} />
                                             </button>
                                         ))}
                                     </div>
@@ -274,52 +274,51 @@ export default function ProductDetail() {
                             )}
 
                             {/* Actions */}
-                            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                <div className="flex items-center justify-between w-full sm:w-auto bg-[#FAF8F4] border border-[#E8E2D6] px-4 rounded-0 h-[56px] min-w-[140px]">
-                                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-2 hover:text-[#B8963E] transition-colors"><Minus size={16} /></button>
-                                    <span style={{ fontWeight: '400', fontSize: '15px', color: '#1A1714', fontFamily: "'Jost', sans-serif" }}>{quantity}</span>
-                                    <button onClick={() => setQuantity(q => q + 1)} className="p-2 hover:text-[#B8963E] transition-colors"><Plus size={16} /></button>
+                            <div className="flex flex-col sm:flex-row gap-4 pt-6" style={{ marginTop: '40px' }}>
+                                <div className="flex items-center justify-between w-full sm:w-auto bg-[#FAF8F4] border border-[#E8E2D6] px-5 rounded-[20px] h-[60px] min-w-[150px]">
+                                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-2 hover:text-[#B8963E] transition-colors"><Minus size={18} /></button>
+                                    <span style={{ fontWeight: '600', fontSize: '16px', color: '#1A1714', fontFamily: "'Jost', sans-serif" }}>{quantity}</span>
+                                    <button onClick={() => setQuantity(q => q + 1)} className="p-2 hover:text-[#B8963E] transition-colors"><Plus size={18} /></button>
                                 </div>
 
                                 <button onClick={handleAddToCart}
                                     style={{
                                         backgroundColor: '#1A1714', color: '#FAF8F4',
-                                        height: '56px', borderRadius: '0', fontWeight: '500',
-                                        fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                                        height: '60px', borderRadius: '20px', fontWeight: '600',
+                                        fontSize: '12px', letterSpacing: '0.2em', textTransform: 'uppercase',
                                         border: 'none', cursor: 'pointer', transition: 'all 0.4s ease'
                                     }}
-                                    className="w-full sm:flex-1 hover:bg-[#B8963E] flex items-center justify-center gap-3 active:scale-95"
+                                    className="w-full sm:flex-1 hover:bg-[#B8963E] flex items-center justify-center gap-3 active:scale-95 shadow-lg shadow-black/5"
                                 >
-                                    <ShoppingBag size={18} /> Ajouter au panier
+                                    <ShoppingBag size={20} /> Ajouter au panier
                                 </button>
 
                                 <button onClick={() => toggle(product)}
                                     style={{
-                                        height: '56px', borderRadius: '0',
+                                        height: '60px', width: '60px', borderRadius: '20px',
                                         border: '1px solid #E8E2D6',
                                         color: isWishlisted(product.id) ? '#ef4444' : '#1A1714',
                                         cursor: 'pointer', background: '#ffffff', transition: 'all 0.3s'
                                     }}
-                                    className="w-full sm:w-[56px] flex items-center justify-center gap-3 hover:border-[#1A1714]"
+                                    className="flex items-center justify-center hover:border-[#1A1714] shadow-sm"
                                 >
-                                    <Heart size={20} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} strokeWidth={1.5} />
-                                    <span className="sm:hidden text-[10px] uppercase tracking-widest font-medium">Favoris</span>
+                                    <Heart size={24} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} strokeWidth={1.5} />
                                 </button>
                             </div>
 
                             {/* Tabs Section */}
-                            <div className="pt-8">
-                                <div className="flex gap-8 border-b border-[#f0ede8] overflow-x-auto no-scrollbar">
+                            <div className="pt-12" style={{ marginTop: '40px', borderTop: '1px solid #f0ede8', paddingTop: '40px', paddingBottom: '40px' }}>
+                                <div className="flex gap-10 border-b border-[#f0ede8] overflow-x-auto no-scrollbar">
                                     {[
                                         { key: 'description', label: 'Description' },
                                         { key: 'details', label: 'Détails & Entretien' },
                                     ].map(tab => (
                                         <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                                             style={{
-                                                fontSize: '10px', fontWeight: activeTab === tab.key ? '500' : '300',
+                                                fontSize: '11px', fontWeight: activeTab === tab.key ? '600' : '400',
                                                 letterSpacing: '0.2em', textTransform: 'uppercase',
                                                 color: activeTab === tab.key ? '#1A1714' : '#6B6458',
-                                                paddingBottom: '16px', borderBottom: activeTab === tab.key ? '1px solid #B8963E' : '1px solid transparent',
+                                                paddingBottom: '20px', borderBottom: activeTab === tab.key ? '2px solid #B8963E' : '2px solid transparent',
                                                 cursor: 'pointer', transition: 'all 0.2s', marginBottom: '-1px',
                                                 flexShrink: 0, whiteSpace: 'nowrap', backgroundColor: 'transparent'
                                             }}
@@ -329,18 +328,18 @@ export default function ProductDetail() {
                                     ))}
                                 </div>
 
-                                <div className="pt-8">
+                                <div className="pt-10" style={{ marginTop: '20px' }}>
                                     <AnimatePresence mode="wait">
                                         {activeTab === 'description' && (
                                             <motion.div key="desc" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-                                                <p style={{ fontSize: '14px', lineHeight: '1.8', color: '#6B6458', fontWeight: '300', fontFamily: "'Jost', sans-serif" }}>
+                                                <p style={{ fontSize: '15px', lineHeight: '1.8', color: '#6B6458', fontWeight: '400', fontFamily: "'Jost', sans-serif" }}>
                                                     {product.description_fr || "Magnifique sacs de notre nouvelle collection. Qualité supérieure et finition artisanale."}
                                                 </p>
                                             </motion.div>
                                         )}
                                         {activeTab === 'details' && (
                                             <motion.div key="det" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }}>
-                                                <ul style={{ fontSize: '14px', lineHeight: '2', color: '#6B6458', fontWeight: '300', fontFamily: "'Jost', sans-serif" }} className="space-y-1 list-disc pl-4 marker:text-[#C3AB7E]">
+                                                <ul style={{ fontSize: '15px', lineHeight: '2.2', color: '#6B6458', fontWeight: '400', fontFamily: "'Jost', sans-serif" }} className="space-y-2 list-disc pl-5 marker:text-[#C3AB7E]">
                                                     <li>Tissu de haute qualité soigneusement sélectionné</li>
                                                     <li>Finitions artisanales et broderies délicates</li>
                                                     <li>Nettoyage à sec uniquement recommandé</li>
@@ -352,6 +351,7 @@ export default function ProductDetail() {
                                 </div>
                             </div>
                         </div>
+                        <div style={{ marginTop: '32px' }}></div>
                     </div>
                 </div>
 
