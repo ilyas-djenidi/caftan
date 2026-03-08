@@ -159,16 +159,17 @@ const Orders = () => {
                 backgroundColor: 'white',
                 borderRadius: '30px',
                 border: '1px solid #F0EDE8',
-                overflow: 'hidden',
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
                 boxShadow: '0 4px 30px rgba(0,0,0,0.02)'
             }}>
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse" style={{ minWidth: '750px' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid #F0EDE8', backgroundColor: '#ffffff' }}>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Commande</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Client</th>
-                            <th className="hidden sm:table-cell" style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</th>
-                            <th className="hidden md:table-cell" style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>Détails</th>
                         </tr>
                     </thead>
@@ -199,7 +200,7 @@ const Orders = () => {
                                                 backgroundColor: isOpened ? 'rgba(255,255,255,0.6)' : 'transparent',
                                                 opacity: deletingId === order.id ? 0.5 : 1
                                             }}
-                                            className="hover:bg-[rgba(255,255,255,0.5)] cursor-default flex flex-col sm:table-row"
+                                            className="hover:bg-[rgba(255,255,255,0.5)] cursor-default transition-colors"
                                         >
                                             {/* Order Info */}
                                             <td style={{ padding: '16px 24px' }}>
@@ -220,7 +221,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Total */}
-                                            <td className="hidden sm:table-cell" style={{ padding: '16px 24px' }}>
+                                            <td style={{ padding: '16px 24px' }}>
                                                 <div className="flex flex-col gap-0.5">
                                                     <span className="font-bold text-[#111111]">{order.total_price || 0} DA</span>
                                                     <span className="text-[10px] text-[#C3AB7E] font-bold uppercase tracking-wider">{order.payment_method || 'COD'}</span>
@@ -228,7 +229,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Status */}
-                                            <td className="hidden md:table-cell" style={{ padding: '16px 24px' }}>
+                                            <td style={{ padding: '16px 24px' }}>
                                                 <div style={{
                                                     display: 'inline-flex', alignItems: 'center', gap: '8px',
                                                     padding: '6px 14px', borderRadius: '100px',
@@ -241,7 +242,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Action */}
-                                            <td style={{ padding: '16px 24px', textAlign: 'right' }} className="sm:table-cell">
+                                            <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                                                 <button style={{
                                                     padding: '8px', borderRadius: '12px', border: '1px solid #F0EDE8',
                                                     backgroundColor: isOpened ? '#C3AB7E' : 'transparent',
