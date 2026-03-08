@@ -104,26 +104,31 @@ export default function Checkout() {
     // Step 3: Success screen — no extra Navbar
     if (step === 3 && orderSuccess) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center p-10">
-                <div style={{ maxWidth: '600px', textAlign: 'center' }}>
+            <div className="min-h-screen bg-[#FAF8F4] flex items-center justify-center p-4">
+                <div style={{ maxWidth: '360px', width: '100%', textAlign: 'center', backgroundColor: '#FFFFFF', padding: '40px 24px', borderRadius: '24px', boxShadow: '0 4px 24px rgba(0,0,0,0.04)', border: '1px solid #E8E2D6' }}>
                     <div style={{
-                        width: '100px', height: '100px', backgroundColor: '#f0fdf4',
+                        width: '64px', height: '64px', backgroundColor: '#f0fdf4',
                         color: '#16a34a', borderRadius: '50%', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px'
+                        alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px'
                     }}>
-                        <CheckCircle size={48} />
+                        <CheckCircle size={32} />
                     </div>
-                    <h1 style={{ fontSize: '40px', fontFamily: 'serif', marginBottom: '16px' }}>{t('checkout.successTitle')}</h1>
-                    <p style={{ color: '#6b7280', fontSize: '18px', marginBottom: '32px' }}>
-                        {t('checkout.successDesc')} <strong style={{ color: '#111111' }}>{orderSuccess.order_number}</strong>
+                    <h1 style={{ fontSize: '28px', fontFamily: "'Cormorant Garamond', serif", marginBottom: '12px', fontWeight: '500', color: '#1A1714' }}>{t('checkout.successTitle')}</h1>
+                    <p style={{ color: '#6b7280', fontSize: '13px', fontFamily: "'Jost', sans-serif", marginBottom: '32px', lineHeight: '1.6' }}>
+                        {t('checkout.successDesc')}
                     </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <Link to="/" style={{
-                            backgroundColor: '#111111', color: 'white', padding: '20px',
-                            borderRadius: '16px', textDecoration: 'none', fontWeight: '800',
-                            fontSize: '14px', letterSpacing: '0.1em', textTransform: 'uppercase',
-                            display: 'block'
-                        }}>{t('wishlist.back')}</Link>
+                            backgroundColor: '#1A1714', color: '#FAF8F4', height: '44px',
+                            borderRadius: '10px', textDecoration: 'none', fontWeight: '400',
+                            fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                            fontFamily: "'Jost', sans-serif", display: 'flex', alignItems: 'center',
+                            justifyContent: 'center', transition: 'background 0.3s'
+                        }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#B8963E'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#1A1714'}>
+                            {t('wishlist.back')}
+                        </Link>
                     </div>
                 </div>
             </div>
