@@ -40,7 +40,7 @@ export default function AdminAuth() {
 
     return (
         <div className="min-h-screen bg-white flex items-center justify-center p-4">
-            <div className="w-full max-w-md p-10 space-y-10">
+            <div className="w-full max-w-sm p-8 bg-white md:shadow-[0_20px_60px_rgba(0,0,0,0.05)] md:rounded-[40px] md:border border-[#f0ede8] space-y-8">
                 <div className="text-center space-y-4">
                     <span style={{ color: '#C3AB7E', fontSize: '11px', fontWeight: '800', letterSpacing: '0.4em' }}>ESPACE PRIVÉ</span>
                     <h1 style={{ fontSize: '32px', fontFamily: 'serif' }}>Maison du Caftans</h1>
@@ -55,7 +55,7 @@ export default function AdminAuth() {
                             <input
                                 type="email" required
                                 value={email} onChange={e => setEmail(e.target.value)}
-                                style={{ width: '100%', height: '64px', padding: '0 20px 0 60px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none' }}
+                                style={{ width: '100%', height: '48px', padding: '0 20px 0 50px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }}
                                 className="focus:border-[#C3AB7E] bg-[#fafafa]"
                                 placeholder="votre@email.com"
                             />
@@ -69,7 +69,7 @@ export default function AdminAuth() {
                             <input
                                 type="password" required
                                 value={password} onChange={e => setPassword(e.target.value)}
-                                style={{ width: '100%', height: '64px', padding: '0 20px 0 60px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none' }}
+                                style={{ width: '100%', height: '48px', padding: '0 20px 0 50px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }}
                                 className="focus:border-[#C3AB7E] bg-[#fafafa]"
                                 placeholder="••••••••"
                             />
@@ -84,10 +84,10 @@ export default function AdminAuth() {
 
                     <button
                         type="submit" disabled={loading}
-                        style={{ width: '100%', height: '72px', backgroundColor: '#111111', color: 'white', borderRadius: '24px', fontWeight: '800', fontSize: '14px', letterSpacing: '0.1em' }}
-                        className="hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                        style={{ width: '100%', height: '48px', backgroundColor: '#111111', color: 'white', borderRadius: '12px', fontWeight: '800', fontSize: '12px', letterSpacing: '0.1em' }}
+                        className="hover:bg-[#C3AB7E] transition-colors flex items-center justify-center gap-3"
                     >
-                        {loading ? <Loader2 className="animate-spin" /> : <>CONNEXION <ArrowRight size={18} /></>}
+                        {loading ? <Loader2 className="animate-spin" /> : <>CONNEXION <ArrowRight size={16} /></>}
                     </button>
                 </form>
 
