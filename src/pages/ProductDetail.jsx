@@ -226,7 +226,7 @@ export default function ProductDetail() {
                 )}
             </AnimatePresence>
 
-            <main style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: 'calc(var(--navbar-height) + 10px)' }}
+            <main style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: 'var(--navbar-height)' }}
                 className="max-w-[1400px] mx-auto md:px-[48px]">
 
                 {/* Mobile Title Block (Above Image) */}
@@ -248,13 +248,13 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Product Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-4 lg:gap-10 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-4 lg:gap-10" style={{ alignItems: 'start' }}>
 
                     {/* Left: Main Image */}
-                    <div style={{ alignSelf: 'start' }}>
+                    <div style={{ marginTop: '0', paddingTop: '0', height: 'fit-content' }}>
                         <div
                             onClick={() => setLightboxOpen(true)}
-                            style={{ overflow: 'hidden', cursor: 'zoom-in', position: 'relative', backgroundColor: '#F0EBE0', borderRadius: '12px' }}
+                            style={{ overflow: 'hidden', cursor: 'zoom-in', position: 'relative', borderRadius: '12px' }}
                             className="w-full aspect-[3/4] lg:aspect-auto lg:sticky lg:top-[80px] lg:h-[calc(100vh-120px)]"
                         >
                             <AnimatePresence mode="wait">
@@ -265,14 +265,14 @@ export default function ProductDetail() {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.4 }}
-                                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'top center', display: 'block' }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'top', display: 'block' }}
                                 />
                             </AnimatePresence>
                         </div>
                     </div>
 
                     {/* Right: Info Section */}
-                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', paddingTop: '0', marginTop: '0' }}>
 
                         {/* Desktop Title Block */}
                         <div className="hidden lg:block" style={{ marginBottom: '8px' }}>
