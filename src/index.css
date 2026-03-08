@@ -247,6 +247,15 @@ select {
   transform: translateY(0) !important;
 }
 
+/* ── Product Image Nav Arrows ────────────────────────── */
+.group\/imgwrap:hover .img-nav-btn {
+  opacity: 1 !important;
+}
+
+.img-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
 /* ── Global Layout Fixes ─────────────────────────────── */
 
 /* Fix horizontal scroll on ALL screens */

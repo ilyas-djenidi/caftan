@@ -276,6 +276,48 @@ export default function ProductDetail() {
                                     style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center top', display: 'block' }}
                                 />
                             </AnimatePresence>
+
+                            {/* Prev / Next arrows — only when multiple images */}
+                            {images.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={e => { e.stopPropagation(); setCurrentImageIndex(p => p === 0 ? images.length - 1 : p - 1); }}
+                                        style={{
+                                            position: 'absolute', left: '16px', top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            width: '44px', height: '44px', borderRadius: '50%',
+                                            background: 'rgba(255,255,255,0.85)', border: 'none',
+                                            cursor: 'pointer', fontSize: '22px', color: '#1A1714',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            backdropFilter: 'blur(8px)',
+                                            boxShadow: '0 2px 16px rgba(0,0,0,0.12)',
+                                            transition: 'background 0.2s',
+                                            opacity: 1,
+                                            zIndex: 5,
+                                        }}
+                                    >
+                                        ‹
+                                    </button>
+                                    <button
+                                        onClick={e => { e.stopPropagation(); setCurrentImageIndex(p => p === images.length - 1 ? 0 : p + 1); }}
+                                        style={{
+                                            position: 'absolute', right: '16px', top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            width: '44px', height: '44px', borderRadius: '50%',
+                                            background: 'rgba(255,255,255,0.85)', border: 'none',
+                                            cursor: 'pointer', fontSize: '22px', color: '#1A1714',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            backdropFilter: 'blur(8px)',
+                                            boxShadow: '0 2px 16px rgba(0,0,0,0.12)',
+                                            transition: 'background 0.2s',
+                                            opacity: 1,
+                                            zIndex: 5,
+                                        }}
+                                    >
+                                        ›
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
 
