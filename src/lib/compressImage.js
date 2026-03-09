@@ -10,7 +10,7 @@ import imageCompression from 'browser-image-compression';
  */
 export const compressImage = async (
     file,
-    { maxSizeMB = 1.5, maxWidthOrHeight = 1600, useWebWorker = true, initialQuality = 0.9 } = {}
+    { maxSizeMB = 3, maxWidthOrHeight = 2400, useWebWorker = true, initialQuality = 0.98 } = {}
 ) => {
     // Skip compression for non-image files or very tiny files
     if (!file.type.startsWith('image/') || file.size < 50 * 1024) {
