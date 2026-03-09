@@ -87,6 +87,25 @@ export default function ProductDetail() {
         loadProduct();
     }, [id]);
 
+    // Derive images here so we can useEffect unconditionally below (Rules of Hooks)
+    const images = product?.images?.length > 0
+        ? product.images
+        : [{ image_url: product?.image_url || product?.image }];
+
+    useEffect(() => {
+        const firstUrl = images[0]?.image_url;
+        if (!firstUrl) return;
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.fetchPriority = 'high';
+        link.href = getImageUrl(firstUrl);
+        document.head.appendChild(link);
+        return () => {
+            if (document.head.contains(link)) document.head.removeChild(link);
+        };
+    }, [images[0]?.image_url]);
+
     if (loading) {
         return <LogoLoader />;
     }
@@ -100,7 +119,6 @@ export default function ProductDetail() {
         );
     }
 
-    const images = product.images?.length > 0 ? product.images : [{ image_url: product.image_url || product.image }];
 
     const sizes = product.attributes?.filter(a =>
         (a.type && (a.type.toLowerCase() === 'size' || a.type.toLowerCase() === 'taille')) ||
@@ -111,6 +129,12 @@ export default function ProductDetail() {
         (a.type && (a.type.toLowerCase() === 'color' || a.type.toLowerCase() === 'couleur')) ||
         (a.name && (a.name.toLowerCase() === 'color' || a.name.toLowerCase() === 'couleur'))
     ) || [];
+
+    // DEBUG — check what attributes actually come back from Supabase
+    console.log('[ProductDetail] raw attributes:', product.attributes);
+    console.log('[ProductDetail] sizes found:', sizes);
+    console.log('[ProductDetail] colors found:', colors);
+
 
     const handleAddToCart = () => {
         const sizeToAdd = selectedSize || (sizes[0]?.value) || null;
@@ -273,6 +297,10 @@ export default function ProductDetail() {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.4 }}
+                                    loading="eager"
+                                    fetchPriority="high"
+                                    width={800}
+                                    height={1067}
                                     style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center top', display: 'block' }}
                                 />
                             </AnimatePresence>

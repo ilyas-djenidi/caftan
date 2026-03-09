@@ -49,6 +49,10 @@ const ProductCard = ({ product, onClick }) => {
                 <img
                     src={imageUrl || '/placeholder.jpg'}
                     alt={product.name_fr || product.name}
+                    loading="lazy"
+                    decoding="async"
+                    width={800}
+                    height={1067}
                     style={{
                         width: '100%',
                         height: '100%',

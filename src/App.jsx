@@ -2,34 +2,38 @@ import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import Home from './pages/Home';
-import Caftans from './pages/Caftans';
-import Sacs from './pages/Sacs';
-import Accessoires from './pages/Accessoires';
-import Packs from './pages/Packs';
-import ProductDetail from './pages/ProductDetail';
-import Wishlist from './pages/Wishlist';
-import Contact from './pages/Contact';
-import Checkout from './pages/Checkout';
-import NotFound from './pages/NotFound';
+import { lazy, Suspense } from 'react';
 
-// Layouts
+// Layout components — always needed synchronously, never lazy
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import CartDrawer from './components/layout/CartDrawer';
 import FloatingIcons from './components/layout/FloatingIcons';
 
-// Admin
-import AdminLayout from './pages/admin/AdminLayout';
-import AdminAuth from './pages/admin/AdminAuth';
-import Dashboard from './pages/admin/Dashboard';
-import Orders from './pages/admin/Orders';
-import Products from './pages/admin/Products';
-import PacksAdmin from './pages/admin/Packs';
-import Messages from './pages/admin/Messages';
-import Promos from './pages/admin/Promos';
-import HeroManager from './pages/admin/HeroManager';
-import AdminReviews from './pages/admin/AdminReviews';
+// Lazy loaded pages
+const Home = lazy(() => import('./pages/Home'));
+const Caftans = lazy(() => import('./pages/Caftans'));
+const Sacs = lazy(() => import('./pages/Sacs'));
+const Accessoires = lazy(() => import('./pages/Accessoires'));
+const Packs = lazy(() => import('./pages/Packs'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Wishlist = lazy(() => import('./pages/Wishlist'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Admin Pages (Lazy loaded)
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
+const AdminAuth = lazy(() => import('./pages/admin/AdminAuth'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const Orders = lazy(() => import('./pages/admin/Orders'));
+const Products = lazy(() => import('./pages/admin/Products'));
+const PacksAdmin = lazy(() => import('./pages/admin/Packs'));
+const Messages = lazy(() => import('./pages/admin/Messages'));
+const Promos = lazy(() => import('./pages/admin/Promos'));
+const HeroManager = lazy(() => import('./pages/admin/HeroManager'));
+const AdminReviews = lazy(() => import('./pages/admin/AdminReviews'));
+
 
 // Storefront layout wrapper — renders Navbar + CartDrawer + FloatingIcons + page + Footer
 function StorefrontLayout() {
@@ -67,34 +71,36 @@ function App() {
         <BrowserRouter>
             <ScrollToTop />
             <Toaster position="bottom-right" />
-            <Routes>
-                {/* ── Admin routes — NO storefront Navbar/Footer ── */}
-                <Route path="/admin/nad-auth" element={<AdminAuth />} />
-                <Route path="/admin" element={<AdminLayout />}>
-                    <Route index element={<Dashboard />} />
-                    <Route path="orders" element={<Orders />} />
-                    <Route path="products" element={<Products />} />
-                    <Route path="packs" element={<PacksAdmin />} />
-                    <Route path="messages" element={<Messages />} />
-                    <Route path="promos" element={<Promos />} />
-                    <Route path="hero" element={<HeroManager />} />
-                    <Route path="reviews" element={<AdminReviews />} />
-                </Route>
+            <Suspense fallback={<div style={{ minHeight: '100vh', backgroundColor: '#FAF8F4' }} />}>
+                <Routes>
+                    {/* ── Admin routes — NO storefront Navbar/Footer ── */}
+                    <Route path="/admin/nad-auth" element={<AdminAuth />} />
+                    <Route path="/admin" element={<AdminLayout />}>
+                        <Route index element={<Dashboard />} />
+                        <Route path="orders" element={<Orders />} />
+                        <Route path="products" element={<Products />} />
+                        <Route path="packs" element={<PacksAdmin />} />
+                        <Route path="messages" element={<Messages />} />
+                        <Route path="promos" element={<Promos />} />
+                        <Route path="hero" element={<HeroManager />} />
+                        <Route path="reviews" element={<AdminReviews />} />
+                    </Route>
 
-                {/* ── Storefront routes — wrapped with Navbar + Footer ── */}
-                <Route element={<StorefrontLayout />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/caftans" element={<Caftans />} />
-                    <Route path="/sacs" element={<Sacs />} />
-                    <Route path="/accessoires" element={<Accessoires />} />
-                    <Route path="/packs" element={<Packs />} />
-                    <Route path="/product/:id" element={<ProductDetail />} />
-                    <Route path="/wishlist" element={<Wishlist />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="*" element={<NotFound />} />
-                </Route>
-            </Routes>
+                    {/* ── Storefront routes — wrapped with Navbar + Footer ── */}
+                    <Route element={<StorefrontLayout />}>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/caftans" element={<Caftans />} />
+                        <Route path="/sacs" element={<Sacs />} />
+                        <Route path="/accessoires" element={<Accessoires />} />
+                        <Route path="/packs" element={<Packs />} />
+                        <Route path="/product/:id" element={<ProductDetail />} />
+                        <Route path="/wishlist" element={<Wishlist />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/checkout" element={<Checkout />} />
+                        <Route path="*" element={<NotFound />} />
+                    </Route>
+                </Routes>
+            </Suspense>
         </BrowserRouter>
     );
 }

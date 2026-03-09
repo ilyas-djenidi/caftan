@@ -45,6 +45,20 @@ export default function Home() {
     const [categoryCounts, setCategoryCounts] = useState({ caftans: 0, sacs: 0, accessoires: 0 });
 
     useEffect(() => {
+        if (heroData?.image_url) {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.fetchPriority = 'high';
+            link.href = heroData.image_url;
+            document.head.appendChild(link);
+            return () => {
+                if (document.head.contains(link)) document.head.removeChild(link);
+            };
+        }
+    }, [heroData?.image_url]);
+
+    useEffect(() => {
         const loadPageData = async () => {
             try {
                 // Fetch Products
@@ -279,7 +293,7 @@ export default function Home() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                         {loading ? (
                             Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} style={{ height: '400px', backgroundColor: '#F0EDE8', borderRadius: '24px' }} className="animate-pulse" />
+                                <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EDE8', borderRadius: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
                             ))
                         ) : (
                             caftansProducts.slice(0, 4).map((product) => (
@@ -319,7 +333,7 @@ export default function Home() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                         {loading ? (
                             Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} style={{ height: '400px', backgroundColor: '#F0EDE8', borderRadius: '24px' }} className="animate-pulse" />
+                                <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EDE8', borderRadius: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
                             ))
                         ) : (
                             featuredProducts.slice(0, 4).map((product) => (
