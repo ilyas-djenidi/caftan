@@ -266,8 +266,8 @@ export default function ProductDetail() {
                         </div>
                         <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} {t('product.reviews')})</span>
                     </div>
-                    <p style={{ fontSize: '24px', fontWeight: '300', color: '#1A1714', margin: '0' }}>
-                        {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '12px', color: '#B8963E', fontWeight: '500' }}>DA</span>
+                    <p style={{ fontSize: '24px', fontWeight: '600', color: '#1A1714', margin: '0', fontFamily: "'Jost', sans-serif" }}>
+                        {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '13px', color: '#B8963E', fontWeight: '500' }}>DA</span>
                     </p>
                 </div>
 
@@ -365,8 +365,8 @@ export default function ProductDetail() {
                                 </div>
                                 <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} {t('product.reviews')})</span>
                             </div>
-                            <p style={{ fontSize: '28px', fontWeight: '300', color: '#1A1714', margin: '0 0 16px' }}>
-                                {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '13px', color: '#B8963E', fontWeight: '500' }}>DA</span>
+                            <p style={{ fontSize: '28px', fontWeight: '600', color: '#1A1714', margin: '0 0 16px', fontFamily: "'Jost', sans-serif" }}>
+                                {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '15px', color: '#B8963E', fontWeight: '500' }}>DA</span>
                             </p>
                         </div>
 

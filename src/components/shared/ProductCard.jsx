@@ -126,11 +126,10 @@ const ProductCard = ({ product, onClick }) => {
             }}>
                 {/* Product name */}
                 <p style={{
-                    fontFamily: "'Jost', sans-serif",
-                    fontSize: '14px',
-                    fontWeight: '300',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: '20px',
+                    fontWeight: '500',
+                    lineHeight: '1.2',
                     color: '#1A1714',
                     margin: '0 0 6px',
                     whiteSpace: 'nowrap',
@@ -142,22 +141,18 @@ const ProductCard = ({ product, onClick }) => {
 
                 {/* Price */}
                 <p style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: '21px',
-                    fontWeight: '500',
-                    fontStyle: 'italic',
-                    color: '#1A1714',
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    color: '#6B6458',
                     margin: '0',
                 }}>
                     {product.price?.toLocaleString('fr-FR')}
                     <span style={{
-                        fontFamily: "'Jost', sans-serif",
                         fontSize: '11px',
-                        fontWeight: '300',
-                        fontStyle: 'normal',
-                        color: '#6B6458',
-                        marginLeft: '5px',
-                        letterSpacing: '0.1em',
+                        fontWeight: '500',
+                        marginLeft: '4px',
+                        letterSpacing: '0.05em',
                     }}>
                         DA
                     </span>
