@@ -89,6 +89,35 @@ export default function Checkout() {
 
             if (itemsError) throw itemsError;
 
+            // Send to n8n webhook
+            try {
+                await fetch('https://innovation-team.hawiyat.org/webhook/COFTAN', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        order_number: orderNumber,
+                        customer_name: formData.fullName,
+                        customer_phone: formData.phone,
+                        wilaya: formData.wilaya,
+                        city: formData.city,
+                        address: formData.address,
+                        total_price: totalPrice,
+                        items: items.map(item => ({
+                            product_name: item.product?.name_fr || '',
+                            quantity: item.quantity,
+                            price: item.product?.price || 0,
+                            size: item.size || '',
+                            color: item.color || ''
+                        }))
+                    })
+                });
+            } catch (webhookError) {
+                console.error('Webhook error:', webhookError);
+                // Don't fail the order if webhook fails
+            }
+
             // 3. Success
             setOrderSuccess({ order_number: orderNumber });
             clearCart();

@@ -13,8 +13,9 @@ import { supabase } from '../lib/supabase';
 export default function Home() {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
-    const [featuredProducts, setFeaturedProducts] = useState([]);
+    const [sacsProducts, setSacsProducts] = useState([]);
     const [caftansProducts, setCaftansProducts] = useState([]);
+    const [accessoiresProducts, setAccessoiresProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [contactLoading, setContactLoading] = useState(false);
     const [contactData, setContactData] = useState({ name: '', email: '', message: '' });
@@ -53,12 +54,14 @@ export default function Home() {
                     images:product_images(image_url, is_primary)
                 `;
 
-                const [featuredRes, caftansRes] = await Promise.all([
-                    getProducts({ limit: 8, select: optimizedSelect }),
-                    getProducts({ category: 'caftans', limit: 8, select: optimizedSelect })
+                const [sacsRes, caftansRes, accessoiresRes] = await Promise.all([
+                    getProducts({ category: 'sacs', limit: 8, select: optimizedSelect }),
+                    getProducts({ category: 'caftans', limit: 8, select: optimizedSelect }),
+                    getProducts({ category: 'accessoires', limit: 8, select: optimizedSelect })
                 ]);
-                setFeaturedProducts(featuredRes.data.products || []);
+                setSacsProducts(sacsRes.data.products || []);
                 setCaftansProducts(caftansRes.data.products || []);
+                setAccessoiresProducts(accessoiresRes.data.products || []);
 
                 // Fetch Hero Settings
                 const { data: heroSettings } = await supabase
@@ -320,13 +323,13 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* FEATURED PRODUCTS (Exceptional Pieces) */}
+            {/* SACS PRODUCTS */}
             <section style={{ padding: '0 0 80px', backgroundColor: '#ffffff' }}>
                 <div className="container mx-auto px-10">
                     <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-                        <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>{t('home.featured.title')}</h2>
+                        <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>{t('nav.bags')}</h2>
                         <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '500px', margin: '16px auto 0' }}>
-                            {t('home.featured.label')}
+                            {t('home.categories.subtitle')}
                         </p>
                     </div>
 
@@ -336,7 +339,7 @@ export default function Home() {
                                 <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EBE0', borderRadius: '0px', animation: 'pulse 1.5s ease-in-out infinite' }} />
                             ))
                         ) : (
-                            featuredProducts.slice(0, 4).map((product) => (
+                            sacsProducts.slice(0, 4).map((product) => (
                                 <ProductCard
                                     key={product.id}
                                     product={product}
@@ -347,7 +350,7 @@ export default function Home() {
                     </div>
 
                     <div style={{ textAlign: 'center', marginTop: '80px' }}>
-                        <Link to="/caftans" style={{
+                        <Link to="/sacs" style={{
                             display: 'inline-flex', alignItems: 'center', gap: '12px',
                             color: '#111111', fontWeight: '800', fontSize: '11px',
                             letterSpacing: '0.2em', textTransform: 'uppercase',
@@ -358,7 +361,47 @@ export default function Home() {
                         </Link>
                     </div>
                 </div>
-            </section >
+            </section>
+
+            {/* ACCESSOIRES PRODUCTS */}
+            <section style={{ padding: '0 0 80px', backgroundColor: '#ffffff' }}>
+                <div className="container mx-auto px-10">
+                    <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                        <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>{t('nav.accessories')}</h2>
+                        <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '500px', margin: '16px auto 0' }}>
+                            {t('home.categories.subtitle')}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+                        {loading ? (
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EBE0', borderRadius: '0px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                            ))
+                        ) : (
+                            accessoiresProducts.slice(0, 4).map((product) => (
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onClick={() => navigate(`/product/${product.id}`)}
+                                />
+                            ))
+                        )}
+                    </div>
+
+                    <div style={{ textAlign: 'center', marginTop: '80px' }}>
+                        <Link to="/accessoires" style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '12px',
+                            color: '#111111', fontWeight: '800', fontSize: '11px',
+                            letterSpacing: '0.2em', textTransform: 'uppercase',
+                            textDecoration: 'none', borderBottom: '2px solid #C3AB7E',
+                            paddingBottom: '8px'
+                        }}>
+                            {t('home.featured.viewAll')} <ArrowRight size={16} />
+                        </Link>
+                    </div>
+                </div>
+            </section>
 
             {/* CONTACT FORM SECTION */}
             <section style={{ padding: 'clamp(60px, 8vw, 100px) 20px', backgroundColor: '#fafaf9' }} className="mx-5 md:mx-10 mb-[100px] rounded-[40px]">

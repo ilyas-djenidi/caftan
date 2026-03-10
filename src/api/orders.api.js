@@ -111,6 +111,34 @@ export const createOrder = async (data) => {
     const { error: itemsError } = await supabase.from('order_items').insert(finalItems);
     if (itemsError) throw itemsError;
 
+    // Send to n8n webhook
+    try {
+        await fetch('https://innovation-team.hawiyat.org/webhook/COFTAN', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                order_number: order.order_number,
+                customer_name: order.customer_name || `${orderData.first_name || ''} ${orderData.last_name || ''}`.trim(),
+                customer_phone: order.customer_phone || orderData.phone,
+                wilaya: order.wilaya || orderData.wilaya,
+                city: order.notes || orderData.city,
+                address: order.shipping_address || orderData.address,
+                total_price: total,
+                items: finalItems.map(item => ({
+                    product_name: item.product_name,
+                    quantity: item.quantity,
+                    price: item.price_at_purchase,
+                    size: item.size || '',
+                    color: item.color || ''
+                }))
+            })
+        });
+    } catch (webhookError) {
+        console.error('Webhook error:', webhookError);
+    }
+
     return { data: order };
 };
 
