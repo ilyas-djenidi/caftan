@@ -45,26 +45,17 @@ export default function Home() {
     const [categoryCounts, setCategoryCounts] = useState({ caftans: 0, sacs: 0, accessoires: 0 });
 
     useEffect(() => {
-        if (heroData?.image_url) {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.as = 'image';
-            link.fetchPriority = 'high';
-            link.href = heroData.image_url;
-            document.head.appendChild(link);
-            return () => {
-                if (document.head.contains(link)) document.head.removeChild(link);
-            };
-        }
-    }, [heroData?.image_url]);
-
-    useEffect(() => {
         const loadPageData = async () => {
             try {
-                // Fetch Products
+                // Fetch Products with optimized payload
+                const optimizedSelect = `
+                    id, name_fr, name_ar, price, original_price, on_sale, category, stock_count, 
+                    images:product_images(image_url, is_primary)
+                `;
+
                 const [featuredRes, caftansRes] = await Promise.all([
-                    getProducts({ limit: 8 }),
-                    getProducts({ category: 'caftans', limit: 8 })
+                    getProducts({ limit: 8, select: optimizedSelect }),
+                    getProducts({ category: 'caftans', limit: 8, select: optimizedSelect })
                 ]);
                 setFeaturedProducts(featuredRes.data.products || []);
                 setCaftansProducts(caftansRes.data.products || []);
@@ -102,7 +93,8 @@ export default function Home() {
         { name: t('nav.packs'), to: '/packs', image: '/images/cat_packs.jpg', count: t('packs.label') },
     ];
 
-    if (loading) return <LogoLoader />;
+    // Removed global LogoLoader during initial page load to show the shell immediately
+    // if (loading) return <LogoLoader />;
 
     return (
         <div className="min-h-screen bg-white">
@@ -110,16 +102,24 @@ export default function Home() {
             <section style={{
                 position: 'relative',
                 height: '100vh',
+                minHeight: '100vh',
                 width: '100%',
                 overflow: 'hidden',
                 backgroundColor: '#f8f5f0',
                 paddingTop: '80px',
             }}>
-                <div style={{
-                    position: 'absolute', inset: 0,
-                    backgroundImage: `url(${heroData.image_url})`,
-                    backgroundSize: 'cover', backgroundPosition: 'center top',
-                }} />
+                {heroData.image_url && (
+                    <img 
+                        src={heroData.image_url} 
+                        alt="Hero background"
+                        fetchPriority="high"
+                        style={{
+                            position: 'absolute', inset: 0,
+                            width: '100%', height: '100%', 
+                            objectFit: 'cover', objectPosition: 'center top',
+                        }} 
+                    />
+                )}
                 {/* Dark gradient overlay — heavier on the left for text legibility */}
                 <div style={{
                     position: 'absolute', inset: 0,
@@ -293,7 +293,7 @@ export default function Home() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                         {loading ? (
                             Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EDE8', borderRadius: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                                <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EBE0', borderRadius: '0px', animation: 'pulse 1.5s ease-in-out infinite' }} />
                             ))
                         ) : (
                             caftansProducts.slice(0, 4).map((product) => (
@@ -333,7 +333,7 @@ export default function Home() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                         {loading ? (
                             Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EDE8', borderRadius: '24px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                                <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EBE0', borderRadius: '0px', animation: 'pulse 1.5s ease-in-out infinite' }} />
                             ))
                         ) : (
                             featuredProducts.slice(0, 4).map((product) => (

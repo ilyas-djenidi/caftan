@@ -50,6 +50,22 @@ export default function Footer() {
                             <li><Link to="/contact" style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'none' }} className="hover:text-white">Contact</Link></li>
                         </ul>
                     </div>
+                    <div>
+                        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '24px' }}>Création</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <li>
+                                <a href="https://innovation-team.online/contact" target="_blank" rel="noopener noreferrer" style={{ 
+                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                    color: '#111111', backgroundColor: '#C3AB7E',
+                                    padding: '12px 24px', borderRadius: '100px',
+                                    fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em',
+                                    textDecoration: 'none', transition: 'all 0.3s', whiteSpace: 'nowrap'
+                                }} className="hover:scale-105 hover:bg-white">
+                                    Developed by Innovation Team
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div style={{ paddingTop: '32px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>

@@ -54,6 +54,7 @@ export default function Navbar() {
                 transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 padding: '0 40px',
                 height: isScrolled ? '72px' : '100px',
+                minHeight: isScrolled ? '72px' : '100px',
                 backgroundColor: (isScrolled || !isHome) ? 'rgba(255, 255, 255, 0.98)' : 'transparent',
                 backdropFilter: (isScrolled || !isHome) ? 'blur(20px)' : 'none',
                 borderBottom: (isScrolled || !isHome) ? '1px solid rgba(195, 171, 126, 0.1)' : 'none',

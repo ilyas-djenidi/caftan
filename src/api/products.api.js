@@ -2,13 +2,16 @@ import { supabase } from '../lib/supabase'
 import { compressImage } from '../lib/compressImage'
 
 export const getProducts = async (params = {}) => {
+    // Determine the columns to select to optimize payload if requested
+    const selectQuery = params.select || `
+        *,
+        images:product_images(*),
+        attributes:product_attributes(*)
+    `;
+
     let query = supabase
         .from('products')
-        .select(`
-            *,
-            images:product_images(*),
-            attributes:product_attributes(*)
-        `, { count: 'exact' });
+        .select(selectQuery, { count: 'exact' });
 
     // The backend `getProducts` always filters by visibility except presumably for admin endpoints
     // I'll keep it flexible: check if we should strictly filter is_visible
