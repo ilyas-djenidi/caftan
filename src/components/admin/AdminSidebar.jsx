@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Package, LogOut, Tags, MessageCircle, Star, Image as ImageIcon, X, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, LogOut, Tags, MessageCircle, Star, Image as ImageIcon, X, ArrowLeft, Truck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const navItems = [
     { icon: LayoutDashboard, label: 'Tableau de bord', to: '/admin', end: true },
-    { icon: ShoppingBag, label: 'Commandes', to: '/admin/orders', badgeKey: 'orders' },
-    { icon: Package, label: 'Produits', to: '/admin/products' },
+    { icon: ShoppingBag, label: 'Commandes',       to: '/admin/orders',      badgeKey: 'orders' },
+    { icon: Truck,       label: 'Expéditions',      to: '/admin/expeditions' },
+    { icon: Package,     label: 'Produits',          to: '/admin/products' },
     { icon: Star, label: 'Packs', to: '/admin/packs' },
     { icon: Tags, label: 'Promotions', to: '/admin/promos' },
     { icon: ImageIcon, label: 'Gérer la Vitrine', to: '/admin/hero' },

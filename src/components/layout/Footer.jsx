@@ -43,11 +43,20 @@ export default function Footer() {
                     </div>
 
                     <div>
-                        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '24px' }}>L'Atelier</h4>
+                        <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '24px' }}>Service Client</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <li><span style={{ color: '#9ca3af', fontSize: '14px' }}>À propos de nous</span></li>
-                            <li><span style={{ color: '#9ca3af', fontSize: '14px' }}>Livraison & Retours</span></li>
+                            <li><span style={{ color: '#9ca3af', fontSize: '14px' }}>Livraison &amp; Retours</span></li>
                             <li><Link to="/contact" style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'none' }} className="hover:text-white">Contact</Link></li>
+                            <li>
+                                <Link
+                                    to="/suivi-commande"
+                                    style={{ color: '#C3AB7E', fontSize: '14px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: '600' }}
+                                    className="hover:text-white"
+                                >
+                                    Suivre ma commande →
+                                </Link>
+                            </li>
                         </ul>
                     </div>
                     <div>

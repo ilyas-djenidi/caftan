@@ -20,6 +20,7 @@ const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Checkout = lazy(() => import('./pages/Checkout'));
+const SuiviCommande = lazy(() => import('./pages/SuiviCommande'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Admin Pages (Eagerly loaded — admins only, no lazy flash needed)
@@ -27,6 +28,7 @@ import AdminLayout from './pages/admin/AdminLayout';
 import AdminAuth from './pages/admin/AdminAuth';
 import Dashboard from './pages/admin/Dashboard';
 import Orders from './pages/admin/Orders';
+import Expeditions from './pages/admin/Expeditions';
 import Products from './pages/admin/Products';
 import PacksAdmin from './pages/admin/Packs';
 import Messages from './pages/admin/Messages';
@@ -78,6 +80,7 @@ function App() {
                     <Route path="/admin" element={<AdminLayout />}>
                         <Route index element={<Dashboard />} />
                         <Route path="orders" element={<Orders />} />
+                        <Route path="expeditions" element={<Expeditions />} />
                         <Route path="products" element={<Products />} />
                         <Route path="packs" element={<PacksAdmin />} />
                         <Route path="messages" element={<Messages />} />
@@ -97,6 +100,7 @@ function App() {
                         <Route path="/wishlist" element={<Wishlist />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/checkout" element={<Checkout />} />
+                        <Route path="/suivi-commande" element={<SuiviCommande />} />
                         <Route path="*" element={<NotFound />} />
                     </Route>
                 </Routes>

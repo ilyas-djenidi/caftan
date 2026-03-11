@@ -1,33 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAdminStore } from '../../store/adminStore';
 import {
     Search,
-    Filter,
     ChevronDown,
     ChevronUp,
-    ExternalLink,
-    MoreVertical,
     Phone,
     MapPin,
     MessageSquare,
-    Package,
     Calendar,
-    CheckCircle2,
-    Clock,
     Truck,
     XCircle,
-    AlertCircle,
-    ArrowUpRight,
-    CreditCard,
-    ShoppingBag,
     Loader2,
-    Trash2
+    Trash2,
+    Square,
+    CheckSquare,
+    RotateCcw,
+    Package2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getImageUrl } from '../../utils';
-import { getOrderById } from '../../api/orders.api';
+import { getOrderById, updateOrderGuepex, getGuepexDeliveryStats } from '../../api/orders.api';
+import { getParcel } from '../../services/guepex';
 import toast from 'react-hot-toast';
+import GuepexPanel from '../../components/admin/GuepexPanel';
 
 const ORDER_STATUSES = [
     { value: 'PENDING', label: 'En attente', color: '#f59e0b', bg: '#FFFBEB' },
@@ -37,18 +33,43 @@ const ORDER_STATUSES = [
     { value: 'CANCELLED', label: 'Annulée', color: '#ef4444', bg: '#FEF2F2' }
 ];
 
+/* ─── Guepex status definitions (shared) ──────────────────── */
+const GUEPEX_STATUSES = [
+    { value: 'ALL',        label: 'Tous' },
+    { value: 'none',       label: 'Non expédié' },
+    { value: 'created',    label: 'Créé' },
+    { value: 'in_transit', label: 'En transit' },
+    { value: 'delivered',  label: 'Livré' },
+    { value: 'returned',   label: 'Retourné' },
+];
+
+const GUEPEX_STATUS_META = {
+    created:    { color: '#6b7280', bg: '#F3F4F6', label: 'Créée' },
+    in_transit: { color: '#3b82f6', bg: '#EFF6FF', label: 'En transit' },
+    delivered:  { color: '#22c55e', bg: '#F0FDF4', label: 'Livrée' },
+    returned:   { color: '#ef4444', bg: '#FEF2F2', label: 'Retournée' },
+    cancelled:  { color: '#ef4444', bg: '#FEF2F2', label: 'Annulée' },
+};
+
 const Orders = () => {
     const { orders, fetchOrders, updateOrderStatus, fetchStats, deleteOrder, totalPages, totalOrders } = useAdminStore();
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [guepexFilter, setGuepexFilter] = useState('ALL');
     const [page, setPage] = useState(1);
     const [expandedOrderId, setExpandedOrderId] = useState(null);
     const [expandedOrderDetails, setExpandedOrderDetails] = useState(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [updatingId, setUpdatingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
+    // Bulk
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [bulkRefreshing, setBulkRefreshing] = useState(false);
+    const [bulkProgress, setBulkProgress] = useState('');
+    // Delivery stats
+    const [deliveryStats, setDeliveryStats] = useState({ total: 0, in_transit: 0, delivered: 0, returned: 0 });
 
     // Debounce Search Term
     useEffect(() => {
@@ -77,6 +98,14 @@ const Orders = () => {
         load();
     }, [page, statusFilter, debouncedSearch]);
 
+    // Fetch delivery stats on mount
+    useEffect(() => {
+        getGuepexDeliveryStats().then(setDeliveryStats).catch(console.error);
+    }, []);
+
+    const refreshDeliveryStats = () =>
+        getGuepexDeliveryStats().then(setDeliveryStats).catch(console.error);
+
     const handleExpandRow = async (orderId) => {
         if (expandedOrderId === orderId) {
             setExpandedOrderId(null);
@@ -95,6 +124,16 @@ const Orders = () => {
             }
         }
     };
+
+    const handleGuepexRefresh = useCallback(async () => {
+        if (!expandedOrderId) return;
+        try {
+            const { data } = await getOrderById(expandedOrderId);
+            setExpandedOrderDetails(data);
+        } catch (err) {
+            console.error('Guepex refresh error', err);
+        }
+    }, [expandedOrderId]);
 
     const handleStatusUpdate = async (id, status) => {
         setUpdatingId(id);
@@ -125,15 +164,62 @@ const Orders = () => {
         }
     };
 
-    // Note: We're doing server-side pagination and filtering now, so filteredOrders is just orders.
-    const filteredOrders = orders;
+    // Bulk refresh selected orders
+    const handleBulkRefresh = async () => {
+        const ordersWithTracking = orders.filter(
+            o => selectedIds.includes(o.id) && o.guepex_tracking_id
+        );
+        if (ordersWithTracking.length === 0) {
+            toast('Aucune commande sélectionnée avec un tracking Guepex');
+            return;
+        }
+        setBulkRefreshing(true);
+        let done = 0;
+        const total = ordersWithTracking.length;
+        for (const order of ordersWithTracking) {
+            setBulkProgress(`Mise à jour ${done + 1}/${total}…`);
+            try {
+                const data = await getParcel(order.guepex_tracking_id);
+                const newStatus = data?.status || data?.state;
+                if (newStatus && !data?.error) {
+                    await updateOrderGuepex(order.id, { guepex_status: newStatus });
+                }
+            } catch (e) { /* skip */ }
+            done++;
+        }
+        setBulkRefreshing(false);
+        setBulkProgress('');
+        setSelectedIds([]);
+        refreshDeliveryStats();
+        toast.success(`${total} statut(s) mis à jour ✓`);
+    };
+
+    // Client-side Guepex filter on top of server-side data
+    const filteredOrders = orders.filter(order => {
+        if (guepexFilter === 'ALL') return true;
+        if (guepexFilter === 'none') return !order.guepex_tracking_id;
+        return order.guepex_status === guepexFilter;
+    });
+
+    const allFilteredSelected =
+        filteredOrders.length > 0 && filteredOrders.every(o => selectedIds.includes(o.id));
+
+    const toggleAll = () => {
+        if (allFilteredSelected) setSelectedIds([]);
+        else setSelectedIds(filteredOrders.map(o => o.id));
+    };
+
+    const toggleOne = (id) =>
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
     const getStatusInfo = (status) => {
         return ORDER_STATUSES.find(s => s.value === status?.toUpperCase()) || ORDER_STATUSES[0];
     };
 
     return (
-        <div className="flex flex-col gap-8 animate-fade-in pb-10" style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
+        <>
+        <style>{`@keyframes slideUpIn { from { opacity:0; transform:translate(-50%,12px); } to { opacity:1; transform:translate(-50%,0); } }`}</style>
+        <div className="flex flex-col gap-8 animate-fade-in pb-20" style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
@@ -160,16 +246,10 @@ const Orders = () => {
                     </div>
 
                     <div style={{
-                        display: 'flex',
-                        overflowX: 'auto',
-                        whiteSpace: 'nowrap',
-                        gap: '4px',
-                        backgroundColor: '#ffffff',
-                        borderRadius: '15px',
-                        padding: '4px',
-                        border: '1px solid #F0EDE8',
-                        msOverflowStyle: 'none',
-                        scrollbarWidth: 'none'
+                        display: 'flex', overflowX: 'auto', whiteSpace: 'nowrap',
+                        gap: '4px', backgroundColor: '#ffffff', borderRadius: '15px',
+                        padding: '4px', border: '1px solid #F0EDE8',
+                        msOverflowStyle: 'none', scrollbarWidth: 'none'
                     }} className="no-scrollbar">
                         {[{ value: 'ALL', label: 'TOUT' }, ...ORDER_STATUSES].map((s) => (
                             <button
@@ -191,6 +271,55 @@ const Orders = () => {
                 </div>
             </div>
 
+            {/* ─── Statistiques Livraison ─────────────────────────────── */}
+            <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px'
+            }}>
+                {[
+                    { label: 'Total expéditions', value: deliveryStats.total,      color: '#111111' },
+                    { label: 'En transit',         value: deliveryStats.in_transit, color: '#3b82f6' },
+                    { label: 'Livrées',            value: deliveryStats.delivered,  color: '#22c55e' },
+                    { label: 'Retournées',         value: deliveryStats.returned,   color: '#ef4444' },
+                ].map((stat) => (
+                    <div key={stat.label} style={{
+                        backgroundColor: 'white', borderRadius: '20px',
+                        border: '1px solid #F0EDE8', padding: '20px 24px',
+                        boxShadow: '0 4px 30px rgba(0,0,0,0.02)',
+                    }}>
+                        <p style={{ margin: '0 0 6px', fontSize: '11px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                            {stat.label}
+                        </p>
+                        <p style={{ margin: 0, fontSize: '32px', fontFamily: 'Cormorant Garamond, serif', fontWeight: '700', color: stat.color, lineHeight: 1 }}>
+                            {stat.value}
+                        </p>
+                    </div>
+                ))}
+            </div>
+
+            {/* ─── Guepex Delivery Filter ─────────────────────────────── */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <Truck size={14} style={{ color: '#9ca3af' }} />
+                <span style={{ fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: '4px' }}>Livraison Guepex :</span>
+                <div style={{
+                    display: 'flex', gap: '4px', backgroundColor: '#ffffff',
+                    borderRadius: '14px', padding: '4px', border: '1px solid #F0EDE8',
+                }}>
+                    {GUEPEX_STATUSES.map(s => (
+                        <button key={s.value} onClick={() => setGuepexFilter(s.value)}
+                            style={{
+                                padding: '6px 14px', borderRadius: '10px', border: 'none',
+                                fontSize: '11px', fontWeight: '800', textTransform: 'uppercase',
+                                backgroundColor: guepexFilter === s.value ? '#111111' : 'transparent',
+                                color: guepexFilter === s.value ? 'white' : '#9ca3af',
+                                cursor: 'pointer', transition: 'all 0.2s',
+                            }}
+                        >
+                            {s.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             {/* Table Area */}
             <div style={{
                 backgroundColor: 'white',
@@ -200,31 +329,42 @@ const Orders = () => {
                 WebkitOverflowScrolling: 'touch',
                 boxShadow: '0 4px 30px rgba(0,0,0,0.02)'
             }}>
-                <table className="w-full text-left border-collapse mobile-card-table" style={{ minWidth: '750px' }}>
+                <table className="w-full text-left border-collapse mobile-card-table" style={{ minWidth: '960px' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid #F0EDE8', backgroundColor: '#ffffff' }}>
+                            {/* Checkbox */}
+                            <th style={{ padding: '20px 12px 20px 24px', width: '40px' }}>
+                                <button onClick={toggleAll} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                                    {allFilteredSelected ? <CheckSquare size={16} color="#C3AB7E" /> : <Square size={16} />}
+                                </button>
+                            </th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Commande</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Client</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Livraison</th>
+                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut Guepex</th>
                             <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>Détails</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#F0EDE8]">
                         {loading ? (
                             <tr>
-                                <td colSpan="5" style={{ padding: '80px 0', textAlign: 'center' }}>
+                                <td colSpan="8" style={{ padding: '80px 0', textAlign: 'center' }}>
                                     <Loader2 size={32} className="animate-spin text-[#C3AB7E] inline-block" />
                                 </td>
                             </tr>
                         ) : filteredOrders.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="py-20 text-center text-gray-400 italic">Aucune commande trouvée</td>
+                                <td colSpan="8" className="py-20 text-center text-gray-400 italic">Aucune commande trouvée</td>
                             </tr>
                         ) : (
                             filteredOrders.map((order) => {
                                 const isOpened = expandedOrderId === order.id;
                                 const status = getStatusInfo(order.status);
+
+                                const isSelected = selectedIds.includes(order.id);
+                                const gMeta = order.guepex_status ? (GUEPEX_STATUS_META[order.guepex_status] || null) : null;
 
                                 return (
                                     <React.Fragment key={order.id}>
@@ -232,11 +372,23 @@ const Orders = () => {
                                             onClick={() => handleExpandRow(order.id)}
                                             style={{
                                                 transition: 'background 0.15s',
-                                                backgroundColor: isOpened ? 'rgba(255,255,255,0.6)' : 'transparent',
+                                                backgroundColor: isOpened ? 'rgba(255,255,255,0.6)' : isSelected ? '#FFFBF0' : 'transparent',
                                                 opacity: deletingId === order.id ? 0.5 : 1
                                             }}
                                             className="hover:bg-[rgba(255,255,255,0.5)] cursor-default transition-colors"
                                         >
+                                            {/* Checkbox */}
+                                            <td style={{ padding: '16px 12px 16px 24px' }} onClick={e => e.stopPropagation()}>
+                                                <button
+                                                    onClick={() => toggleOne(order.id)}
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                                >
+                                                    {isSelected
+                                                        ? <CheckSquare size={16} color="#C3AB7E" />
+                                                        : <Square size={16} color="#d1d5db" />}
+                                                </button>
+                                            </td>
+
                                             {/* Order Info */}
                                             <td style={{ padding: '16px 24px' }} className={`w-full-mobile ${!isOpened ? 'mobile-hidden-closed' : ''}`}>
                                                 <div className="flex flex-col gap-0.5">
@@ -263,7 +415,7 @@ const Orders = () => {
                                                 </div>
                                             </td>
 
-                                            {/* Status */}
+                                            {/* Statut commande */}
                                             <td style={{ padding: '16px 24px' }} className={`w-full-mobile ${!isOpened ? 'mobile-hidden-closed' : ''}`}>
                                                 <div style={{
                                                     display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -274,6 +426,41 @@ const Orders = () => {
                                                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: status.color }} />
                                                     {status.label}
                                                 </div>
+                                            </td>
+
+                                            {/* Livraison (tracking badge) */}
+                                            <td style={{ padding: '16px 24px' }}>
+                                                {order.guepex_tracking_id ? (
+                                                    <div style={{
+                                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                        padding: '5px 10px', borderRadius: '8px',
+                                                        backgroundColor: '#F3F4F6', border: '1px solid #E5E7EB',
+                                                    }}>
+                                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: gMeta?.color || '#6b7280', flexShrink: 0 }} />
+                                                        <span style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: '700', color: '#374151', maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {order.guepex_tracking_id}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span style={{ color: '#d1d5db', fontSize: '14px', fontWeight: '700' }}>—</span>
+                                                )}
+                                            </td>
+
+                                            {/* Statut Guepex */}
+                                            <td style={{ padding: '16px 24px' }}>
+                                                {gMeta ? (
+                                                    <span style={{
+                                                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                                                        padding: '5px 10px', borderRadius: '100px',
+                                                        backgroundColor: gMeta.bg, color: gMeta.color,
+                                                        fontSize: '10px', fontWeight: '800', textTransform: 'uppercase',
+                                                    }}>
+                                                        <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: gMeta.color, display: 'inline-block' }} />
+                                                        {gMeta.label}
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ color: '#d1d5db', fontSize: '14px', fontWeight: '700' }}>—</span>
+                                                )}
                                             </td>
 
                                             {/* Action */}
@@ -292,13 +479,15 @@ const Orders = () => {
                                         {/* Expanded Details */}
                                         {isOpened && (
                                             <tr>
-                                                <td colSpan="5" style={{ padding: 'clamp(12px, 2vw, 32px)', backgroundColor: '#ffffff' }}>
+                                                <td colSpan="8" style={{ padding: 'clamp(12px, 2vw, 32px)', backgroundColor: '#ffffff' }}>
                                                     {loadingDetails ? (
                                                         <div className="flex justify-center p-8">
                                                             <Loader2 className="animate-spin text-[#C3AB7E]" size={32} />
                                                         </div>
                                                     ) : expandedOrderDetails ? (
-                                                        <div className="animate-fade-in-up flex flex-col lg:grid lg:grid-cols-[1.2fr_0.8fr] gap-8 p-6 md:p-8 rounded-[24px] bg-white border border-[#F0EDE8]">
+                                                        <div className="animate-fade-in-up flex flex-col gap-6 p-6 md:p-8 rounded-[24px] bg-white border border-[#F0EDE8]">
+                                                            {/* Two-column: items + delivery */}
+                                                            <div className="flex flex-col lg:grid lg:grid-cols-[1.2fr_0.8fr] gap-8">
                                                             {/* Items Section */}
                                                             <div>
                                                                 <div className="flex items-center justify-between mb-6">
@@ -441,6 +630,13 @@ const Orders = () => {
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                            </div>
+
+                                                            {/* Guepex Shipping Panel – full width */}
+                                                            <GuepexPanel
+                                                                order={expandedOrderDetails}
+                                                                onRefresh={handleGuepexRefresh}
+                                                            />
                                                         </div>
                                                     ) : null}
                                                 </td>
@@ -492,7 +688,52 @@ const Orders = () => {
                     </div>
                 </div>
             )}
+
+            {/* ─── Bulk Action Bar ───────────────────────────────────── */}
+            {selectedIds.length > 0 && (
+                <div style={{
+                    position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+                    zIndex: 9000, display: 'flex', alignItems: 'center', gap: '16px',
+                    backgroundColor: '#111111', color: 'white',
+                    padding: '14px 24px', borderRadius: '20px',
+                    boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
+                    animation: 'slideUpIn 0.25s ease',
+                    whiteSpace: 'nowrap',
+                }}>
+                    <span style={{ fontSize: '13px', fontWeight: '700' }}>
+                        {bulkProgress || `${selectedIds.length} commande${selectedIds.length > 1 ? 's' : ''} sélectionnée${selectedIds.length > 1 ? 's' : ''}`}
+                    </span>
+                    <button
+                        onClick={handleBulkRefresh}
+                        disabled={bulkRefreshing}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '6px',
+                            padding: '8px 18px', borderRadius: '12px',
+                            backgroundColor: '#C3AB7E', color: 'white', border: 'none',
+                            fontSize: '11px', fontWeight: '800', textTransform: 'uppercase',
+                            letterSpacing: '0.06em', cursor: bulkRefreshing ? 'not-allowed' : 'pointer',
+                            opacity: bulkRefreshing ? 0.7 : 1, transition: 'all 0.2s',
+                        }}
+                    >
+                        {bulkRefreshing
+                            ? <Loader2 size={14} className="animate-spin" />
+                            : <RotateCcw size={14} />
+                        }
+                        Rafraîchir les statuts
+                    </button>
+                    <button
+                        onClick={() => setSelectedIds([])}
+                        style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            color: '#9ca3af', padding: '4px', fontSize: '12px', fontWeight: '700',
+                        }}
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
         </div>
+        </>
     );
 };
 

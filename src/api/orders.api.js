@@ -204,3 +204,30 @@ export const getOrderById = async (id) => {
         .eq('id', id)
         .single();
 };
+
+export const updateOrderGuepex = async (id, fields) => {
+    const { data, error } = await supabase
+        .from('orders')
+        .update(fields)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return { data };
+};
+
+export const getGuepexDeliveryStats = async () => {
+    const [
+        { count: total },
+        { count: in_transit },
+        { count: delivered },
+        { count: returned },
+    ] = await Promise.all([
+        supabase.from('orders').select('*', { count: 'exact', head: true }).not('guepex_tracking_id', 'is', null),
+        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'in_transit'),
+        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'delivered'),
+        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'returned'),
+    ]);
+    return { total: total || 0, in_transit: in_transit || 0, delivered: delivered || 0, returned: returned || 0 };
+};
