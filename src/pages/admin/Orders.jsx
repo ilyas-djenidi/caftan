@@ -43,12 +43,33 @@ const GUEPEX_STATUSES = [
     { value: 'returned',   label: 'Retourné' },
 ];
 
+// Maps the actual French last_status strings stored in DB
 const GUEPEX_STATUS_META = {
-    created:    { color: '#6b7280', bg: '#F3F4F6', label: 'Créée' },
-    in_transit: { color: '#3b82f6', bg: '#EFF6FF', label: 'En transit' },
-    delivered:  { color: '#22c55e', bg: '#F0FDF4', label: 'Livrée' },
-    returned:   { color: '#ef4444', bg: '#FEF2F2', label: 'Retournée' },
-    cancelled:  { color: '#ef4444', bg: '#FEF2F2', label: 'Annulée' },
+    // Created group
+    'Ramassé':             { color: '#6b7280', bg: '#F3F4F6', label: 'Ramassé' },
+    'Expédié':            { color: '#6b7280', bg: '#F3F4F6', label: 'Expédié' },
+    'created':             { color: '#6b7280', bg: '#F3F4F6', label: 'Créé' },
+    'Créé':               { color: '#6b7280', bg: '#F3F4F6', label: 'Créé' },
+    'Prêt à expédier':    { color: '#6b7280', bg: '#F3F4F6', label: 'Prêt' },
+    // Transit group
+    'En transit':          { color: '#3b82f6', bg: '#EFF6FF', label: 'En transit' },
+    'in_transit':          { color: '#3b82f6', bg: '#EFF6FF', label: 'En transit' },
+    'Sorti en livraison':  { color: '#8b5cf6', bg: '#F5F3FF', label: 'Sorti' },
+    'Vers Wilaya':         { color: '#3b82f6', bg: '#EFF6FF', label: 'Vers wilaya' },
+    'Reçu à Wilaya':      { color: '#3b82f6', bg: '#EFF6FF', label: 'Reçu wilaya' },
+    'En localisation':     { color: '#8b5cf6', bg: '#F5F3FF', label: 'Localisation' },
+    'En attente du client':{ color: '#f59e0b', bg: '#FFFBEB', label: 'Attente client' },
+    // Delivered
+    'Livré':              { color: '#22c55e', bg: '#F0FDF4', label: 'Livré' },
+    'delivered':           { color: '#22c55e', bg: '#F0FDF4', label: 'Livré' },
+    // Returned group
+    'Tentative échouée':  { color: '#ef4444', bg: '#FEF2F2', label: 'Tentative' },
+    'En alerte':           { color: '#ef4444', bg: '#FEF2F2', label: 'Alerte' },
+    'Retour vers vendeur': { color: '#ef4444', bg: '#FEF2F2', label: 'Retour' },
+    'Retourné au vendeur': { color: '#ef4444', bg: '#FEF2F2', label: 'Retourné' },
+    'Annulé':             { color: '#ef4444', bg: '#FEF2F2', label: 'Annulé' },
+    'cancelled':           { color: '#ef4444', bg: '#FEF2F2', label: 'Annulé' },
+    'returned':            { color: '#ef4444', bg: '#FEF2F2', label: 'Retourné' },
 };
 
 const Orders = () => {
@@ -357,7 +378,9 @@ const Orders = () => {
                                 const status = getStatusInfo(order.status);
 
                                 const isSelected = selectedIds.includes(order.id);
-                                const gMeta = order.guepex_status ? (GUEPEX_STATUS_META[order.guepex_status] || null) : null;
+                                const tracking = order.guepex_tracking_id || order.guepex_tracking || null;
+                                const guepexStatusKey = order.guepex_status;
+                                const gMeta = guepexStatusKey ? (GUEPEX_STATUS_META[guepexStatusKey] || null) : null;
 
                                 return (
                                     <React.Fragment key={order.id}>
@@ -423,15 +446,15 @@ const Orders = () => {
 
                                             {/* Livraison (tracking badge) */}
                                             <td style={{ padding: '16px 24px' }}>
-                                                {order.guepex_tracking_id ? (
+                                                {tracking ? (
                                                     <div style={{
                                                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                                                         padding: '5px 10px', borderRadius: '8px',
                                                         backgroundColor: '#F3F4F6', border: '1px solid #E5E7EB',
                                                     }}>
                                                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: gMeta?.color || '#6b7280', flexShrink: 0 }} />
-                                                        <span style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: '700', color: '#374151', maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                            {order.guepex_tracking_id}
+                                                        <span style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: '700', color: '#374151', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {tracking}
                                                         </span>
                                                     </div>
                                                 ) : (
@@ -585,7 +608,35 @@ const Orders = () => {
                                                                                 </div>
                                                                                 <div>
                                                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Wilaya</p>
-                                                                                    <p className="text-sm font-bold text-[#111111]">{expandedOrderDetails.wilaya || expandedOrderDetails.wilaya_id || '—'}</p>
+                                                                                    <p className="text-sm font-bold text-[#111111]">{expandedOrderDetails.wilaya || '—'}</p>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div className="flex items-start gap-4">
+                                                                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C3AB7E', border: '1px solid #F0EDE8' }}>
+                                                                                    <MapPin size={20} />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Commune / Ville</p>
+                                                                                    <p className="text-sm font-bold text-[#111111]">{expandedOrderDetails.city || expandedOrderDetails.notes || '—'}</p>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div className="flex items-start gap-4">
+                                                                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C3AB7E', border: '1px solid #F0EDE8' }}>
+                                                                                    <Truck size={20} />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Mode de livraison</p>
+                                                                                    <div style={{
+                                                                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                                                        padding: '4px 10px', borderRadius: '20px',
+                                                                                        backgroundColor: expandedOrderDetails.delivery_type === 'bureau' ? '#EFF6FF' : '#F0FDF4',
+                                                                                        color: expandedOrderDetails.delivery_type === 'bureau' ? '#3b82f6' : '#16a34a',
+                                                                                        fontSize: '11px', fontWeight: '700',
+                                                                                    }}>
+                                                                                        {expandedOrderDetails.delivery_type === 'bureau' ? '📦 Bureau / Point relais' : '🏠 À domicile'}
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>

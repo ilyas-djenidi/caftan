@@ -66,13 +66,20 @@ const inputStyle = {
 };
 
 /* ─── Section 1 — Create Shipment Form ───────────────────── */
+
+// Normalize for fuzzy wilaya/commune matching
+const norm = (s) => (s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+    .replace(/[''\-_\s]+/g, '');                       // strip apostrophes, dashes, spaces
+
 function CreateShipmentForm({ order, onCreated }) {
     const [wilayas, setWilayas] = useState([]);
     const [communes, setCommunes] = useState([]);
     const [form, setForm] = useState({
         wilayaId: '',
         communeId: '',
-        deliveryType: 'home',
+        deliveryType: order.delivery_type === 'bureau' ? 'center' : 'home',
         fee: '',
         name: order.customer_name || '',
         phone: order.customer_phone || order.phone || '',
@@ -86,20 +93,62 @@ function CreateShipmentForm({ order, onCreated }) {
     const [loadingFee, setLoadingFee] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    // Fetch wilayas on mount
+    // Fetch wilayas on mount + auto-match order's wilaya
     useEffect(() => {
         getWilayas().then(data => {
-            if (!data?.error) setWilayas(Array.isArray(data) ? data : (data?.results || []));
+            if (!data?.error) {
+                // Guepex API returns { data: [...] } same as parcels
+                const list = Array.isArray(data) ? data : (data?.data || data?.results || []);
+                console.log('[Guepex] Wilayas count:', list.length, 'sample:', list[0]);
+                console.log('[Guepex] order.wilaya:', order.wilaya);
+                setWilayas(list);
+                if (order.wilaya && list.length > 0) {
+                    const orderNorm = norm(order.wilaya);
+                    const match = list.find(w => {
+                        const n1 = norm(w.name || '');
+                        const n2 = norm(w.wilaya_name || '');
+                        if (!n1 && !n2) return false;
+                        // Exact match first
+                        if (n1 === orderNorm || n2 === orderNorm) return true;
+                        // Partial match only if both strings are meaningful (3+ chars)
+                        const best = n1.length >= n2.length ? n1 : n2;
+                        return best.length >= 3 && orderNorm.length >= 3 &&
+                            (best.includes(orderNorm) || orderNorm.includes(best));
+                    });
+                    console.log('[Guepex] Wilaya match:', match);
+                    if (match) setForm(f => ({ ...f, wilayaId: String(match.id) }));
+                }
+            }
             setLoadingWilayas(false);
         });
     }, []);
 
-    // Fetch communes when wilaya changes
+    // Fetch communes when wilaya changes + auto-match order's city
     useEffect(() => {
         if (!form.wilayaId) { setCommunes([]); return; }
         setLoadingCommunes(true);
         getCommunes(form.wilayaId).then(data => {
-            if (!data?.error) setCommunes(Array.isArray(data) ? data : (data?.results || []));
+            if (!data?.error) {
+                // Guepex API returns { data: [...] } same as parcels
+                const list = Array.isArray(data) ? data : (data?.data || data?.results || []);
+                setCommunes(list);
+                // city = commune: check all possible fields (old orders stored in notes)
+                const cityRaw = order.city || order.notes || '';
+
+                if (cityRaw && list.length > 0) {
+                    const cityNorm = norm(cityRaw);
+                    const match = list.find(c => {
+                        const n1 = norm(c.name || '');
+                        const n2 = norm(c.commune_name || '');
+                        if (!n1 && !n2) return false;
+                        if (n1 === cityNorm || n2 === cityNorm) return true;
+                        const best = n1.length >= n2.length ? n1 : n2;
+                        return best.length >= 3 && cityNorm.length >= 3 &&
+                            (best.includes(cityNorm) || cityNorm.includes(best));
+                    });
+                    if (match) setForm(f => ({ ...f, communeId: String(match.id) }));
+                }
+            }
             setLoadingCommunes(false);
         });
     }, [form.wilayaId]);

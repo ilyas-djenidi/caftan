@@ -25,7 +25,8 @@ export default function Checkout() {
         phone: '',
         wilaya: '',
         city: '',
-        address: ''
+        address: '',
+        deliveryType: 'home',  // 'home' | 'bureau'
     });
 
     useEffect(() => {
@@ -52,7 +53,7 @@ export default function Checkout() {
             const orderId = crypto.randomUUID();
             const orderNumber = `MDC-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
 
-            // 1. Create Order — corrected field names
+            // 1. Create Order
             const { error: orderError } = await supabase
                 .from('orders')
                 .insert({
@@ -63,6 +64,8 @@ export default function Checkout() {
                     customer_email: '',
                     shipping_address: formData.address,
                     wilaya: formData.wilaya,
+                    city: formData.city,
+                    delivery_type: formData.deliveryType,
                     payment_method: 'COD',
                     status: 'pending',
                     total_price: totalPrice,
@@ -317,8 +320,44 @@ export default function Checkout() {
                             </div>
                         </div>
 
-                        {/* Row 3: Address — full width */}
+                        {/* Row 3: Delivery type */}
                         <div style={{ marginBottom: '12px' }}>
+                            <label style={{
+                                fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                color: '#1A1714', marginBottom: '8px', display: 'block',
+                            }}>Mode de livraison</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                {[
+                                    { value: 'home',   icon: '🏠', label: 'À domicile',  sub: 'Livraison à votre adresse' },
+                                    { value: 'bureau', icon: '📦', label: 'Bureau',       sub: 'Retrait au point relais' },
+                                ].map(opt => (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setFormData(f => ({ ...f, deliveryType: opt.value }))}
+                                        style={{
+                                            display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                                            padding: '12px 14px', borderRadius: '10px', cursor: 'pointer',
+                                            border: `1.5px solid ${formData.deliveryType === opt.value ? '#B8963E' : '#E8E2D6'}`,
+                                            backgroundColor: formData.deliveryType === opt.value ? '#FFFBF0' : '#F5F5F5',
+                                            transition: 'all 0.2s', textAlign: 'left',
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '16px', marginBottom: '4px' }}>{opt.icon}</span>
+                                        <span style={{
+                                            fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '500',
+                                            color: formData.deliveryType === opt.value ? '#B8963E' : '#1A1714',
+                                        }}>{opt.label}</span>
+                                        <span style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', color: '#9ca3af', fontWeight: '300' }}>
+                                            {opt.sub}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Row 4: Address — full width, only for home delivery */}
+                        <div style={{ marginBottom: '12px', display: formData.deliveryType === 'home' ? 'block' : 'none' }}>
                             <label style={{
                                 fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
                                 color: '#1A1714', marginBottom: '5px', display: 'block',
