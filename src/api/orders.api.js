@@ -218,18 +218,42 @@ export const updateOrderGuepex = async (id, fields) => {
 };
 
 export const getGuepexDeliveryStats = async () => {
-    const [
-        { count: total },
-        { count: in_transit },
-        { count: delivered },
-        { count: returned },
-    ] = await Promise.all([
-        supabase.from('orders').select('*', { count: 'exact', head: true }).not('guepex_tracking', 'is', null),
-        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'in_transit'),
-        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'delivered'),
-        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'returned'),
+    // Transit statuses (French strings stored in DB by Guepex API)
+    const TRANSIT_STATUSES = [
+        'En transit', 'Vers Wilaya', 'Reçu à Wilaya', 'En localisation',
+        'Sorti en livraison', 'Prêt pour livreur', 'En attente du client',
+        'Ramassé', 'Expédié', 'En passation', 'Transfert', 'Prêt à expédier',
+        'Centre', 'created', 'in_transit',
+    ];
+    const DELIVERED_STATUSES = ['Livré', 'delivered'];
+    const RETURNED_STATUSES = [
+        'Retourné au vendeur', 'Retour vers vendeur', 'Retour vers centre',
+        'Retourné au centre', 'Retour groupé', 'Retour à retirer',
+        'Retour transfert', 'Annulé', 'returned', 'cancelled',
+        'Tentative échouée', 'En alerte', 'Echèc livraison',
+    ];
+
+    const [totalRes, ...statusResults] = await Promise.all([
+        // Total: any order that has a tracking ID
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+            .or('guepex_tracking_id.not.is.null,guepex_tracking.not.is.null'),
+        // In transit: match any transit status
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+            .in('guepex_status', TRANSIT_STATUSES),
+        // Delivered
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+            .in('guepex_status', DELIVERED_STATUSES),
+        // Returned / cancelled
+        supabase.from('orders').select('*', { count: 'exact', head: true })
+            .in('guepex_status', RETURNED_STATUSES),
     ]);
-    return { total: total || 0, in_transit: in_transit || 0, delivered: delivered || 0, returned: returned || 0 };
+
+    return {
+        total:      totalRes.count      || 0,
+        in_transit: statusResults[0].count || 0,
+        delivered:  statusResults[1].count || 0,
+        returned:   statusResults[2].count || 0,
+    };
 };
 
 /** Fetch ALL orders that have a guepex tracking number — single fast query */

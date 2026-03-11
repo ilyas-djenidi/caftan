@@ -328,31 +328,38 @@ export default function Checkout() {
                             }}>Mode de livraison</label>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                                 {[
-                                    { value: 'home',   icon: '🏠', label: 'À domicile',  sub: 'Livraison à votre adresse' },
-                                    { value: 'bureau', icon: '📦', label: 'Bureau',       sub: 'Retrait au point relais' },
-                                ].map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        onClick={() => setFormData(f => ({ ...f, deliveryType: opt.value }))}
-                                        style={{
-                                            display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                                            padding: '12px 14px', borderRadius: '10px', cursor: 'pointer',
-                                            border: `1.5px solid ${formData.deliveryType === opt.value ? '#B8963E' : '#E8E2D6'}`,
-                                            backgroundColor: formData.deliveryType === opt.value ? '#FFFBF0' : '#F5F5F5',
-                                            transition: 'all 0.2s', textAlign: 'left',
-                                        }}
-                                    >
-                                        <span style={{ fontSize: '16px', marginBottom: '4px' }}>{opt.icon}</span>
-                                        <span style={{
-                                            fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '500',
-                                            color: formData.deliveryType === opt.value ? '#B8963E' : '#1A1714',
-                                        }}>{opt.label}</span>
-                                        <span style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', color: '#9ca3af', fontWeight: '300' }}>
-                                            {opt.sub}
-                                        </span>
-                                    </button>
-                                ))}
+                                    { value: 'home',   label: 'À domicile' },
+                                    { value: 'bureau', label: 'Bureau' },
+                                ].map(opt => {
+                                    const active = formData.deliveryType === opt.value;
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setFormData(f => ({ ...f, deliveryType: opt.value }))}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '10px',
+                                                padding: '12px 14px', borderRadius: '10px', cursor: 'pointer',
+                                                border: `1.5px solid ${active ? '#1A1714' : '#E8E2D6'}`,
+                                                backgroundColor: active ? '#1A1714' : '#F5F5F5',
+                                                transition: 'all 0.2s', textAlign: 'left',
+                                            }}
+                                        >
+                                            {/* Radio circle */}
+                                            <span style={{
+                                                width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
+                                                border: `2px solid ${active ? 'white' : '#9ca3af'}`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            }}>
+                                                {active && <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'white' }} />}
+                                            </span>
+                                            <span style={{
+                                                fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '500',
+                                                color: active ? 'white' : '#1A1714',
+                                            }}>{opt.label}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
