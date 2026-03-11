@@ -13,7 +13,7 @@ import {
     cancelParcel,
 } from '../../services/guepex';
 import GuepexHistoryModal from '../GuepexHistoryModal';
-import { updateOrderGuepex } from '../../api/orders.api';
+import { updateOrderGuepex, updateOrderStatus } from '../../api/orders.api';
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 const DA = (n) => (Number(n) || 0).toLocaleString('fr-FR') + ' DA';
@@ -147,13 +147,18 @@ function CreateShipmentForm({ order, onCreated }) {
             const trackingId = result?.tracking_id || result?.id || result?.reference || result?.parcel_id;
             if (!trackingId) throw new Error('Tracking ID non reçu de Guepex');
 
+            // Save tracking + guepex_status in DB
             await updateOrderGuepex(order.id, {
                 guepex_tracking_id: String(trackingId),
+                guepex_tracking: String(trackingId), // also save in new column if exists
                 guepex_status: 'created',
                 guepex_created_at: new Date().toISOString(),
                 delivery_type: form.deliveryType,
                 delivery_fee: form.fee ? Number(form.fee) : null,
             });
+
+            // Auto-advance order status to SHIPPED
+            await updateOrderStatus(order.id, 'SHIPPED');
 
             toast.success(`Expédition créée ✓ Tracking: ${trackingId}`, { duration: 5000 });
             onCreated();
@@ -356,7 +361,9 @@ function TrackingInfo({ order, onRefresh }) {
             const data = await cancelParcel(trackingId);
             if (data?.error) throw new Error(data.error);
             await updateOrderGuepex(order.id, { guepex_status: 'cancelled' });
-            toast.success('Expédition annulée');
+            // Revert order status back to CONFIRMED
+            await updateOrderStatus(order.id, 'CONFIRMED');
+            toast.success('Expédition annulée — commande repassée en Confirmée');
             onRefresh();
         } catch (err) {
             toast.error(err.message || "Erreur lors de l'annulation");
@@ -446,11 +453,12 @@ function TrackingInfo({ order, onRefresh }) {
 
 /* ─── Main Export ────────────────────────────────────────── */
 export default function GuepexPanel({ order, onRefresh }) {
-    const status = order?.status?.toLowerCase();
-    const isEligible = status === 'confirmed' || status === 'paid';
+    const orderStatus = order?.status?.toUpperCase();
+    // Show panel for CONFIRMED (to create shipment) and SHIPPED/DELIVERED (to see tracking info)
+    const isEligible = ['CONFIRMED', 'PAID', 'SHIPPED', 'DELIVERED'].includes(orderStatus);
     if (!isEligible) return null;
 
-    const hasTracking = Boolean(order.guepex_tracking_id);
+    const hasTracking = Boolean(order.guepex_tracking_id || order.guepex_tracking);
 
     return (
         <div style={{ marginTop: '8px' }}>

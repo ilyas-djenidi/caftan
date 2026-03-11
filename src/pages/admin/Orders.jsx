@@ -220,105 +220,98 @@ const Orders = () => {
         <>
         <style>{`@keyframes slideUpIn { from { opacity:0; transform:translate(-50%,12px); } to { opacity:1; transform:translate(-50%,0); } }`}</style>
         <div className="flex flex-col gap-8 animate-fade-in pb-20" style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-3xl font-serif font-bold text-[#111111]">Commandes</h1>
-                    <p className="text-gray-400 text-sm mt-1 uppercase font-bold tracking-widest">Gérez vos expéditions et suivis</p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#C3AB7E] transition-colors" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Rechercher..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{
-                                paddingLeft: '44px', paddingRight: '16px', py: '12px',
-                                borderRadius: '15px', border: '1px solid #F0EDE8',
-                                backgroundColor: 'white', width: '100%', maxWidth: '300px', outline: 'none',
-                                fontSize: '14px', fontWeight: '500', transition: 'all 0.2s'
-                            }}
-                            className="focus:border-[#C3AB7E] focus:ring-4 focus:ring-[#C3AB7E]/5"
-                        />
-                    </div>
-
-                    <div style={{
-                        display: 'flex', overflowX: 'auto', whiteSpace: 'nowrap',
-                        gap: '4px', backgroundColor: '#ffffff', borderRadius: '15px',
-                        padding: '4px', border: '1px solid #F0EDE8',
-                        msOverflowStyle: 'none', scrollbarWidth: 'none'
-                    }} className="no-scrollbar">
-                        {[{ value: 'ALL', label: 'TOUT' }, ...ORDER_STATUSES].map((s) => (
-                            <button
-                                key={s.value}
-                                onClick={() => setStatusFilter(s.value)}
-                                style={{
-                                    padding: '8px 16px', borderRadius: '11px',
-                                    fontSize: '11px', fontWeight: '800', border: 'none',
-                                    backgroundColor: statusFilter === s.value ? '#111111' : 'transparent',
-                                    color: statusFilter === s.value ? 'white' : '#9ca3af',
-                                    cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase',
-                                    flexShrink: 0
-                                }}
-                            >
-                                {s.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+        {/* ── Header: title + search ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+                <h1 style={{ fontFamily: "'Jost', sans-serif", fontSize: '22px', fontWeight: '700', color: '#111111', margin: 0 }}>Commandes</h1>
+                <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '12px', color: '#9ca3af', margin: '3px 0 0', fontWeight: '500' }}>Gérez vos commandes et expéditions</p>
             </div>
-
-            {/* ─── Statistiques Livraison ─────────────────────────────── */}
-            <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px'
-            }}>
-                {[
-                    { label: 'Total expéditions', value: deliveryStats.total,      color: '#111111' },
-                    { label: 'En transit',         value: deliveryStats.in_transit, color: '#3b82f6' },
-                    { label: 'Livrées',            value: deliveryStats.delivered,  color: '#22c55e' },
-                    { label: 'Retournées',         value: deliveryStats.returned,   color: '#ef4444' },
-                ].map((stat) => (
-                    <div key={stat.label} style={{
-                        backgroundColor: 'white', borderRadius: '20px',
-                        border: '1px solid #F0EDE8', padding: '20px 24px',
-                        boxShadow: '0 4px 30px rgba(0,0,0,0.02)',
-                    }}>
-                        <p style={{ margin: '0 0 6px', fontSize: '11px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                            {stat.label}
-                        </p>
-                        <p style={{ margin: 0, fontSize: '32px', fontFamily: 'Cormorant Garamond, serif', fontWeight: '700', color: stat.color, lineHeight: 1 }}>
-                            {stat.value}
-                        </p>
-                    </div>
-                ))}
+            <div style={{ position: 'relative' }}>
+                <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
+                <input
+                    type="text"
+                    placeholder="Rechercher..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                        paddingLeft: '36px', paddingRight: '14px', height: '40px',
+                        borderRadius: '10px', border: '1px solid #E5E7EB',
+                        backgroundColor: 'white', width: '260px', outline: 'none',
+                        fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '500', color: '#111',
+                    }}
+                />
             </div>
+        </div>
 
-            {/* ─── Guepex Delivery Filter ─────────────────────────────── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <Truck size={14} style={{ color: '#9ca3af' }} />
-                <span style={{ fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', marginRight: '4px' }}>Livraison Guepex :</span>
-                <div style={{
-                    display: 'flex', gap: '4px', backgroundColor: '#ffffff',
-                    borderRadius: '14px', padding: '4px', border: '1px solid #F0EDE8',
+        {/* ── Order status tabs ── */}
+        <div style={{
+            backgroundColor: 'white', borderRadius: '12px', border: '1px solid #F0EDE8',
+            padding: '5px', display: 'flex', gap: '3px', flexWrap: 'wrap',
+        }}>
+            {[{ value: 'ALL', label: 'Tout' }, ...ORDER_STATUSES].map((s) => (
+                <button
+                    key={s.value}
+                    onClick={() => setStatusFilter(s.value)}
+                    style={{
+                        padding: '7px 16px', borderRadius: '9px', border: 'none',
+                        fontSize: '12px', fontWeight: '600',
+                        fontFamily: "'Jost', sans-serif",
+                        backgroundColor: statusFilter === s.value ? '#111111' : 'transparent',
+                        color: statusFilter === s.value ? 'white' : '#6B7280',
+                        cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+                    }}
+                    onMouseEnter={e => { if (statusFilter !== s.value) { e.currentTarget.style.backgroundColor = '#F3F4F6'; e.currentTarget.style.color = '#111'; } }}
+                    onMouseLeave={e => { if (statusFilter !== s.value) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#6B7280'; } }}
+                >
+                    {s.label}
+                </button>
+            ))}
+        </div>
+
+        {/* ── Delivery stats ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '12px' }}>
+            {[
+                { label: 'Total expéditions', value: deliveryStats.total },
+                { label: 'En transit',         value: deliveryStats.in_transit },
+                { label: 'Livrées',            value: deliveryStats.delivered },
+                { label: 'Retournées',         value: deliveryStats.returned },
+            ].map((stat) => (
+                <div key={stat.label} style={{
+                    backgroundColor: 'white', borderRadius: '14px',
+                    border: '1px solid #F0EDE8', padding: '16px 18px',
                 }}>
-                    {GUEPEX_STATUSES.map(s => (
-                        <button key={s.value} onClick={() => setGuepexFilter(s.value)}
-                            style={{
-                                padding: '6px 14px', borderRadius: '10px', border: 'none',
-                                fontSize: '11px', fontWeight: '800', textTransform: 'uppercase',
-                                backgroundColor: guepexFilter === s.value ? '#111111' : 'transparent',
-                                color: guepexFilter === s.value ? 'white' : '#9ca3af',
-                                cursor: 'pointer', transition: 'all 0.2s',
-                            }}
-                        >
-                            {s.label}
-                        </button>
-                    ))}
+                    <div style={{ fontFamily: "'Jost', sans-serif", fontSize: '26px', fontWeight: '700', color: '#111', lineHeight: 1 }}>{stat.value}</div>
+                    <div style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '5px' }}>{stat.label}</div>
                 </div>
-            </div>
+            ))}
+        </div>
+
+        {/* ── Guepex filter tabs ── */}
+        <div style={{
+            backgroundColor: 'white', borderRadius: '12px', border: '1px solid #F0EDE8',
+            padding: '5px', display: 'flex', gap: '3px', flexWrap: 'wrap', alignItems: 'center',
+        }}>
+            <span style={{ fontFamily: "'Jost', sans-serif", fontSize: '10px', fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 8px', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Truck size={12} /> Guepex
+            </span>
+            <div style={{ width: '1px', height: '20px', backgroundColor: '#F0EDE8', margin: '0 2px' }} />
+            {GUEPEX_STATUSES.map(s => (
+                <button key={s.value} onClick={() => setGuepexFilter(s.value)}
+                    style={{
+                        padding: '7px 14px', borderRadius: '9px', border: 'none',
+                        fontSize: '12px', fontWeight: '600',
+                        fontFamily: "'Jost', sans-serif",
+                        backgroundColor: guepexFilter === s.value ? '#111111' : 'transparent',
+                        color: guepexFilter === s.value ? 'white' : '#6B7280',
+                        cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+                    }}
+                    onMouseEnter={e => { if (guepexFilter !== s.value) { e.currentTarget.style.backgroundColor = '#F3F4F6'; e.currentTarget.style.color = '#111'; } }}
+                    onMouseLeave={e => { if (guepexFilter !== s.value) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#6B7280'; } }}
+                >
+                    {s.label}
+                </button>
+            ))}
+        </div>
 
             {/* Table Area */}
             <div style={{
