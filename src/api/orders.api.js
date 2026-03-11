@@ -224,10 +224,41 @@ export const getGuepexDeliveryStats = async () => {
         { count: delivered },
         { count: returned },
     ] = await Promise.all([
-        supabase.from('orders').select('*', { count: 'exact', head: true }).not('guepex_tracking_id', 'is', null),
+        supabase.from('orders').select('*', { count: 'exact', head: true }).not('guepex_tracking', 'is', null),
         supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'in_transit'),
         supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'delivered'),
         supabase.from('orders').select('*', { count: 'exact', head: true }).eq('guepex_status', 'returned'),
     ]);
     return { total: total || 0, in_transit: in_transit || 0, delivered: delivered || 0, returned: returned || 0 };
 };
+
+/** Fetch ALL orders that have a guepex tracking number — single fast query */
+export const getShippedOrders = async () => {
+    // Try new column name first (after migration), fall back to old column name
+    let { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .not('guepex_tracking', 'is', null)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        // Migration not run yet — fall back to old column name
+        const fallback = await supabase
+            .from('orders')
+            .select('*')
+            .not('guepex_tracking_id', 'is', null)
+            .order('created_at', { ascending: false });
+
+        if (fallback.error) throw fallback.error;
+        // Normalize: map old field name to new
+        data = (fallback.data || []).map(o => ({
+            ...o,
+            guepex_tracking: o.guepex_tracking_id,
+            guepex_status:   o.guepex_status,
+        }));
+    }
+
+    return data || [];
+};
+
+

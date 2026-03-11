@@ -51,6 +51,7 @@ export const getAllParcels = async (page = 1) => {
   return data;
 };
 
+
 export const getParcel = (tracking) =>
   guepexFetch(`/parcels/${tracking}/`);
 
