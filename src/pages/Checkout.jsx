@@ -8,14 +8,14 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 import { supabase } from '../lib/supabase';
-import { ALGERIA_CITIES, WILAYAS } from '../utils';
+import { ALGERIA_CITIES, WILAYAS, getDeliveryFee } from '../utils';
 import { useTranslation } from 'react-i18next';
 
 export default function Checkout() {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { items, clearCart } = useCartStore();
-    const totalPrice = items.reduce((sum, item) => sum + ((item.product?.price || 0) * item.quantity), 0);
+    const subtotal = items.reduce((sum, item) => sum + ((item.product?.price || 0) * item.quantity), 0);
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(null);
@@ -39,6 +39,9 @@ export default function Checkout() {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
+
+    const deliveryFee = getDeliveryFee(formData.wilaya, formData.deliveryType);
+    const totalPrice = subtotal + deliveryFee;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -66,6 +69,7 @@ export default function Checkout() {
                     wilaya: formData.wilaya,
                     city: formData.city,
                     delivery_type: formData.deliveryType,
+                    delivery_fee: deliveryFee,
                     payment_method: 'COD',
                     status: 'pending',
                     total_price: totalPrice,
@@ -106,6 +110,7 @@ export default function Checkout() {
                         wilaya: formData.wilaya,
                         city: formData.city,
                         address: formData.address,
+                        delivery_fee: deliveryFee,
                         total_price: totalPrice,
                         items: items.map(item => ({
                             product_name: item.product?.name_fr || '',
@@ -480,11 +485,17 @@ export default function Checkout() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#6B6458' }}>Subtotal</span>
-                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>{totalPrice.toLocaleString('fr-FR')} DA</span>
+                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#1A1714' }}>{subtotal.toLocaleString('fr-DZ')} DA</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#6B6458' }}>Livraison {formData.wilaya ? `(${formData.wilaya})` : ''}</span>
+                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: deliveryFee ? '#1A1714' : '#6B6458' }}>
+                                    {deliveryFee ? `+${deliveryFee.toLocaleString('fr-DZ')} DA` : '—'}
+                                </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                                 <span style={{ fontSize: '13px', fontFamily: "'Jost', sans-serif", fontWeight: '600', color: '#1A1714' }}>Total</span>
-                                <span style={{ fontSize: '16px', fontFamily: "'Jost', sans-serif", fontWeight: '700', color: '#B8963E' }}>{totalPrice.toLocaleString('fr-FR')} DA</span>
+                                <span style={{ fontSize: '16px', fontFamily: "'Jost', sans-serif", fontWeight: '700', color: '#B8963E' }}>{totalPrice.toLocaleString('fr-DZ')} DA</span>
                             </div>
                         </div>
 

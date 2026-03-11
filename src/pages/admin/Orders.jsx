@@ -628,14 +628,21 @@ const Orders = () => {
                                                                                 </div>
                                                                                 <div>
                                                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Mode de livraison</p>
-                                                                                    <div style={{
-                                                                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                                                                        padding: '4px 10px', borderRadius: '20px',
-                                                                                        backgroundColor: expandedOrderDetails.delivery_type === 'bureau' ? '#EFF6FF' : '#F0FDF4',
-                                                                                        color: expandedOrderDetails.delivery_type === 'bureau' ? '#3b82f6' : '#16a34a',
-                                                                                        fontSize: '11px', fontWeight: '700',
-                                                                                    }}>
-                                                                                        {expandedOrderDetails.delivery_type === 'bureau' ? '📦 Bureau / Point relais' : '🏠 À domicile'}
+                                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                                        <div style={{
+                                                                                            display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                                                            padding: '4px 10px', borderRadius: '20px',
+                                                                                            backgroundColor: expandedOrderDetails.delivery_type === 'bureau' ? '#EFF6FF' : '#F0FDF4',
+                                                                                            color: expandedOrderDetails.delivery_type === 'bureau' ? '#3b82f6' : '#16a34a',
+                                                                                            fontSize: '11px', fontWeight: '700',
+                                                                                        }}>
+                                                                                            {expandedOrderDetails.delivery_type === 'bureau' ? '📦 Bureau / Point relais' : '🏠 À domicile'}
+                                                                                        </div>
+                                                                                        {expandedOrderDetails.delivery_fee != null && (
+                                                                                            <span style={{ fontSize: '13px', fontWeight: '600', color: '#111' }}>
+                                                                                                + {expandedOrderDetails.delivery_fee.toLocaleString('fr-DZ')} DA
+                                                                                            </span>
+                                                                                        )}
                                                                                     </div>
                                                                                 </div>
                                                                             </div>

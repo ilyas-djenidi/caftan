@@ -69,6 +69,62 @@ export const ALGERIA_CITIES = {
 
 export const WILAYAS = Object.keys(ALGERIA_CITIES).sort();
 
+export const GUEPEX_TARIFFS = {
+    "M'Sila": { home: 500, desk: 400 },
+    "Batna": { home: 550, desk: 450 },
+    "Bouira": { home: 550, desk: 450 },
+    "Alger": { home: 550, desk: 450 },
+    "Sétif": { home: 550, desk: 450 },
+    "Médéa": { home: 550, desk: 450 },
+    "Bordj Bou Arréridj": { home: 550, desk: 450 },
+    "Chlef": { home: 700, desk: 600 },
+    "Oum El Bouaghi": { home: 700, desk: 600 },
+    "Béjaïa": { home: 700, desk: 600 },
+    "Biskra": { home: 700, desk: 600 },
+    "Blida": { home: 700, desk: 600 },
+    "Tlemcen": { home: 700, desk: 600 },
+    "Tiaret": { home: 700, desk: 600 },
+    "Tizi Ouzou": { home: 700, desk: 600 },
+    "Djelfa": { home: 700, desk: 600 },
+    "Jijel": { home: 700, desk: 600 },
+    "Saïda": { home: 700, desk: 600 },
+    "Skikda": { home: 700, desk: 600 },
+    "Sidi Bel Abbès": { home: 700, desk: 600 },
+    "Annaba": { home: 700, desk: 600 },
+    "Guelma": { home: 700, desk: 600 },
+    "Constantine": { home: 700, desk: 600 },
+    "Mostaganem": { home: 700, desk: 600 },
+    "Mascara": { home: 700, desk: 600 },
+    "Oran": { home: 700, desk: 600 },
+    "Boumerdès": { home: 700, desk: 600 },
+    "El Tarf": { home: 700, desk: 600 },
+    "Tissemsilt": { home: 700, desk: 600 },
+    "Khenchela": { home: 700, desk: 600 },
+    "Souk Ahras": { home: 700, desk: 600 },
+    "Tipaza": { home: 700, desk: 600 },
+    "Mila": { home: 700, desk: 600 },
+    "Aïn Defla": { home: 700, desk: 600 },
+    "Aïn Témouchent": { home: 700, desk: 600 },
+    "Relizane": { home: 700, desk: 600 },
+    "Laghouat": { home: 850, desk: 700 },
+    "Tébessa": { home: 850, desk: 700 },
+    "Ouargla": { home: 850, desk: 700 },
+    "El Oued": { home: 850, desk: 700 },
+    "Ghardaïa": { home: 850, desk: 700 },
+    "Adrar": { home: 1650, desk: 1550 },
+    "Béchar": { home: 1650, desk: 1550 },
+    "El Bayadh": { home: 1650, desk: 1550 },
+    "Naâma": { home: 1650, desk: 1550 },
+    "Tamanrasset": { home: 1650, desk: 1550 },
+    "Illizi": { home: 1650, desk: 1550 },
+    "Tindouf": { home: 1650, desk: 1550 }
+};
+
+export const getDeliveryFee = (wilaya, type = 'home') => {
+    if (!wilaya || !GUEPEX_TARIFFS[wilaya]) return 0;
+    return GUEPEX_TARIFFS[wilaya][type === 'bureau' ? 'desk' : 'home'] || 0;
+};
+
 export const ORDER_STATUSES = {
     pending: { label: 'EN ATTENTE', color: '#FEF9EE', text: '#C3AB7E' },
     confirmed: { label: 'CONFIRMÉE', color: '#EFF6FF', text: '#2563eb' },

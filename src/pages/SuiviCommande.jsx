@@ -157,7 +157,7 @@ export default function SuiviCommande() {
                         fontFamily: fonts.body, fontSize: '14px',
                         fontWeight: '300', color: C.muted, margin: 0,
                     }}>
-                        Entrez votre numéro de suivi Guepex pour localiser votre colis.
+                        Entrez votre numéro de commande pour vérifier son statut.
                     </p>
                 </div>
 
@@ -182,7 +182,7 @@ export default function SuiviCommande() {
                                 type="text"
                                 value={trackingInput}
                                 onChange={e => setTrackingInput(e.target.value)}
-                                placeholder="Ex: GX-123456"
+                                placeholder="Ex: #PKR-123456-789"
                                 style={{
                                     width: '100%', height: '52px',
                                     paddingLeft: '44px', paddingRight: '16px',
