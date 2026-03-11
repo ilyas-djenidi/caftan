@@ -22,17 +22,17 @@ const Contact = lazy(() => import('./pages/Contact'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
-// Admin Pages (Lazy loaded)
-const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
-const AdminAuth = lazy(() => import('./pages/admin/AdminAuth'));
-const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
-const Orders = lazy(() => import('./pages/admin/Orders'));
-const Products = lazy(() => import('./pages/admin/Products'));
-const PacksAdmin = lazy(() => import('./pages/admin/Packs'));
-const Messages = lazy(() => import('./pages/admin/Messages'));
-const Promos = lazy(() => import('./pages/admin/Promos'));
-const HeroManager = lazy(() => import('./pages/admin/HeroManager'));
-const AdminReviews = lazy(() => import('./pages/admin/AdminReviews'));
+// Admin Pages (Eagerly loaded — admins only, no lazy flash needed)
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminAuth from './pages/admin/AdminAuth';
+import Dashboard from './pages/admin/Dashboard';
+import Orders from './pages/admin/Orders';
+import Products from './pages/admin/Products';
+import PacksAdmin from './pages/admin/Packs';
+import Messages from './pages/admin/Messages';
+import Promos from './pages/admin/Promos';
+import HeroManager from './pages/admin/HeroManager';
+import AdminReviews from './pages/admin/AdminReviews';
 
 
 // Storefront layout wrapper — renders Navbar + CartDrawer + FloatingIcons + page + Footer

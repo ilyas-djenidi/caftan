@@ -9,6 +9,9 @@ export const useAdminStore = create(
             admin: null,
             token: localStorage.getItem('admin_token'),
             orders: [],
+            totalPages: 1,
+            currentPage: 1,
+            totalOrders: 0,
             stats: {},
 
             setAdmin: (admin) => set({ admin }),
@@ -25,10 +28,15 @@ export const useAdminStore = create(
             fetchOrders: async (params = {}) => {
                 try {
                     const { data } = await getAdminOrders(params);
-                    set({ orders: data.orders || [] });
+                    set({ 
+                        orders: data.orders || [],
+                        totalPages: data.pages || 1,
+                        currentPage: params.page || 1,
+                        totalOrders: data.total || 0
+                    });
                 } catch (error) {
                     console.error('fetchOrders error:', error);
-                    set({ orders: [] });
+                    set({ orders: [], totalPages: 1, totalOrders: 0 });
                 }
             },
 

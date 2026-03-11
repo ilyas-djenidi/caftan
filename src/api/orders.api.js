@@ -145,14 +145,15 @@ export const createOrder = async (data) => {
 export const getAdminOrders = async (params = {}) => {
     let query = supabase
         .from('orders')
-        .select(`
-            *,
-            items:order_items(*)
-        `, { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
-    if (params.status) {
+    if (params.status && params.status !== 'ALL') {
         query = query.eq('status', params.status);
+    }
+
+    if (params.search) {
+        query = query.or(`order_number.ilike.%${params.search}%,customer_name.ilike.%${params.search}%,customer_phone.ilike.%${params.search}%`);
     }
 
     const page = Number(params.page) || 1;
@@ -191,4 +192,15 @@ export const deleteOrder = async (id) => {
     if (error) throw error;
 
     return { data: { success: true } };
+};
+
+export const getOrderById = async (id) => {
+    return supabase
+        .from('orders')
+        .select(`
+            *,
+            items:order_items(*)
+        `)
+        .eq('id', id)
+        .single();
 };

@@ -26,7 +26,8 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getImageUrl } from '../../utils';
-import LogoLoader from '../../components/shared/LogoLoader';
+import { getOrderById } from '../../api/orders.api';
+import toast from 'react-hot-toast';
 
 const ORDER_STATUSES = [
     { value: 'PENDING', label: 'En attente', color: '#f59e0b', bg: '#FFFBEB' },
@@ -37,22 +38,63 @@ const ORDER_STATUSES = [
 ];
 
 const Orders = () => {
-    const { orders, fetchOrders, updateOrderStatus, fetchStats, deleteOrder } = useAdminStore();
+    const { orders, fetchOrders, updateOrderStatus, fetchStats, deleteOrder, totalPages, totalOrders } = useAdminStore();
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
-    const [expandedOrder, setExpandedOrder] = useState(null);
+    const [page, setPage] = useState(1);
+    const [expandedOrderId, setExpandedOrderId] = useState(null);
+    const [expandedOrderDetails, setExpandedOrderDetails] = useState(null);
+    const [loadingDetails, setLoadingDetails] = useState(false);
     const [updatingId, setUpdatingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
+
+    // Debounce Search Term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setPage(1); // Reset to page 1 on new search
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    useEffect(() => {
+        setPage(1); // Reset to page 1 on status change
+    }, [statusFilter]);
 
     useEffect(() => {
         const load = async () => {
             setLoading(true);
-            await fetchOrders();
+            await fetchOrders({ 
+                page, 
+                limit: 10, 
+                status: statusFilter === 'ALL' ? null : statusFilter.toLowerCase(), 
+                search: debouncedSearch 
+            });
             setLoading(false);
         };
         load();
-    }, []);
+    }, [page, statusFilter, debouncedSearch]);
+
+    const handleExpandRow = async (orderId) => {
+        if (expandedOrderId === orderId) {
+            setExpandedOrderId(null);
+            setExpandedOrderDetails(null);
+        } else {
+            setExpandedOrderId(orderId);
+            setLoadingDetails(true);
+            try {
+                const { data } = await getOrderById(orderId);
+                setExpandedOrderDetails(data);
+            } catch (error) {
+                console.error("Error fetching order details", error);
+                toast.error("Erreur lors du chargement des détails");
+            } finally {
+                setLoadingDetails(false);
+            }
+        }
+    };
 
     const handleStatusUpdate = async (id, status) => {
         setUpdatingId(id);
@@ -73,7 +115,8 @@ const Orders = () => {
             try {
                 await deleteOrder(id);
                 await fetchStats();
-                setExpandedOrder(null);
+                setExpandedOrderId(null);
+                setExpandedOrderDetails(null);
             } catch (error) {
                 console.error('Error deleting order:', error);
             } finally {
@@ -82,14 +125,8 @@ const Orders = () => {
         }
     };
 
-    const filteredOrders = orders.filter(order => {
-        const matchesStatus = statusFilter === 'ALL' || order.status?.toUpperCase() === statusFilter;
-        const matchesSearch =
-            (order.order_number?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (order.customer_phone?.includes(searchTerm));
-        return matchesStatus && matchesSearch;
-    });
+    // Note: We're doing server-side pagination and filtering now, so filteredOrders is just orders.
+    const filteredOrders = orders;
 
     const getStatusInfo = (status) => {
         return ORDER_STATUSES.find(s => s.value === status?.toUpperCase()) || ORDER_STATUSES[0];
@@ -176,10 +213,8 @@ const Orders = () => {
                     <tbody className="divide-y divide-[#F0EDE8]">
                         {loading ? (
                             <tr>
-                                <td colSpan="5" className="py-20">
-                                    <div style={{ position: 'relative', height: '300px' }}>
-                                        <LogoLoader />
-                                    </div>
+                                <td colSpan="5" style={{ padding: '80px 0', textAlign: 'center' }}>
+                                    <Loader2 size={32} className="animate-spin text-[#C3AB7E] inline-block" />
                                 </td>
                             </tr>
                         ) : filteredOrders.length === 0 ? (
@@ -188,13 +223,13 @@ const Orders = () => {
                             </tr>
                         ) : (
                             filteredOrders.map((order) => {
-                                const isOpened = expandedOrder === order.id;
+                                const isOpened = expandedOrderId === order.id;
                                 const status = getStatusInfo(order.status);
 
                                 return (
                                     <React.Fragment key={order.id}>
                                         <tr
-                                            onClick={() => setExpandedOrder(isOpened ? null : order.id)}
+                                            onClick={() => handleExpandRow(order.id)}
                                             style={{
                                                 transition: 'background 0.15s',
                                                 backgroundColor: isOpened ? 'rgba(255,255,255,0.6)' : 'transparent',
@@ -258,147 +293,156 @@ const Orders = () => {
                                         {isOpened && (
                                             <tr>
                                                 <td colSpan="5" style={{ padding: 'clamp(12px, 2vw, 32px)', backgroundColor: '#ffffff' }}>
-                                                    <div className="animate-fade-in-up flex flex-col lg:grid lg:grid-cols-[1.2fr_0.8fr] gap-8 p-6 md:p-8 rounded-[24px] bg-white border border-[#F0EDE8]">
-                                                        {/* Items Section */}
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-6">
-                                                                <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Contenu du colis</h4>
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Statut:</span>
-                                                                    <select
-                                                                        value={order.status?.toUpperCase()}
-                                                                        onChange={(e) => handleStatusUpdate(order.id, e.target.value.toLowerCase())}
-                                                                        disabled={updatingId === order.id}
-                                                                        style={{
-                                                                            padding: '6px 12px', borderRadius: '10px',
-                                                                            border: '1px solid #F0EDE8', backgroundColor: 'white',
-                                                                            fontSize: '11px', fontWeight: '800', color: '#111111',
-                                                                            outline: 'none', cursor: 'pointer'
-                                                                        }}
-                                                                    >
-                                                                        {ORDER_STATUSES.map(s => (
-                                                                            <option key={s.value} value={s.value}>{s.label.toUpperCase()}</option>
-                                                                        ))}
-                                                                    </select>
-                                                                    {updatingId === order.id && <Loader2 className="animate-spin text-[#C3AB7E]" size={14} />}
+                                                    {loadingDetails ? (
+                                                        <div className="flex justify-center p-8">
+                                                            <Loader2 className="animate-spin text-[#C3AB7E]" size={32} />
+                                                        </div>
+                                                    ) : expandedOrderDetails ? (
+                                                        <div className="animate-fade-in-up flex flex-col lg:grid lg:grid-cols-[1.2fr_0.8fr] gap-8 p-6 md:p-8 rounded-[24px] bg-white border border-[#F0EDE8]">
+                                                            {/* Items Section */}
+                                                            <div>
+                                                                <div className="flex items-center justify-between mb-6">
+                                                                    <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Contenu du colis</h4>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Statut:</span>
+                                                                        <select
+                                                                            value={expandedOrderDetails.status?.toUpperCase()}
+                                                                            onChange={(e) => {
+                                                                                handleStatusUpdate(expandedOrderDetails.id, e.target.value.toLowerCase());
+                                                                                setExpandedOrderDetails(prev => ({...prev, status: e.target.value.toLowerCase()}));
+                                                                            }}
+                                                                            disabled={updatingId === expandedOrderDetails.id}
+                                                                            style={{
+                                                                                padding: '6px 12px', borderRadius: '10px',
+                                                                                border: '1px solid #F0EDE8', backgroundColor: 'white',
+                                                                                fontSize: '11px', fontWeight: '800', color: '#111111',
+                                                                                outline: 'none', cursor: 'pointer'
+                                                                            }}
+                                                                        >
+                                                                            {ORDER_STATUSES.map(s => (
+                                                                                <option key={s.value} value={s.value}>{s.label.toUpperCase()}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                        {updatingId === expandedOrderDetails.id && <Loader2 className="animate-spin text-[#C3AB7E]" size={14} />}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
 
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                                                {order.items && order.items.map((item, i) => (
-                                                                    <div key={i} style={{
-                                                                        display: 'flex', alignItems: 'center', gap: '16px',
-                                                                        padding: '14px 18px',
-                                                                        borderBottom: i < order.items.length - 1 ? '1px solid #ffffff' : 'none'
-                                                                    }}>
-                                                                        <img
-                                                                            src={getImageUrl(item.product_image || item.product?.image || item.image)}
-                                                                            style={{ width: '56px', height: '64px', borderRadius: '10px', objectFit: 'cover' }}
-                                                                        />
-                                                                        <div style={{ flex: 1 }}>
-                                                                            <p style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: '#111111' }}>
-                                                                                {item.product_name || item.product?.name || 'Produit'}
-                                                                            </p>
-                                                                            <p style={{ margin: '2px 0 0', fontSize: '11px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase' }}>
-                                                                                {item.size ? `Taille ${item.size}` : ''} {item.color ? `• ${item.color}` : ''} × {item.quantity}
-                                                                            </p>
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                                    {expandedOrderDetails.items && expandedOrderDetails.items.map((item, i) => (
+                                                                        <div key={i} style={{
+                                                                            display: 'flex', alignItems: 'center', gap: '16px',
+                                                                            padding: '14px 18px',
+                                                                            borderBottom: i < expandedOrderDetails.items.length - 1 ? '1px solid #ffffff' : 'none'
+                                                                        }}>
+                                                                            <img
+                                                                                src={getImageUrl(item.product_image || item.product?.image || item.image)}
+                                                                                style={{ width: '56px', height: '64px', borderRadius: '10px', objectFit: 'cover' }}
+                                                                            />
+                                                                            <div style={{ flex: 1 }}>
+                                                                                <p style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: '#111111' }}>
+                                                                                    {item.product_name || item.product?.name || 'Produit'}
+                                                                                </p>
+                                                                                <p style={{ margin: '2px 0 0', fontSize: '11px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase' }}>
+                                                                                    {item.size ? `Taille ${item.size}` : ''} {item.color ? `• ${item.color}` : ''} × {item.quantity}
+                                                                                </p>
+                                                                            </div>
+                                                                            <span style={{ fontWeight: '800', fontSize: '13px', color: '#111111', whiteSpace: 'nowrap' }}>
+                                                                                {((item.price_at_purchase || item.price || 0) * item.quantity).toLocaleString()} DA
+                                                                            </span>
                                                                         </div>
-                                                                        <span style={{ fontWeight: '800', fontSize: '13px', color: '#111111', whiteSpace: 'nowrap' }}>
-                                                                            {((item.price_at_purchase || item.price || 0) * item.quantity).toLocaleString()} DA
+                                                                    ))}
+
+                                                                    <div style={{
+                                                                        marginTop: '16px', padding: '20px 18px',
+                                                                        backgroundColor: '#ffffff', borderRadius: '16px',
+                                                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                                                    }}>
+                                                                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Grand Total</span>
+                                                                        <span style={{ fontSize: '20px', fontFamily: 'serif', fontWeight: '700', color: '#111111' }}>
+                                                                            {expandedOrderDetails.total_price || 0} DA
                                                                         </span>
                                                                     </div>
-                                                                ))}
-
-                                                                <div style={{
-                                                                    marginTop: '16px', padding: '20px 18px',
-                                                                    backgroundColor: '#ffffff', borderRadius: '16px',
-                                                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                                                                }}>
-                                                                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Grand Total</span>
-                                                                    <span style={{ fontSize: '20px', fontFamily: 'serif', fontWeight: '700', color: '#111111' }}>
-                                                                        {order.total_price || 0} DA
-                                                                    </span>
                                                                 </div>
                                                             </div>
-                                                        </div>
 
-                                                        {/* Delivery Section */}
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-6">
-                                                                <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Détails de livraison</h4>
-                                                                <button
-                                                                    onClick={(e) => handleDeleteOrder(order.id, e)}
-                                                                    disabled={deletingId === order.id}
-                                                                    className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
-                                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', fontSize: '12px', fontWeight: '700' }}
-                                                                >
-                                                                    {deletingId === order.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                                                                    Supprimer
-                                                                </button>
-                                                            </div>
-                                                            <div className="flex flex-col gap-6">
-                                                                {/* Map / Address Card */}
-                                                                <div style={{
-                                                                    padding: '24px', borderRadius: '20px',
-                                                                    backgroundColor: '#ffffff',
-                                                                    border: '1px solid #F0EDE8'
-                                                                }}>
-                                                                    <div className="flex flex-col gap-4">
-                                                                        <div className="flex items-start gap-4">
-                                                                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C3AB7E', border: '1px solid #F0EDE8' }}>
-                                                                                <MapPin size={20} />
+                                                            {/* Delivery Section */}
+                                                            <div>
+                                                                <div className="flex items-center justify-between mb-6">
+                                                                    <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Détails de livraison</h4>
+                                                                    <button
+                                                                        onClick={(e) => handleDeleteOrder(expandedOrderDetails.id, e)}
+                                                                        disabled={deletingId === expandedOrderDetails.id}
+                                                                        className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', fontSize: '12px', fontWeight: '700' }}
+                                                                    >
+                                                                        {deletingId === order.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                                                        Supprimer
+                                                                    </button>
+                                                                </div>
+                                                                <div className="flex flex-col gap-6">
+                                                                    {/* Map / Address Card */}
+                                                                    <div style={{
+                                                                        padding: '24px', borderRadius: '20px',
+                                                                        backgroundColor: '#ffffff',
+                                                                        border: '1px solid #F0EDE8'
+                                                                    }}>
+                                                                        <div className="flex flex-col gap-4">
+                                                                            <div className="flex items-start gap-4">
+                                                                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C3AB7E', border: '1px solid #F0EDE8' }}>
+                                                                                    <MapPin size={20} />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Adresse complète</p>
+                                                                                    <p className="text-sm font-bold text-[#111111] leading-relaxed">{expandedOrderDetails.shipping_address || 'Non spécifiée'}</p>
+                                                                                </div>
                                                                             </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Adresse complète</p>
-                                                                                <p className="text-sm font-bold text-[#111111] leading-relaxed">{order.shipping_address || 'Non spécifiée'}</p>
-                                                                            </div>
-                                                                        </div>
 
-                                                                        <div className="flex items-start gap-4">
-                                                                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C3AB7E', border: '1px solid #F0EDE8' }}>
-                                                                                <Calendar size={20} />
-                                                                            </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Wilaya</p>
-                                                                                <p className="text-sm font-bold text-[#111111]">{order.wilaya || order.wilaya_id || '—'}</p>
+                                                                            <div className="flex items-start gap-4">
+                                                                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C3AB7E', border: '1px solid #F0EDE8' }}>
+                                                                                    <Calendar size={20} />
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Wilaya</p>
+                                                                                    <p className="text-sm font-bold text-[#111111]">{expandedOrderDetails.wilaya || expandedOrderDetails.wilaya_id || '—'}</p>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
 
-                                                                {/* Contact Actions */}
-                                                                <div className="flex flex-col gap-3">
-                                                                    <a
-                                                                        href={`tel:${order.customer_phone}`}
-                                                                        style={{
-                                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                                                                            padding: '16px', borderRadius: '16px', backgroundColor: '#111111',
-                                                                            color: 'white', fontWeight: '800', fontSize: '11px', textTransform: 'uppercase',
-                                                                            transition: 'all 0.2s', textDecoration: 'none'
-                                                                        }}
-                                                                        className="hover:scale-[1.02] active:scale-[0.98]"
-                                                                    >
-                                                                        <Phone size={16} />
-                                                                        Appeler le client
-                                                                    </a>
-                                                                    <a
-                                                                        href={`https://wa.me/213${order.customer_phone?.replace(/^0/, '')}`}
-                                                                        target="_blank"
-                                                                        style={{
-                                                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                                                                            padding: '16px', borderRadius: '16px', backgroundColor: 'transparent',
-                                                                            color: '#25D366', border: '2px solid #25D366', fontWeight: '800', fontSize: '11px',
-                                                                            textTransform: 'uppercase', transition: 'all 0.2s', textDecoration: 'none'
-                                                                        }}
-                                                                        className="hover:bg-[#25D366] hover:text-white"
-                                                                    >
-                                                                        <MessageSquare size={16} />
-                                                                        WhatsApp
-                                                                    </a>
+                                                                    {/* Contact Actions */}
+                                                                    <div className="flex flex-col gap-3">
+                                                                        <a
+                                                                            href={`tel:${expandedOrderDetails.customer_phone}`}
+                                                                            style={{
+                                                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                                                                                padding: '16px', borderRadius: '16px', backgroundColor: '#111111',
+                                                                                color: 'white', fontWeight: '800', fontSize: '11px', textTransform: 'uppercase',
+                                                                                transition: 'all 0.2s', textDecoration: 'none'
+                                                                            }}
+                                                                            className="hover:scale-[1.02] active:scale-[0.98]"
+                                                                        >
+                                                                            <Phone size={16} />
+                                                                            Appeler le client
+                                                                        </a>
+                                                                        <a
+                                                                            href={`https://wa.me/213${expandedOrderDetails.customer_phone?.replace(/^0/, '')}`}
+                                                                            target="_blank"
+                                                                            style={{
+                                                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                                                                                padding: '16px', borderRadius: '16px', backgroundColor: 'transparent',
+                                                                                color: '#25D366', border: '2px solid #25D366', fontWeight: '800', fontSize: '11px',
+                                                                                textTransform: 'uppercase', transition: 'all 0.2s', textDecoration: 'none'
+                                                                            }}
+                                                                            className="hover:bg-[#25D366] hover:text-white"
+                                                                        >
+                                                                            <MessageSquare size={16} />
+                                                                            WhatsApp
+                                                                        </a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    ) : null}
                                                 </td>
                                             </tr>
                                         )}
@@ -409,6 +453,45 @@ const Orders = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-[#F0EDE8]">
+                    <span className="text-sm text-gray-400 font-bold uppercase">
+                        Page {page} sur {totalPages} ({totalOrders} commandes)
+                    </span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            style={{
+                                padding: '8px 16px', borderRadius: '12px', border: '1px solid #F0EDE8',
+                                backgroundColor: page === 1 ? '#FAFAFA' : 'white',
+                                color: page === 1 ? '#9ca3af' : '#111111',
+                                fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', cursor: page === 1 ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            className={page !== 1 ? "hover:bg-gray-50" : ""}
+                        >
+                            Précédent
+                        </button>
+                        <button
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            disabled={page === totalPages}
+                            style={{
+                                padding: '8px 16px', borderRadius: '12px', border: '1px solid #F0EDE8',
+                                backgroundColor: page === totalPages ? '#FAFAFA' : 'white',
+                                color: page === totalPages ? '#9ca3af' : '#111111',
+                                fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            className={page !== totalPages ? "hover:bg-gray-50" : ""}
+                        >
+                            Suivant
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
