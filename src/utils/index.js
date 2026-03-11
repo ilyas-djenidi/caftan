@@ -120,9 +120,28 @@ export const GUEPEX_TARIFFS = {
     "Tindouf": { home: 1650, desk: 1550 }
 };
 
+// Comprehensive normalization for wilaya matching
+const normWilaya = (s) => (s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .replace(/[''\-_\s]+/g, '');
+
+// Pre-compute normalized mapping
+const NORMALIZED_TARIFFS = Object.keys(GUEPEX_TARIFFS).reduce((acc, key) => {
+    acc[normWilaya(key)] = GUEPEX_TARIFFS[key];
+    return acc;
+}, {});
+
 export const getDeliveryFee = (wilaya, type = 'home') => {
-    if (!wilaya || !GUEPEX_TARIFFS[wilaya]) return 0;
-    return GUEPEX_TARIFFS[wilaya][type === 'bureau' ? 'desk' : 'home'] || 0;
+    if (!wilaya) return 0;
+    const key = normWilaya(wilaya);
+    const tariff = NORMALIZED_TARIFFS[key];
+    if (!tariff) return 0;
+    
+    // Support both 'center'/'desk' and 'home' nomenclature
+    const typeKey = (type === 'bureau' || type === 'center' || type === 'desk') ? 'desk' : 'home';
+    return tariff[typeKey] || 0;
 };
 
 export const ORDER_STATUSES = {

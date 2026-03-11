@@ -166,18 +166,6 @@ export default function Checkout() {
                             onMouseLeave={e => e.currentTarget.style.backgroundColor = '#1A1714'}>
                             {t('wishlist.back')}
                         </Link>
-                        <Link to="/suivi-commande" style={{
-                            backgroundColor: 'transparent', color: '#B8963E', height: '44px',
-                            borderRadius: '10px', textDecoration: 'none', fontWeight: '600',
-                            fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase',
-                            fontFamily: "'Jost', sans-serif", display: 'flex', alignItems: 'center',
-                            justifyContent: 'center', gap: '6px',
-                            border: '1.5px solid #B8963E', transition: 'all 0.3s'
-                        }}
-                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#B8963E'; e.currentTarget.style.color = '#FAF8F4'; }}
-                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#B8963E'; }}>
-                            Suivre votre commande →
-                        </Link>
                     </div>
                 </div>
             </div>

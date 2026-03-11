@@ -48,15 +48,7 @@ export default function Footer() {
                             <li><span style={{ color: '#9ca3af', fontSize: '14px' }}>À propos de nous</span></li>
                             <li><span style={{ color: '#9ca3af', fontSize: '14px' }}>Livraison &amp; Retours</span></li>
                             <li><Link to="/contact" style={{ color: '#9ca3af', fontSize: '14px', textDecoration: 'none' }} className="hover:text-white">Contact</Link></li>
-                            <li>
-                                <Link
-                                    to="/suivi-commande"
-                                    style={{ color: '#C3AB7E', fontSize: '14px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: '600' }}
-                                    className="hover:text-white"
-                                >
-                                    Suivre ma commande →
-                                </Link>
-                            </li>
+
                         </ul>
                     </div>
                     <div>

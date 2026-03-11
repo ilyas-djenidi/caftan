@@ -33,6 +33,20 @@ serve(async (req) => {
       body,
     });
 
+    const contentType = response.headers.get('content-type') || '';
+    
+    if (contentType.includes('application/pdf')) {
+      const blob = await response.blob();
+      return new Response(blob, {
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': response.headers.get('content-disposition') || 'inline'
+        },
+        status: response.status,
+      });
+    }
+
     const data = await response.json();
 
     return new Response(JSON.stringify(data), {

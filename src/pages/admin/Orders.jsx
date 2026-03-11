@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { getImageUrl } from '../../utils';
+import { getImageUrl, getDeliveryFee } from '../../utils';
 import { getOrderById, updateOrderGuepex, getGuepexDeliveryStats } from '../../api/orders.api';
 import { getParcel } from '../../services/guepex';
 import toast from 'react-hot-toast';
@@ -638,12 +638,21 @@ const Orders = () => {
                                                                                         }}>
                                                                                             {expandedOrderDetails.delivery_type === 'bureau' ? '📦 Bureau / Point relais' : '🏠 À domicile'}
                                                                                         </div>
-                                                                                        {expandedOrderDetails.delivery_fee != null && (
-                                                                                            <span style={{ fontSize: '13px', fontWeight: '600', color: '#111' }}>
-                                                                                                + {expandedOrderDetails.delivery_fee.toLocaleString('fr-DZ')} DA
-                                                                                            </span>
-                                                                                        )}
                                                                                     </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div className="flex items-start gap-4">
+                                                                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C3AB7E', border: '1px solid #F0EDE8' }}>
+                                                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Frais de livraison</p>
+                                                                                    <p className="text-sm font-bold text-[#111111]">
+                                                                                        {expandedOrderDetails.delivery_fee != null
+                                                                                            ? `+ ${expandedOrderDetails.delivery_fee.toLocaleString('fr-DZ')} DA`
+                                                                                            : (expandedOrderDetails.wilaya && getDeliveryFee(expandedOrderDetails.wilaya, expandedOrderDetails.delivery_type) ? `+ ${getDeliveryFee(expandedOrderDetails.wilaya, expandedOrderDetails.delivery_type).toLocaleString('fr-DZ')} DA` : '—')}
+                                                                                    </p>
                                                                                 </div>
                                                                             </div>
                                                                         </div>

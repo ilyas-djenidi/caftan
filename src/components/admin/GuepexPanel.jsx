@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Truck, Copy, CheckCircle2, XCircle, RefreshCw,
-    Loader2
+    Loader2, History, Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
     getWilayas,
     getCommunes,
-    getFees,
     createParcel,
     getParcel,
     cancelParcel,
 } from '../../services/guepex';
+import { getDeliveryFee } from '../../utils';
 import GuepexHistoryModal from '../GuepexHistoryModal';
 import { updateOrderGuepex, updateOrderStatus } from '../../api/orders.api';
 
@@ -66,12 +66,10 @@ const inputStyle = {
 };
 
 /* ─── Section 1 — Create Shipment Form ───────────────────── */
-
-// Normalize for fuzzy wilaya/commune matching
 const norm = (s) => (s || '')
     .toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
-    .replace(/[''\-_\s]+/g, '');                       // strip apostrophes, dashes, spaces
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[''\-_\s]+/g, '');
 
 function CreateShipmentForm({ order, onCreated }) {
     const [wilayas, setWilayas] = useState([]);
@@ -80,7 +78,7 @@ function CreateShipmentForm({ order, onCreated }) {
         wilayaId: '',
         communeId: '',
         deliveryType: order.delivery_type === 'bureau' ? 'center' : 'home',
-        fee: '',
+        fee: order.wilaya ? getDeliveryFee(order.wilaya, order.delivery_type === 'bureau' ? 'bureau' : 'home') : '',
         name: order.customer_name || '',
         phone: order.customer_phone || order.phone || '',
         address: order.shipping_address || order.address || '',
@@ -90,32 +88,16 @@ function CreateShipmentForm({ order, onCreated }) {
     });
     const [loadingWilayas, setLoadingWilayas] = useState(true);
     const [loadingCommunes, setLoadingCommunes] = useState(false);
-    const [loadingFee, setLoadingFee] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    // Fetch wilayas on mount + auto-match order's wilaya
     useEffect(() => {
         getWilayas().then(data => {
             if (!data?.error) {
-                // Guepex API returns { data: [...] } same as parcels
                 const list = Array.isArray(data) ? data : (data?.data || data?.results || []);
-                console.log('[Guepex] Wilayas count:', list.length, 'sample:', list[0]);
-                console.log('[Guepex] order.wilaya:', order.wilaya);
                 setWilayas(list);
                 if (order.wilaya && list.length > 0) {
                     const orderNorm = norm(order.wilaya);
-                    const match = list.find(w => {
-                        const n1 = norm(w.name || '');
-                        const n2 = norm(w.wilaya_name || '');
-                        if (!n1 && !n2) return false;
-                        // Exact match first
-                        if (n1 === orderNorm || n2 === orderNorm) return true;
-                        // Partial match only if both strings are meaningful (3+ chars)
-                        const best = n1.length >= n2.length ? n1 : n2;
-                        return best.length >= 3 && orderNorm.length >= 3 &&
-                            (best.includes(orderNorm) || orderNorm.includes(best));
-                    });
-                    console.log('[Guepex] Wilaya match:', match);
+                    const match = list.find(w => norm(w.name) === orderNorm || norm(w.wilaya_name) === orderNorm);
                     if (match) setForm(f => ({ ...f, wilayaId: String(match.id) }));
                 }
             }
@@ -123,50 +105,48 @@ function CreateShipmentForm({ order, onCreated }) {
         });
     }, []);
 
-    // Fetch communes when wilaya changes + auto-match order's city
+    // 1. Unified effect to sync form with wilayas and calculate fee
+    useEffect(() => {
+        if (!wilayas.length) return;
+
+        // Auto-select wilayaId if order.wilaya exists and not yet set
+        if (!form.wilayaId && order.wilaya) {
+            const orderNorm = norm(order.wilaya);
+            const match = wilayas.find(w => norm(w.name) === orderNorm || norm(w.wilaya_name) === orderNorm);
+            if (match) {
+                setForm(f => ({ ...f, wilayaId: String(match.id) }));
+            }
+        }
+
+        // Sync fee based on current wilaya selection
+        if (form.wilayaId) {
+            const wilaya = wilayas.find(w => String(w.id) === String(form.wilayaId));
+            const wilayaName = wilaya?.name || order.wilaya; 
+            if (wilayaName) {
+                const fee = getDeliveryFee(wilayaName, form.deliveryType === 'center' ? 'bureau' : 'home');
+                setForm(f => ({ ...f, fee: (fee !== undefined && fee !== null) ? fee : '' }));
+            }
+        }
+    }, [wilayas, form.wilayaId, form.deliveryType, order.wilaya]);
+
+    // 2. Load communes when wilayaId changes
     useEffect(() => {
         if (!form.wilayaId) { setCommunes([]); return; }
         setLoadingCommunes(true);
         getCommunes(form.wilayaId).then(data => {
             if (!data?.error) {
-                // Guepex API returns { data: [...] } same as parcels
                 const list = Array.isArray(data) ? data : (data?.data || data?.results || []);
                 setCommunes(list);
-                // city = commune: check all possible fields (old orders stored in notes)
                 const cityRaw = order.city || order.notes || '';
-
                 if (cityRaw && list.length > 0) {
                     const cityNorm = norm(cityRaw);
-                    const match = list.find(c => {
-                        const n1 = norm(c.name || '');
-                        const n2 = norm(c.commune_name || '');
-                        if (!n1 && !n2) return false;
-                        if (n1 === cityNorm || n2 === cityNorm) return true;
-                        const best = n1.length >= n2.length ? n1 : n2;
-                        return best.length >= 3 && cityNorm.length >= 3 &&
-                            (best.includes(cityNorm) || cityNorm.includes(best));
-                    });
+                    const match = list.find(c => norm(c.name) === cityNorm || norm(c.commune_name) === cityNorm);
                     if (match) setForm(f => ({ ...f, communeId: String(match.id) }));
                 }
             }
             setLoadingCommunes(false);
         });
     }, [form.wilayaId]);
-
-    // Calculate fee when wilaya + type change
-    useEffect(() => {
-        if (!form.wilayaId) { setForm(f => ({ ...f, fee: '' })); return; }
-        setLoadingFee(true);
-        getFees(form.wilayaId, form.wilayaId).then(data => {
-            if (!data?.error) {
-                const arr = Array.isArray(data) ? data : (data?.results || [data]);
-                const feeItem = arr.find(f => f.type === form.deliveryType) || arr[0];
-                const feeValue = feeItem?.price || feeItem?.fee || feeItem?.amount || '';
-                setForm(f => ({ ...f, fee: feeValue }));
-            }
-            setLoadingFee(false);
-        });
-    }, [form.wilayaId, form.deliveryType]);
 
     const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
 
@@ -175,9 +155,6 @@ function CreateShipmentForm({ order, onCreated }) {
         if (!form.wilayaId) { toast.error('Veuillez sélectionner une wilaya'); return; }
         setSubmitting(true);
         try {
-            const wilaya = wilayas.find(w => String(w.id) === String(form.wilayaId));
-            const commune = communes.find(c => String(c.id) === String(form.communeId));
-
             const parcelPayload = {
                 client_name: form.name,
                 client_phone: form.phone,
@@ -192,24 +169,17 @@ function CreateShipmentForm({ order, onCreated }) {
 
             const result = await createParcel(parcelPayload);
             if (result?.error) throw new Error(result.error);
-
             const trackingId = result?.tracking_id || result?.id || result?.reference || result?.parcel_id;
-            if (!trackingId) throw new Error('Tracking ID non reçu de Guepex');
-
-            // Save tracking + guepex_status in DB
+            
             await updateOrderGuepex(order.id, {
                 guepex_tracking_id: String(trackingId),
-                guepex_tracking: String(trackingId), // also save in new column if exists
                 guepex_status: 'created',
                 guepex_created_at: new Date().toISOString(),
                 delivery_type: form.deliveryType,
                 delivery_fee: form.fee ? Number(form.fee) : null,
             });
-
-            // Auto-advance order status to SHIPPED
             await updateOrderStatus(order.id, 'SHIPPED');
-
-            toast.success(`Expédition créée ✓ Tracking: ${trackingId}`, { duration: 5000 });
+            toast.success(`Expédition créée ✓ Tracking: ${trackingId}`);
             onCreated();
         } catch (err) {
             toast.error(err.message || 'Erreur lors de la création');
@@ -220,324 +190,119 @@ function CreateShipmentForm({ order, onCreated }) {
 
     return (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Wilaya + Commune */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                     <Label>Wilaya</Label>
-                    <select
-                        value={form.wilayaId}
-                        onChange={e => setForm(f => ({ ...f, wilayaId: e.target.value, communeId: '' }))}
-                        style={inputStyle}
-                        required
-                    >
+                    <select value={form.wilayaId} onChange={e => setForm(f => ({ ...f, wilayaId: e.target.value, communeId: '' }))} style={inputStyle} required>
                         <option value="">{loadingWilayas ? 'Chargement…' : '— Choisir —'}</option>
-                        {wilayas.map(w => (
-                            <option key={w.id} value={w.id}>{w.name || w.name_ar || w.wilaya_name || `Wilaya ${w.id}`}</option>
-                        ))}
+                        {wilayas.map(w => <option key={w.id} value={w.id}>{w.name || w.wilaya_name}</option>)}
                     </select>
                 </div>
                 <div>
                     <Label>Commune</Label>
-                    <select
-                        value={form.communeId}
-                        onChange={set('communeId')}
-                        style={inputStyle}
-                        disabled={!form.wilayaId}
-                    >
+                    <select value={form.communeId} onChange={set('communeId')} style={inputStyle} disabled={!form.wilayaId}>
                         <option value="">{loadingCommunes ? 'Chargement…' : '— Choisir —'}</option>
-                        {communes.map(c => (
-                            <option key={c.id} value={c.id}>{c.name || c.commune_name || `Commune ${c.id}`}</option>
-                        ))}
+                        {communes.map(c => <option key={c.id} value={c.id}>{c.name || c.commune_name}</option>)}
                     </select>
                 </div>
             </div>
-
-            {/* Delivery Type */}
             <div>
                 <Label>Type de livraison</Label>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    {[
-                        { value: 'home', label: 'À domicile' },
-                        { value: 'center', label: 'Point relais / Centre' },
-                    ].map(opt => (
+                    {[{ value: 'home', label: 'À domicile' }, { value: 'center', label: 'Point relais' }].map(opt => (
                         <label key={opt.value} style={{
-                            display: 'flex', alignItems: 'center', gap: '8px',
-                            padding: '10px 16px', borderRadius: '12px',
+                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '12px',
                             border: `1px solid ${form.deliveryType === opt.value ? '#C3AB7E' : '#F0EDE8'}`,
-                            backgroundColor: form.deliveryType === opt.value ? '#FFFBF0' : 'white',
-                            cursor: 'pointer', fontSize: '12px', fontWeight: '700', color: '#111111',
-                            transition: 'all 0.2s', flex: 1,
+                            backgroundColor: form.deliveryType === opt.value ? '#FFFBF0' : 'white', cursor: 'pointer', fontSize: '12px', fontWeight: '700', flex: 1
                         }}>
-                            <input
-                                type="radio"
-                                name="deliveryType"
-                                value={opt.value}
-                                checked={form.deliveryType === opt.value}
-                                onChange={set('deliveryType')}
-                                style={{ accentColor: '#C3AB7E' }}
-                            />
+                            <input type="radio" value={opt.value} checked={form.deliveryType === opt.value} onChange={set('deliveryType')} style={{ accentColor: '#C3AB7E' }} />
                             {opt.label}
                         </label>
                     ))}
                 </div>
             </div>
-
-            {/* Fee (read-only) */}
             <div>
                 <Label>Frais de livraison</Label>
-                <div style={{ position: 'relative' }}>
-                    <input
-                        type="text"
-                        value={loadingFee ? 'Calcul…' : (form.fee ? DA(form.fee) : '—')}
-                        readOnly
-                        style={{ ...inputStyle, backgroundColor: '#FAFAFA', color: form.fee ? '#111111' : '#9ca3af', cursor: 'default' }}
-                    />
-                    {loadingFee && (
-                        <Loader2 size={14} className="animate-spin" style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: '#C3AB7E' }} />
-                    )}
-                </div>
+                <input type="text" value={(form.fee !== '' && form.fee !== null) ? DA(form.fee) : '—'} readOnly style={{ ...inputStyle, backgroundColor: '#FAFAFA' }} />
             </div>
-
-            {/* Recipient info */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                    <Label>Nom du destinataire</Label>
-                    <input type="text" value={form.name} onChange={set('name')} style={inputStyle} required />
-                </div>
-                <div>
-                    <Label>Téléphone</Label>
-                    <input type="tel" value={form.phone} onChange={set('phone')} style={inputStyle} required />
-                </div>
+                <input type="text" placeholder="Nom destinataire" value={form.name} onChange={set('name')} style={inputStyle} required />
+                <input type="tel" placeholder="Téléphone" value={form.phone} onChange={set('phone')} style={inputStyle} required />
             </div>
-
-            <div>
-                <Label>Adresse complète</Label>
-                <input type="text" value={form.address} onChange={set('address')} style={inputStyle} required />
-            </div>
-
-            <div>
-                <Label>Remarque (optionnelle)</Label>
-                <textarea
-                    value={form.note}
-                    onChange={set('note')}
-                    rows={2}
-                    style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }}
-                    placeholder="Note pour le livreur…"
-                />
-            </div>
-
+            <input type="text" placeholder="Adresse complète" value={form.address} onChange={set('address')} style={inputStyle} required />
+            <textarea placeholder="Remarque…" value={form.note} onChange={set('note')} style={{ ...inputStyle, resize: 'none' }} rows={2} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                    <Label>Poids (kg)</Label>
-                    <input
-                        type="number" min="0.1" step="0.1"
-                        value={form.weight} onChange={set('weight')}
-                        style={inputStyle} required
-                    />
-                </div>
-                <div>
-                    <Label>Déclaration (DA)</Label>
-                    <input
-                        type="number" min="0"
-                        value={form.declaration} onChange={set('declaration')}
-                        style={inputStyle} required
-                    />
-                </div>
+                <div><Label>Poids (kg)</Label><input type="number" step="0.1" value={form.weight} onChange={set('weight')} style={inputStyle} required /></div>
+                <div><Label>Déclaration (DA)</Label><input type="number" value={form.declaration} onChange={set('declaration')} style={inputStyle} required /></div>
             </div>
-
-            <button
-                type="submit"
-                disabled={submitting}
-                style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    padding: '14px 20px', borderRadius: '14px', border: 'none',
-                    backgroundColor: submitting ? '#4b5563' : '#374151',
-                    color: 'white', fontSize: '12px', fontWeight: '800', textTransform: 'uppercase',
-                    letterSpacing: '0.08em', cursor: submitting ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.2s', marginTop: '4px',
-                }}
-                onMouseEnter={e => { if (!submitting) e.currentTarget.style.backgroundColor = '#C3AB7E'; }}
-                onMouseLeave={e => { if (!submitting) e.currentTarget.style.backgroundColor = '#374151'; }}
-            >
-                {submitting ? <Loader2 size={16} className="animate-spin" /> : <Truck size={16} />}
-                {submitting ? 'Création en cours…' : "Créer l'expédition Guepex"}
+            <button type="submit" disabled={submitting} style={{
+                padding: '14px', borderRadius: '14px', backgroundColor: '#374151', color: 'white', fontWeight: '800', cursor: submitting ? 'not-allowed' : 'pointer', border: 'none'
+            }}>
+                {submitting ? 'Création…' : "Créer l'expédition Guepex"}
             </button>
         </form>
     );
 }
 
-/* ─── Section 2 — Tracking Info ─────────────────────────── */
 function TrackingInfo({ order, onRefresh }) {
     const [showHistory, setShowHistory] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    const [cancelling, setCancelling] = useState(false);
     const [copied, setCopied] = useState(false);
-
     const trackingId = order.guepex_tracking_id || order.guepex_tracking;
     const status = order.guepex_status || 'created';
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(trackingId).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        });
+    const handlePrint = () => {
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guepex-proxy?endpoint=/parcels/${trackingId}/sticker/`;
+        window.open(url, '_blank');
     };
 
     const handleRefresh = async () => {
         setRefreshing(true);
         try {
             const data = await getParcel(trackingId);
-            if (data?.error) throw new Error(data.error);
-            const newStatus = data?.status || data?.state;
-            if (newStatus) {
-                await updateOrderGuepex(order.id, { guepex_status: newStatus });
+            if (data?.status) {
+                await updateOrderGuepex(order.id, { guepex_status: data.status });
                 toast.success('Statut mis à jour');
                 onRefresh();
-            } else {
-                toast('Statut inchangé');
             }
-        } catch (err) {
-            toast.error(err.message || 'Erreur de rafraîchissement');
-        } finally {
-            setRefreshing(false);
-        }
+        } catch (err) { toast.error('Erreur rafraîchissement'); }
+        finally { setRefreshing(false); }
     };
 
-    const handleCancel = async () => {
-        if (!window.confirm(`Annuler l'expédition ${trackingId} ? Cette action est irréversible.`)) return;
-        setCancelling(true);
-        try {
-            const data = await cancelParcel(trackingId);
-            if (data?.error) throw new Error(data.error);
-            await updateOrderGuepex(order.id, { guepex_status: 'cancelled' });
-            // Revert order status back to CONFIRMED
-            await updateOrderStatus(order.id, 'CONFIRMED');
-            toast.success('Expédition annulée — commande repassée en Confirmée');
-            onRefresh();
-        } catch (err) {
-            toast.error(err.message || "Erreur lors de l'annulation");
-        } finally {
-            setCancelling(false);
-        }
-    };
-
-    const btnBase = {
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+    const btnStyle = {
         padding: '10px 16px', borderRadius: '12px', border: '1px solid #F0EDE8',
-        backgroundColor: 'white', fontSize: '11px', fontWeight: '800',
-        textTransform: 'uppercase', letterSpacing: '0.06em', cursor: 'pointer',
-        transition: 'all 0.2s', color: '#374151',
+        backgroundColor: 'white', fontSize: '11px', fontWeight: '800', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: '6px'
     };
 
     return (
         <>
-            {/* Tracking ID chip */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <button
-                    onClick={handleCopy}
-                    title="Cliquer pour copier"
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '10px 16px', borderRadius: '12px',
-                        backgroundColor: '#111111', color: 'white', border: 'none',
-                        fontFamily: 'monospace', fontSize: '13px', fontWeight: '700',
-                        cursor: 'pointer', transition: 'all 0.2s',
-                    }}
-                >
-                    {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                    {trackingId}
-                </button>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{trackingId}</span>
                 <StatusBadge status={status} />
             </div>
-
-            {/* Fee info */}
-            {order.delivery_fee != null && (
-                <p style={{ margin: '0 0 16px', fontSize: '12px', fontWeight: '700', color: '#6b7280' }}>
-                    Frais de livraison : <strong style={{ color: '#111111' }}>{DA(order.delivery_fee)}</strong>
-                    {order.delivery_type === 'center' ? ' • Point relais' : ' • À domicile'}
-                </p>
-            )}
-
-            {/* Action buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                <button
-                    style={btnBase}
-                    onClick={() => setShowHistory(true)}
-                    onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#F3F4F6'; }}
-                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'white'; }}
-                >
-                    <History size={14} />
-                    Voir l'historique
-                </button>
-
-                <button
-                    style={{ ...btnBase, opacity: refreshing ? 0.7 : 1 }}
-                    disabled={refreshing}
-                    onClick={handleRefresh}
-                    onMouseEnter={e => { if (!refreshing) e.currentTarget.style.backgroundColor = '#F3F4F6'; }}
-                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'white'; }}
-                >
-                    {refreshing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                    Rafraîchir le statut
-                </button>
-
-                <button
-                    style={{ ...btnBase, color: '#ef4444', borderColor: '#FECACA', opacity: cancelling ? 0.7 : 1 }}
-                    disabled={cancelling || status === 'cancelled'}
-                    onClick={handleCancel}
-                    onMouseEnter={e => { if (!cancelling) e.currentTarget.style.backgroundColor = '#FEF2F2'; }}
-                    onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'white'; }}
-                >
-                    {cancelling ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
-                    Annuler l'expédition
-                </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <button style={btnStyle} onClick={() => setShowHistory(true)}><History size={14}/> Histoire</button>
+                <button style={btnStyle} onClick={handleRefresh} disabled={refreshing}><RefreshCw size={14}/> Actualiser</button>
+                <button style={{ ...btnStyle, backgroundColor: '#111', color: 'white', border: 'none' }} onClick={handlePrint}><Printer size={14}/> Imprimer</button>
             </div>
-
-            {showHistory && (
-                <GuepexHistoryModal tracking={trackingId} onClose={() => setShowHistory(false)} />
-            )}
+            {showHistory && <GuepexHistoryModal tracking={trackingId} onClose={() => setShowHistory(false)} />}
         </>
     );
 }
 
-/* ─── Main Export ────────────────────────────────────────── */
 export default function GuepexPanel({ order, onRefresh }) {
-    const orderStatus = order?.status?.toUpperCase();
-    // Show panel for CONFIRMED (to create shipment) and SHIPPED/DELIVERED (to see tracking info)
-    const isEligible = ['CONFIRMED', 'PAID', 'SHIPPED', 'DELIVERED'].includes(orderStatus);
-    if (!isEligible) return null;
-
+    const status = order?.status?.toUpperCase();
+    if (!['CONFIRMED', 'PAID', 'SHIPPED', 'DELIVERED'].includes(status)) return null;
     const hasTracking = Boolean(order.guepex_tracking_id || order.guepex_tracking);
 
     return (
         <div style={{ marginTop: '8px' }}>
             <Card>
-                {/* Section header */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px',
-                    paddingBottom: '16px', borderBottom: '1px solid #F0EDE8',
-                }}>
-                    <div style={{
-                        width: '36px', height: '36px', borderRadius: '10px',
-                        backgroundColor: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                        <Truck size={18} color="white" />
-                    </div>
-                    <div>
-                        <p style={{ margin: 0, fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                            Expédition
-                        </p>
-                        <p style={{ margin: '1px 0 0', fontSize: '14px', fontWeight: '800', color: '#111111' }}>
-                            Livraison Guepex
-                        </p>
-                    </div>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
+                    <Truck size={20} /> <span style={{ fontWeight: 'bold' }}>Livraison Guepex</span>
                 </div>
-
-                {hasTracking ? (
-                    <TrackingInfo order={order} onRefresh={onRefresh} />
-                ) : (
-                    <CreateShipmentForm order={order} onCreated={onRefresh} />
-                )}
+                {hasTracking ? <TrackingInfo order={order} onRefresh={onRefresh} /> : <CreateShipmentForm order={order} onCreated={onRefresh} />}
             </Card>
         </div>
     );
