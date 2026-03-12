@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { getAllParcels } from '../services/guepex';
+import { getAllParcels, cancelParcel } from '../services/guepex';
 
 /**
  * Fetches all shipments from the local database.
@@ -92,8 +92,29 @@ export const syncShipments = async () => {
  * Note: Actual Guepex API might return PDF content or a URL.
  * We'll use the proxy or direct Guepex endpoint.
  */
+/**
+ * Cancels a shipment on Guepex and updates the local database.
+ */
+export const updateShipmentStatus = async (tracking, status, orderNumber) => {
+    const { error: shipError } = await supabase
+        .from('shipments')
+        .update({ status })
+        .eq('tracking', tracking);
+    
+    if (shipError) throw shipError;
+
+    if (orderNumber) {
+        const orderUpdate = { guepex_status: status };
+        if (['Annulé', 'cancelled', 'returned'].includes(status)) {
+            orderUpdate.status = 'cancelled';
+        }
+        await supabase
+            .from('orders')
+            .update(orderUpdate)
+            .eq('order_number', orderNumber);
+    }
+};
+
 export const getShipmentLabelUrl = async (tracking) => {
-    // This is a placeholder for the actual Guepex print label logic
-    // Usually: https://api.guepex.com/parcels/{tracking}/print/
     return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guepex-proxy?endpoint=/parcels/${tracking}/print/`;
 };

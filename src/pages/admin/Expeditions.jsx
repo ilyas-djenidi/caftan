@@ -5,8 +5,8 @@ import {
     History, XCircle, RotateCcw, Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getStatusColor } from '../../services/guepex';
-import { getShipments, syncShipments, getShipmentLabelUrl } from '../../api/shipments.api';
+import { getShipments, syncShipments, getShipmentLabelUrl, updateShipmentStatus } from '../../api/shipments.api';
+import { getStatusColor, cancelParcel } from '../../services/guepex';
 
 /* ─── Constants ─────────────────────────────────────────────────── */
 const F = "'Jost', sans-serif";
@@ -121,14 +121,16 @@ export default function Expeditions() {
         }
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        handleSync();
+    }, []);
+
     useEffect(() => { setPage(1); }, [tab, search]);
 
     const handleSync = async () => {
         setSyncing(true);
         try {
-            const { count } = await syncShipments();
-            toast.success(`${count} colis synchronisés`);
+            await syncShipments();
             load();
         } catch (e) {
             console.error(e);
@@ -177,9 +179,12 @@ export default function Expeditions() {
         if (!window.confirm(`Annuler le colis ${p.tracking} ?`)) return;
         setCancelling(p.tracking);
         try {
-            const { cancelParcel } = await import('../../services/guepex');
             const res = await cancelParcel(p.tracking);
             if (res.error) throw new Error(res.error);
+            
+            // Update local DB to reflect cancellation immediately
+            await updateShipmentStatus(p.tracking, 'Annulé', p.order_number);
+            
             toast.success('Colis annulé');
             load();
         } catch (e) {
@@ -200,35 +205,26 @@ export default function Expeditions() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
 
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                    <div>
-                        <h1 style={{ fontFamily: F, fontSize: '22px', fontWeight: '700', color: '#111', margin: 0 }}>Expéditions Guepex</h1>
-                        <p style={{ fontFamily: F, fontSize: '12px', color: '#9ca3af', margin: '3px 0 0' }}>
-                            {loading ? 'Chargement…' : `${parcels.length} colis au total`}
-                        </p>
+                <div style={{ 
+                    display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: 'white', 
+                    padding: '16px 20px', borderRadius: '16px', border: '1px solid #F0EDE8' 
+                }}>
+                    <div style={{ 
+                        width: '42px', height: '42px', borderRadius: '12px', 
+                        backgroundColor: '#fdfbf7', display: 'flex', 
+                        alignItems: 'center', justifyContent: 'center' 
+                    }}>
+                        <Package2 size={20} style={{ color: '#C3AB7E' }} />
                     </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={handleSync} disabled={syncing || loading} style={{
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            height: '38px', padding: '0 16px', borderRadius: '10px',
-                            backgroundColor: '#111', color: 'white',
-                            fontFamily: F, fontSize: '12px', fontWeight: '600',
-                            cursor: syncing ? 'not-allowed' : 'pointer',
-                        }}>
-                            {syncing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
-                            Synchroniser Guepex
-                        </button>
-                        <button onClick={load} disabled={loading} style={{
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            height: '38px', padding: '0 16px', borderRadius: '10px',
-                            border: '1px solid #E5E7EB', backgroundColor: 'white',
-                            fontFamily: F, fontSize: '12px', fontWeight: '600',
-                            cursor: loading ? 'not-allowed' : 'pointer', color: '#374151',
-                            opacity: loading ? 0.6 : 1,
-                        }}>
-                            <RotateCcw size={13} style={loading ? { animation: 'spin 1s linear infinite' } : {}} />
-                            Actualiser
-                        </button>
+                    <div>
+                        <h1 style={{ fontFamily: F, fontSize: '20px', fontWeight: '700', color: '#111', margin: 0 }}>Expéditions Guepex</h1>
+                        <p style={{ fontFamily: F, fontSize: '11px', color: '#9ca3af', fontWeight: '600', margin: '2px 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {syncing ? (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <Loader2 size={10} className="animate-spin" /> Synchronisation en cours…
+                                </span>
+                            ) : `${parcels.length} colis synchronisés`}
+                        </p>
                     </div>
                 </div>
 
@@ -372,20 +368,22 @@ export default function Expeditions() {
                                         >
                                             <History size={13} />
                                         </button>
-                                        <button title="Annuler" onClick={() => handleCancel(p)} disabled={cancelling === p.tracking} style={{
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            width: '28px', height: '28px', borderRadius: '7px',
-                                            border: '1px solid #FECACA', backgroundColor: 'white',
-                                            cursor: cancelling === p.tracking ? 'not-allowed' : 'pointer',
-                                            color: '#EF4444', opacity: cancelling === p.tracking ? 0.5 : 1,
-                                        }}
-                                            onMouseEnter={e => { if (cancelling !== p.tracking) e.currentTarget.style.backgroundColor = '#FEF2F2'; }}
-                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}
-                                        >
-                                            {cancelling === p.tracking
-                                                ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
-                                                : <XCircle size={13} />}
-                                        </button>
+                                        {!['Annulé', 'Livré', 'delivered', 'cancelled', 'returned'].includes(p.status) && (
+                                            <button title="Annuler" onClick={() => handleCancel(p)} disabled={cancelling === p.tracking} style={{
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                width: '28px', height: '28px', borderRadius: '7px',
+                                                border: '1px solid #FECACA', backgroundColor: 'white',
+                                                cursor: cancelling === p.tracking ? 'not-allowed' : 'pointer',
+                                                color: '#EF4444', opacity: cancelling === p.tracking ? 0.5 : 1,
+                                            }}
+                                                onMouseEnter={e => { if (cancelling !== p.tracking) e.currentTarget.style.backgroundColor = '#FEF2F2'; }}
+                                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}
+                                            >
+                                                {cancelling === p.tracking
+                                                    ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                                                    : <XCircle size={13} />}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))

@@ -1,15 +1,21 @@
+import { supabase } from '../lib/supabase';
+
 const PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guepex-proxy`;
 
 const guepexFetch = async (endpoint, options = {}) => {
   try {
     const proxyUrl = `${PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
+    
+    // Get current session JWT, fall back to anon key
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     const fetchOptions = {
       method: options.method || 'GET',
       headers: {
         'Content-Type': 'application/json',
         'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Authorization': `Bearer ${token}`,
       },
     };
 
