@@ -91,6 +91,8 @@ const Orders = () => {
     const [bulkProgress, setBulkProgress] = useState('');
     // Delivery stats
     const [deliveryStats, setDeliveryStats] = useState({ total: 0, in_transit: 0, delivered: 0, returned: 0 });
+    // Detected rate for confirmation
+    const [detectedRate, setDetectedRate] = useState(null);
 
     // Debounce Search Term
     useEffect(() => {
@@ -112,31 +114,65 @@ const Orders = () => {
                 page, 
                 limit: 10, 
                 status: statusFilter === 'ALL' ? null : statusFilter.toLowerCase(), 
+                guepex_status: guepexFilter,
                 search: debouncedSearch 
             });
             setLoading(false);
         };
         load();
-    }, [page, statusFilter, debouncedSearch]);
+    }, [page, statusFilter, guepexFilter, debouncedSearch, fetchOrders]);
 
-    // Fetch delivery stats on mount
+    // Fetch delivery stats on mount and on filter change
     useEffect(() => {
-        getGuepexDeliveryStats().then(setDeliveryStats).catch(console.error);
-    }, []);
+        const fetchFilteredStats = async () => {
+            try {
+                const { getFilteredStats } = await import('../../api/orders.api');
+                const stats = await getFilteredStats({
+                    status: statusFilter === 'ALL' ? null : statusFilter.toLowerCase(),
+                    guepex_status: guepexFilter,
+                    search: debouncedSearch
+                });
+                setDeliveryStats(stats);
+            } catch (error) {
+                console.error("Error fetching filtered stats", error);
+            }
+        };
+        fetchFilteredStats();
+    }, [statusFilter, guepexFilter, debouncedSearch]);
 
-    const refreshDeliveryStats = () =>
-        getGuepexDeliveryStats().then(setDeliveryStats).catch(console.error);
+    const refreshDeliveryStats = async () => {
+        try {
+            const { getFilteredStats } = await import('../../api/orders.api');
+            const stats = await getFilteredStats({
+                status: statusFilter === 'ALL' ? null : statusFilter.toLowerCase(),
+                guepex_status: guepexFilter,
+                search: debouncedSearch
+            });
+            setDeliveryStats(stats);
+        } catch (error) {
+            console.error("Error refreshing stats", error);
+        }
+    };
 
     const handleExpandRow = async (orderId) => {
         if (expandedOrderId === orderId) {
             setExpandedOrderId(null);
             setExpandedOrderDetails(null);
+            setDetectedRate(null);
         } else {
             setExpandedOrderId(orderId);
             setLoadingDetails(true);
             try {
-                const { data } = await getOrderById(orderId);
-                setExpandedOrderDetails(data);
+                const result = await getOrderById(orderId);
+                console.log('[DEBUG] expandedOrderDetails:', result.data);
+                console.log('[DEBUG] order_number:', result.data?.order_number);
+                setExpandedOrderDetails(result.data);
+                
+                // Fetch shipping rate for wilaya
+                if (result.data?.wilaya) {
+                    const rate = useAdminStore.getState().getShippingRate(result.data.wilaya);
+                    setDetectedRate(rate);
+                }
             } catch (error) {
                 console.error("Error fetching order details", error);
                 toast.error("Erreur lors du chargement des détails");
@@ -264,48 +300,48 @@ const Orders = () => {
             </div>
         </div>
 
-        {/* ── Order status tabs ── */}
-        <div style={{
-            backgroundColor: 'white', borderRadius: '12px', border: '1px solid #F0EDE8',
-            padding: '5px', display: 'flex', gap: '3px', flexWrap: 'wrap',
-        }}>
-            {[{ value: 'ALL', label: 'Tout' }, ...ORDER_STATUSES].map((s) => (
-                <button
-                    key={s.value}
-                    onClick={() => setStatusFilter(s.value)}
-                    style={{
-                        padding: '7px 16px', borderRadius: '9px', border: 'none',
-                        fontSize: '12px', fontWeight: '600',
-                        fontFamily: "'Jost', sans-serif",
-                        backgroundColor: statusFilter === s.value ? '#111111' : 'transparent',
-                        color: statusFilter === s.value ? 'white' : '#6B7280',
-                        cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
-                    }}
-                    onMouseEnter={e => { if (statusFilter !== s.value) { e.currentTarget.style.backgroundColor = '#F3F4F6'; e.currentTarget.style.color = '#111'; } }}
-                    onMouseLeave={e => { if (statusFilter !== s.value) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#6B7280'; } }}
-                >
-                    {s.label}
-                </button>
-            ))}
-        </div>
+            {/* Filter Bar */}
+            <div style={{
+                backgroundColor: 'white', borderRadius: '12px', border: '1px solid #F0EDE8',
+                padding: '5px', display: 'flex', gap: '3px', flexWrap: 'wrap',
+            }}>
+                {[{ value: 'ALL', label: 'Tout' }, ...ORDER_STATUSES].map((s) => (
+                    <button
+                        key={s.value}
+                        onClick={() => setStatusFilter(s.value)}
+                        style={{
+                            padding: '7px 16px', borderRadius: '9px', border: 'none',
+                            fontSize: '12px', fontWeight: '600',
+                            fontFamily: "'Jost', sans-serif",
+                            backgroundColor: statusFilter === s.value ? '#111111' : 'transparent',
+                            color: statusFilter === s.value ? 'white' : '#6B7280',
+                            cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
+                        }}
+                        onMouseEnter={e => { if (statusFilter !== s.value) { e.currentTarget.style.backgroundColor = '#F3F4F6'; e.currentTarget.style.color = '#111'; } }}
+                        onMouseLeave={e => { if (statusFilter !== s.value) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#6B7280'; } }}
+                    >
+                        {s.label}
+                    </button>
+                ))}
+            </div>
 
-        {/* ── Delivery stats ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '12px' }}>
-            {[
-                { label: 'Total expéditions', value: deliveryStats.total },
-                { label: 'En transit',         value: deliveryStats.in_transit },
-                { label: 'Livrées',            value: deliveryStats.delivered },
-                { label: 'Retournées',         value: deliveryStats.returned },
-            ].map((stat) => (
-                <div key={stat.label} style={{
-                    backgroundColor: 'white', borderRadius: '14px',
-                    border: '1px solid #F0EDE8', padding: '16px 18px',
-                }}>
-                    <div style={{ fontFamily: "'Jost', sans-serif", fontSize: '26px', fontWeight: '700', color: '#111', lineHeight: 1 }}>{stat.value}</div>
-                    <div style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '5px' }}>{stat.label}</div>
-                </div>
-            ))}
-        </div>
+            {/* ── Delivery stats ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '12px' }}>
+                {[
+                    { label: 'Total expéditions', value: deliveryStats.total },
+                    { label: 'En transit',         value: deliveryStats.in_transit },
+                    { label: 'Livrées',            value: deliveryStats.delivered },
+                    { label: 'Retournées',         value: deliveryStats.returned },
+                ].map((stat) => (
+                    <div key={stat.label} style={{
+                        backgroundColor: 'white', borderRadius: '14px',
+                        border: '1px solid #F0EDE8', padding: '16px 18px',
+                    }}>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: '26px', fontWeight: '700', color: '#111', lineHeight: 1 }}>{stat.value}</div>
+                        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: '11px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '5px' }}>{stat.label}</div>
+                    </div>
+                ))}
+            </div>
 
         {/* ── Guepex filter tabs ── */}
         <div style={{
@@ -444,7 +480,7 @@ const Orders = () => {
                                                 </div>
                                             </td>
 
-                                            {/* Livraison (tracking badge) */}
+                                            {/* Livraison (tracking / info) */}
                                             <td style={{ padding: '16px 24px' }}>
                                                 {tracking ? (
                                                     <div style={{
@@ -458,7 +494,14 @@ const Orders = () => {
                                                         </span>
                                                     </div>
                                                 ) : (
-                                                    <span style={{ color: '#d1d5db', fontSize: '14px', fontWeight: '700' }}>—</span>
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-tight">
+                                                            {order.wilaya || order.delivery_wilaya || '—'}
+                                                        </span>
+                                                        <span className="text-[9px] font-bold text-gray-400 uppercase">
+                                                            {order.delivery_type === 'bureau' ? 'Point relais' : 'À domicile'}
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </td>
 
@@ -475,7 +518,12 @@ const Orders = () => {
                                                         {gMeta.label}
                                                     </span>
                                                 ) : (
-                                                    <span style={{ color: '#d1d5db', fontSize: '14px', fontWeight: '700' }}>—</span>
+                                                    <span style={{ 
+                                                        fontSize: '9px', fontWeight: '800', color: '#d1d5db', 
+                                                        textTransform: 'uppercase', letterSpacing: '0.05em' 
+                                                    }}>
+                                                        Non expédié
+                                                    </span>
                                                 )}
                                             </td>
 
@@ -646,13 +694,25 @@ const Orders = () => {
                                                                                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C3AB7E', border: '1px solid #F0EDE8' }}>
                                                                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                                                                                 </div>
-                                                                                <div>
-                                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Frais de livraison</p>
-                                                                                    <p className="text-sm font-bold text-[#111111]">
-                                                                                        {expandedOrderDetails.delivery_fee != null
-                                                                                            ? `+ ${expandedOrderDetails.delivery_fee.toLocaleString('fr-DZ')} DA`
-                                                                                            : (expandedOrderDetails.wilaya && getDeliveryFee(expandedOrderDetails.wilaya, expandedOrderDetails.delivery_type) ? `+ ${getDeliveryFee(expandedOrderDetails.wilaya, expandedOrderDetails.delivery_type).toLocaleString('fr-DZ')} DA` : '—')}
+                                                                                <div style={{ flex: 1 }}>
+                                                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                                                                        Frais de livraison {detectedRate && `(Zone ${detectedRate.zone} - ${expandedOrderDetails.wilaya})`}
                                                                                     </p>
+                                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                                        <input 
+                                                                                            type="number"
+                                                                                            value={expandedOrderDetails.frais_livraison || expandedOrderDetails.delivery_fee || 0}
+                                                                                            onChange={(e) => setExpandedOrderDetails(prev => ({ ...prev, frais_livraison: parseInt(e.target.value) }))}
+                                                                                            style={{
+                                                                                                width: '90px', padding: '4px 8px', borderRadius: '8px',
+                                                                                                border: '1px solid #F0EDE8', fontSize: '14px', fontWeight: '700'
+                                                                                            }}
+                                                                                        />
+                                                                                        <span className="text-sm font-bold text-[#111111]">DA</span>
+                                                                                        {detectedRate && !expandedOrderDetails.frais_livraison && !expandedOrderDetails.delivery_fee && (
+                                                                                            <span className="text-[10px] text-blue-500 font-bold uppercase">(Auto-détecté)</span>
+                                                                                        )}
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>

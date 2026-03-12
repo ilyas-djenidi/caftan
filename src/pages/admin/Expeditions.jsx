@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Search, RefreshCw, Loader2, Package2,
     Copy, CheckCircle2, ChevronLeft, ChevronRight,
-    History, XCircle, RotateCcw,
+    History, XCircle, RotateCcw, Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getAllParcels, cancelParcel, getStatusColor } from '../../services/guepex';
-import { supabase } from '../../lib/supabase';
-import GuepexHistoryModal from '../../components/GuepexHistoryModal';
+import { getStatusColor } from '../../services/guepex';
+import { getShipments, syncShipments, getShipmentLabelUrl } from '../../api/shipments.api';
 
 /* ─── Constants ─────────────────────────────────────────────────── */
 const F = "'Jost', sans-serif";
@@ -25,13 +24,13 @@ const TABS = [
 
 // Maps tab key → Guepex last_status values
 const TAB_MAP = {
-    non_expedie: ['En préparation', 'Pas encore expédié', 'Pas encore ramassé', 'A vérifier'],
-    cree:        ['Ramassé', 'Expédié', 'Centre', 'Transfert', 'En passation', 'Prêt à expédier', 'Prêt pour livreur'],
-    en_transit:  ['Vers Wilaya', 'En transit', 'Reçu à Wilaya', 'En localisation', 'Sorti en livraison', 'En attente du client'],
-    livre:       ['Livré'],
+    non_expedie: ['En préparation', 'Pas encore expédié', 'Pas encore ramassé', 'A vérifier', 'non_expedie'],
+    cree:        ['Ramassé', 'Expédié', 'Centre', 'Transfert', 'En passation', 'Prêt à expédier', 'Prêt pour livreur', 'created', 'Créée'],
+    en_transit:  ['Vers Wilaya', 'En transit', 'Reçu à Wilaya', 'En localisation', 'Sorti en livraison', 'En attente du client', 'in_transit'],
+    livre:       ['Livré', 'delivered'],
     retourne:    ['Tentative échouée', 'En alerte', 'Bloqué', 'En attente', 'Annulé', 'Echèc livraison',
                   'Retour vers centre', 'Retourné au centre', 'Retour transfert', 'Retour groupé',
-                  'Retour à retirer', 'Retour vers vendeur', 'Retourné au vendeur', 'Echange échoué'],
+                  'Retour à retirer', 'Retour vers vendeur', 'Retourné au vendeur', 'Echange échoué', 'returned', 'cancelled'],
 };
 
 /* ─── Helpers ──────────────────────────────────────────────────── */
@@ -44,55 +43,6 @@ const fmtDate = (iso) => {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
 };
-
-/* ─── Fetch ALL parcels from Guepex (auto-paginate) ───────────── */
-async function fetchAllParcels() {
-    let all = [];
-    let page = 1;
-
-    while (true) {
-        const res = await getAllParcels(page);
-        if (res?.error) break;
-
-        // Real response: { has_more, total_data, data: [...], links }
-        const batch = res?.data || res?.results || (Array.isArray(res) ? res : []);
-        all = [...all, ...batch];
-
-        if (!res?.has_more || batch.length === 0) break;
-        page++;
-        if (page > 50) break; // safety cap
-    }
-    return all;
-}
-
-/* ─── Map raw Guepex parcel to display shape ──────────────────── */
-function mapParcel(p) {
-    return {
-        tracking:  p.tracking  || '—',
-        name:      `${p.firstname || ''} ${p.familyname || ''}`.trim() || '—',
-        phone:     p.contact_phone || '—',
-        wilaya:    p.to_wilaya_name || '—',
-        commune:   p.to_commune_name || '—',
-        weight:    p.weight != null ? `${p.weight} kg` : '—',
-        date:      p.date_expedition || p.date_creation || null,
-        status:    p.last_status || null,
-        order_id:  p.order_id || '—',
-        raw:       p,
-    };
-}
-
-/* ─── Fetch linked Supabase orders keyed by order_number ─────── */
-async function fetchDbOrders() {
-    const { data } = await supabase
-        .from('orders')
-        .select('id, order_number, customer_name, customer_phone, wilaya')
-        .order('created_at', { ascending: false });
-    const map = {};
-    for (const o of (data || [])) {
-        if (o.order_number) map[o.order_number] = o;
-    }
-    return map;
-}
 
 /* ─── Sub-components ─────────────────────────────────────────── */
 function Sk({ h = 13, w = '70%' }) {
@@ -151,6 +101,7 @@ function CopyBtn({ text }) {
 export default function Expeditions() {
     const [parcels, setParcels]     = useState([]);
     const [loading, setLoading]     = useState(true);
+    const [syncing, setSyncing]     = useState(false);
     const [page, setPage]           = useState(1);
     const [search, setSearch]       = useState('');
     const [tab, setTab]             = useState('Tous');
@@ -160,17 +111,8 @@ export default function Expeditions() {
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const [raw, dbMap] = await Promise.all([fetchAllParcels(), fetchDbOrders()]);
-            const mapped = raw.map(p => {
-                const m = mapParcel(p);
-                // Try to enrich from DB if order_id matches
-                const db = dbMap[m.order_id] || {};
-                if (m.name === '—' && db.customer_name) m.name = db.customer_name;
-                if (m.phone === '—' && db.customer_phone) m.phone = db.customer_phone;
-                if (m.wilaya === '—' && db.wilaya) m.wilaya = db.wilaya;
-                return m;
-            });
-            setParcels(mapped);
+            const { data } = await getShipments();
+            setParcels(data || []);
         } catch (e) {
             toast.error('Erreur de chargement');
             console.error(e);
@@ -182,6 +124,29 @@ export default function Expeditions() {
     useEffect(() => { load(); }, [load]);
     useEffect(() => { setPage(1); }, [tab, search]);
 
+    const handleSync = async () => {
+        setSyncing(true);
+        try {
+            const { count } = await syncShipments();
+            toast.success(`${count} colis synchronisés`);
+            load();
+        } catch (e) {
+            console.error(e);
+            toast.error('Échec de la synchronisation');
+        } finally {
+            setSyncing(false);
+        }
+    };
+
+    const handlePrintLabel = async (tracking) => {
+        try {
+            const url = await getShipmentLabelUrl(tracking);
+            window.open(url, '_blank');
+        } catch (e) {
+            toast.error('Erreur PDF');
+        }
+    };
+
     const filtered = useMemo(() => {
         const allowed = TAB_MAP[tab] || null;
         const q = search.toLowerCase();
@@ -189,10 +154,10 @@ export default function Expeditions() {
             const matchTab    = !allowed || allowed.includes(p.status);
             const matchSearch = !q
                 || p.tracking.toLowerCase().includes(q)
-                || p.name.toLowerCase().includes(q)
-                || p.phone.toLowerCase().includes(q)
-                || p.wilaya.toLowerCase().includes(q)
-                || p.order_id.toLowerCase().includes(q);
+                || (p.destinataire_nom || '').toLowerCase().includes(q)
+                || (p.destinataire_phone || '').toLowerCase().includes(q)
+                || (p.wilaya || '').toLowerCase().includes(q)
+                || (p.order_number || '').toLowerCase().includes(q);
             return matchTab && matchSearch;
         });
     }, [parcels, tab, search]);
@@ -200,7 +165,7 @@ export default function Expeditions() {
     const stats = useMemo(() => ({
         total:     parcels.length,
         transit:   parcels.filter(p => TAB_MAP.en_transit.includes(p.status)).length,
-        delivered: parcels.filter(p => p.status === 'Livré').length,
+        delivered: parcels.filter(p => TAB_MAP.livre.includes(p.status)).length,
         returned:  parcels.filter(p => TAB_MAP.retourne.includes(p.status)).length,
     }), [parcels]);
 
@@ -209,19 +174,24 @@ export default function Expeditions() {
     const slice      = filtered.slice((sp - 1) * PAGE_SIZE, sp * PAGE_SIZE);
 
     const handleCancel = async (p) => {
-        if (!window.confirm(`Annuler ${p.tracking} ?`)) return;
+        if (!window.confirm(`Annuler le colis ${p.tracking} ?`)) return;
         setCancelling(p.tracking);
-        const res = await cancelParcel(p.tracking);
-        setCancelling(null);
-        if (res?.error) { toast.error(res.error); return; }
-        setParcels(prev => prev.map(x => x.tracking === p.tracking ? { ...x, status: 'Annulé' } : x));
-        toast.success('Colis annulé');
+        try {
+            const { cancelParcel } = await import('../../services/guepex');
+            const res = await cancelParcel(p.tracking);
+            if (res.error) throw new Error(res.error);
+            toast.success('Colis annulé');
+            load();
+        } catch (e) {
+            toast.error(e.message || 'Erreur d\'annulation');
+        } finally {
+            setCancelling(null);
+        }
     };
 
-    const COLS = '130px 90px 1.5fr 130px 120px 110px 75px 65px 76px';
-
-    const th = { padding: '11px 8px', fontFamily: F, fontSize: '10px', fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.09em', whiteSpace: 'nowrap' };
-    const td = { padding: '0 8px', fontFamily: F, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+    const COLS = '100px 80px 1fr 110px 100px 90px 80px 60px 120px';
+    const th = { fontFamily: F, fontSize: '11px', fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '12px 8px' };
+    const td = { padding: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 
     return (
         <>
@@ -237,17 +207,29 @@ export default function Expeditions() {
                             {loading ? 'Chargement…' : `${parcels.length} colis au total`}
                         </p>
                     </div>
-                    <button onClick={load} disabled={loading} style={{
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                        height: '38px', padding: '0 16px', borderRadius: '10px',
-                        border: '1px solid #E5E7EB', backgroundColor: 'white',
-                        fontFamily: F, fontSize: '12px', fontWeight: '600',
-                        cursor: loading ? 'not-allowed' : 'pointer', color: '#374151',
-                        opacity: loading ? 0.6 : 1,
-                    }}>
-                        <RotateCcw size={13} style={loading ? { animation: 'spin 1s linear infinite' } : {}} />
-                        Actualiser
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={handleSync} disabled={syncing || loading} style={{
+                            display: 'flex', alignItems: 'center', gap: '6px',
+                            height: '38px', padding: '0 16px', borderRadius: '10px',
+                            backgroundColor: '#111', color: 'white',
+                            fontFamily: F, fontSize: '12px', fontWeight: '600',
+                            cursor: syncing ? 'not-allowed' : 'pointer',
+                        }}>
+                            {syncing ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+                            Synchroniser Guepex
+                        </button>
+                        <button onClick={load} disabled={loading} style={{
+                            display: 'flex', alignItems: 'center', gap: '6px',
+                            height: '38px', padding: '0 16px', borderRadius: '10px',
+                            border: '1px solid #E5E7EB', backgroundColor: 'white',
+                            fontFamily: F, fontSize: '12px', fontWeight: '600',
+                            cursor: loading ? 'not-allowed' : 'pointer', color: '#374151',
+                            opacity: loading ? 0.6 : 1,
+                        }}>
+                            <RotateCcw size={13} style={loading ? { animation: 'spin 1s linear infinite' } : {}} />
+                            Actualiser
+                        </button>
+                    </div>
                 </div>
 
                 {/* Stats */}
@@ -343,31 +325,42 @@ export default function Expeditions() {
                                     </div>
 
                                     {/* Commande */}
-                                    <div style={{ ...td, fontSize: '11px', color: '#6B7280' }}>{p.order_id}</div>
+                                    <div style={{ ...td, fontSize: '11px', color: '#6B7280' }}>{p.order_number || '—'}</div>
 
                                     {/* Destinataire + statut */}
                                     <div style={{ ...td, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#111' }}>{p.name}</span>
+                                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#111' }}>{p.destinataire_nom}</span>
                                         <Badge status={p.status} />
                                     </div>
 
                                     {/* Téléphone */}
-                                    <div style={{ ...td, fontSize: '12px', color: '#374151', fontWeight: '500' }}>{p.phone}</div>
+                                    <div style={{ ...td, fontSize: '12px', color: '#374151', fontWeight: '500' }}>{p.destinataire_phone}</div>
 
                                     {/* Wilaya */}
                                     <div style={{ ...td, fontSize: '12px', color: '#374151' }}>{p.wilaya}</div>
 
                                     {/* Ville */}
-                                    <div style={{ ...td, fontSize: '12px', color: '#6B7280' }}>{p.commune}</div>
+                                    <div style={{ ...td, fontSize: '12px', color: '#6B7280' }}>{p.ville}</div>
 
                                     {/* Date */}
-                                    <div style={{ ...td, fontSize: '11px', color: '#9ca3af' }}>{fmtDate(p.date)}</div>
+                                    <div style={{ ...td, fontSize: '11px', color: '#9ca3af' }}>{fmtDate(p.date_expedition)}</div>
 
                                     {/* Poids */}
-                                    <div style={{ ...td, fontSize: '12px', color: '#6B7280' }}>{p.weight}</div>
+                                    <div style={{ ...td, fontSize: '12px', color: '#6B7280' }}>{p.weight || '—'}</div>
 
                                     {/* Actions */}
                                     <div style={{ padding: '0 8px', display: 'flex', gap: '4px' }}>
+                                        <button title="Imprimer Étiquette" onClick={() => handlePrintLabel(p.tracking)} style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            width: '28px', height: '28px', borderRadius: '7px',
+                                            border: '1px solid #E5E7EB', backgroundColor: 'white',
+                                            cursor: 'pointer', color: '#111',
+                                        }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F3F4F6'}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}
+                                        >
+                                            <Printer size={13} />
+                                        </button>
                                         <button title="Historique" onClick={() => setHistTrack(p.tracking)} style={{
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             width: '28px', height: '28px', borderRadius: '7px',
@@ -447,3 +440,4 @@ export default function Expeditions() {
         </>
     );
 }
+

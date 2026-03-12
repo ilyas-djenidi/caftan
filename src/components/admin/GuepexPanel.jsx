@@ -19,11 +19,11 @@ import { updateOrderGuepex, updateOrderStatus } from '../../api/orders.api';
 const DA = (n) => (Number(n) || 0).toLocaleString('fr-FR') + ' DA';
 
 const STATUS_MAP = {
-    created:    { label: 'Créée',       color: '#6b7280', bg: '#F3F4F6' },
-    in_transit: { label: 'En transit',  color: '#3b82f6', bg: '#EFF6FF' },
-    delivered:  { label: 'Livrée',      color: '#22c55e', bg: '#F0FDF4' },
-    returned:   { label: 'Retournée',   color: '#ef4444', bg: '#FEF2F2' },
-    cancelled:  { label: 'Annulée',     color: '#ef4444', bg: '#FEF2F2' },
+    created: { label: 'Créée', color: '#6b7280', bg: '#F3F4F6' },
+    in_transit: { label: 'En transit', color: '#3b82f6', bg: '#EFF6FF' },
+    delivered: { label: 'Livrée', color: '#22c55e', bg: '#F0FDF4' },
+    returned: { label: 'Retournée', color: '#ef4444', bg: '#FEF2F2' },
+    cancelled: { label: 'Annulée', color: '#ef4444', bg: '#FEF2F2' },
 };
 
 function StatusBadge({ status }) {
@@ -72,6 +72,9 @@ const norm = (s) => (s || '')
     .replace(/[''\-_\s]+/g, '');
 
 function CreateShipmentForm({ order, onCreated }) {
+    console.log('[DEBUG] GuepexPanel order prop:', order);
+    console.log('[DEBUG] order_number in panel:', order?.order_number);
+
     const [wilayas, setWilayas] = useState([]);
     const [communes, setCommunes] = useState([]);
     const [form, setForm] = useState({
@@ -109,25 +112,33 @@ function CreateShipmentForm({ order, onCreated }) {
     useEffect(() => {
         if (!wilayas.length) return;
 
-        // Auto-select wilayaId if order.wilaya exists and not yet set
-        if (!form.wilayaId && order.wilaya) {
-            const orderNorm = norm(order.wilaya);
+        let nextId = form.wilayaId;
+        const actualWilaya = order.wilaya || order.delivery_wilaya;
+
+        // Auto-select wilayaId if missing
+        if (!nextId && actualWilaya) {
+            const orderNorm = norm(actualWilaya);
             const match = wilayas.find(w => norm(w.name) === orderNorm || norm(w.wilaya_name) === orderNorm);
             if (match) {
-                setForm(f => ({ ...f, wilayaId: String(match.id) }));
+                nextId = String(match.id);
+                setForm(f => ({ ...f, wilayaId: nextId }));
             }
         }
 
-        // Sync fee based on current wilaya selection
-        if (form.wilayaId) {
-            const wilaya = wilayas.find(w => String(w.id) === String(form.wilayaId));
-            const wilayaName = wilaya?.name || order.wilaya; 
-            if (wilayaName) {
-                const fee = getDeliveryFee(wilayaName, form.deliveryType === 'center' ? 'bureau' : 'home');
-                setForm(f => ({ ...f, fee: (fee !== undefined && fee !== null) ? fee : '' }));
+        // Always calculate fee if we have a wilaya (either from selection or order)
+        const currentSelectedWilaya = wilayas.find(w => String(w.id) === nextId);
+        const targetWilayaName = currentSelectedWilaya?.name || actualWilaya;
+
+        if (targetWilayaName) {
+            const calculatedFee = getDeliveryFee(targetWilayaName, form.deliveryType === 'center' ? 'bureau' : 'home');
+            // Prioritize order.delivery_fee on first load if it matches target
+            const finalFee = (form.fee === '' && order.delivery_fee) ? order.delivery_fee : calculatedFee;
+
+            if (finalFee !== undefined && finalFee !== null) {
+                setForm(f => ({ ...f, fee: finalFee }));
             }
         }
-    }, [wilayas, form.wilayaId, form.deliveryType, order.wilaya]);
+    }, [wilayas, form.wilayaId, form.deliveryType, order.wilaya, order.delivery_wilaya, order.delivery_fee]);
 
     // 2. Load communes when wilayaId changes
     useEffect(() => {
@@ -137,7 +148,9 @@ function CreateShipmentForm({ order, onCreated }) {
             if (!data?.error) {
                 const list = Array.isArray(data) ? data : (data?.data || data?.results || []);
                 setCommunes(list);
-                const cityRaw = order.city || order.notes || '';
+
+                // Smart city match
+                const cityRaw = order.city || order.delivery_commune || order.notes || '';
                 if (cityRaw && list.length > 0) {
                     const cityNorm = norm(cityRaw);
                     const match = list.find(c => norm(c.name) === cityNorm || norm(c.commune_name) === cityNorm);
@@ -145,8 +158,8 @@ function CreateShipmentForm({ order, onCreated }) {
                 }
             }
             setLoadingCommunes(false);
-        });
-    }, [form.wilayaId]);
+        }).catch(() => setLoadingCommunes(false));
+    }, [form.wilayaId, order.city, order.delivery_commune, order.notes]);
 
     const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
 
@@ -155,30 +168,59 @@ function CreateShipmentForm({ order, onCreated }) {
         if (!form.wilayaId) { toast.error('Veuillez sélectionner une wilaya'); return; }
         setSubmitting(true);
         try {
+            const rawOrderNum = String(order.order_number || '')
+                .replace(/[^a-zA-Z0-9]/g, '');
+
+            const orderId = rawOrderNum || order.id.replace(/-/g, '').slice(0, 20);
+
+            console.log('[Guepex] Final orderId:', orderId,
+                '| raw order_number:', order.order_number,
+                '| raw id:', order.id);
+
+            if (!orderId) {
+                toast.error('Numéro de commande introuvable');
+                setSubmitting(false);
+                return;
+            }
+
             const parcelPayload = {
-                client_name: form.name,
-                client_phone: form.phone,
+                order_id: orderId,
+                from_wilaya_name: import.meta.env.VITE_STORE_WILAYA || 'Sétif',
+                firstname: form.name.split(' ')[0] || form.name,
+                familyname: form.name.split(' ').slice(1).join(' ') || '.',
+                contact_phone: form.phone,
                 address: form.address,
-                wilaya: form.wilayaId,
-                commune: form.communeId || undefined,
-                delivery_type: form.deliveryType,
-                weight: Number(form.weight),
-                price: Number(form.declaration),
-                note: form.note || undefined,
+                to_wilaya_name: wilayas.find(w => String(w.id) === form.wilayaId)?.name || order.wilaya,
+                to_commune_name: communes.find(c => String(c.id) === form.communeId)?.name || order.city || order.notes,
+                product_list: 'Articles',
+                price: Number(order.total_price) || 0,
+                do_insurance: false,
+                declared_value: Number(order.total_price) || 0,
+                length: 10, width: 10, height: 10,
+                weight: Number(form.weight) || 1,
+                freeshipping: true,
+                is_stopdesk: form.deliveryType === 'center',
+                has_exchange: false,
             };
 
-            const result = await createParcel(parcelPayload);
-            if (result?.error) throw new Error(result.error);
-            const trackingId = result?.tracking_id || result?.id || result?.reference || result?.parcel_id;
-            
+            console.log('[PROD DEBUG] Full payload:', JSON.stringify([parcelPayload], null, 2));
+            const result = await createParcel([parcelPayload]); // ARRAY required
+
+            const parcelResult = result[orderId];
+            if (!parcelResult?.success) {
+                throw new Error(parcelResult?.message || 'Erreur Guepex sans message');
+            }
+
+            const trackingId = parcelResult.tracking;
+
             await updateOrderGuepex(order.id, {
-                guepex_tracking_id: String(trackingId),
+                guepex_tracking: String(trackingId),
                 guepex_status: 'created',
                 guepex_created_at: new Date().toISOString(),
                 delivery_type: form.deliveryType,
-                delivery_fee: form.fee ? Number(form.fee) : null,
+                frais_livraison: form.fee ? Number(form.fee) : null,
             });
-            await updateOrderStatus(order.id, 'SHIPPED');
+            await updateOrderStatus(order.id, 'shipped');
             toast.success(`Expédition créée ✓ Tracking: ${trackingId}`);
             onCreated();
         } catch (err) {
@@ -282,9 +324,9 @@ function TrackingInfo({ order, onRefresh }) {
                 <StatusBadge status={status} />
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-                <button style={btnStyle} onClick={() => setShowHistory(true)}><History size={14}/> Histoire</button>
-                <button style={btnStyle} onClick={handleRefresh} disabled={refreshing}><RefreshCw size={14}/> Actualiser</button>
-                <button style={{ ...btnStyle, backgroundColor: '#111', color: 'white', border: 'none' }} onClick={handlePrint}><Printer size={14}/> Imprimer</button>
+                <button style={btnStyle} onClick={() => setShowHistory(true)}><History size={14} /> Histoire</button>
+                <button style={btnStyle} onClick={handleRefresh} disabled={refreshing}><RefreshCw size={14} /> Actualiser</button>
+                <button style={{ ...btnStyle, backgroundColor: '#111', color: 'white', border: 'none' }} onClick={handlePrint}><Printer size={14} /> Imprimer</button>
             </div>
             {showHistory && <GuepexHistoryModal tracking={trackingId} onClose={() => setShowHistory(false)} />}
         </>
@@ -293,8 +335,25 @@ function TrackingInfo({ order, onRefresh }) {
 
 export default function GuepexPanel({ order, onRefresh }) {
     const status = order?.status?.toUpperCase();
-    if (!['CONFIRMED', 'PAID', 'SHIPPED', 'DELIVERED'].includes(status)) return null;
+    if (!['PENDING', 'CONFIRMED', 'PAID', 'SHIPPED', 'DELIVERED'].includes(status)) return null;
+
     const hasTracking = Boolean(order.guepex_tracking_id || order.guepex_tracking);
+
+    // Option B: Show loading if status is CONFIRMED (auto-confirm flow is running)
+    if (status === 'CONFIRMED' && !hasTracking) {
+        return (
+            <div style={{ marginTop: '12px' }}>
+                <Card style={{ backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
+                    <div className="flex items-center gap-3">
+                        <Loader2 className="animate-spin text-blue-500" size={18} />
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: '#0369a1' }}>
+                            Traitement de l'expédition Guepex en cours...
+                        </span>
+                    </div>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div style={{ marginTop: '8px' }}>
@@ -302,7 +361,11 @@ export default function GuepexPanel({ order, onRefresh }) {
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
                     <Truck size={20} /> <span style={{ fontWeight: 'bold' }}>Livraison Guepex</span>
                 </div>
-                {hasTracking ? <TrackingInfo order={order} onRefresh={onRefresh} /> : <CreateShipmentForm order={order} onCreated={onRefresh} />}
+                {hasTracking ? (
+                    <TrackingInfo order={order} onRefresh={onRefresh} />
+                ) : (
+                    <CreateShipmentForm order={order} onCreated={onRefresh} />
+                )}
             </Card>
         </div>
     );

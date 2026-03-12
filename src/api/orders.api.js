@@ -148,10 +148,21 @@ export const getAdminOrders = async (params = {}) => {
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
+    // Internal Status Filter
     if (params.status && params.status !== 'ALL') {
-        query = query.eq('status', params.status);
+        query = query.eq('status', params.status.toLowerCase());
     }
 
+    // Guepex Status Filter
+    if (params.guepex_status && params.guepex_status !== 'ALL') {
+        if (params.guepex_status === 'none') {
+            query = query.is('guepex_tracking', null);
+        } else {
+            query = query.eq('guepex_status', params.guepex_status);
+        }
+    }
+
+    // Multi-field Search
     if (params.search) {
         query = query.or(`order_number.ilike.%${params.search}%,customer_name.ilike.%${params.search}%,customer_phone.ilike.%${params.search}%`);
     }
@@ -175,7 +186,27 @@ export const getAdminOrders = async (params = {}) => {
     };
 };
 
+/**
+ * Confirms an order, auto-fills delivery fees, and creates a shipment on Guepex.
+ */
+export const confirmOrder = async (orderId) => {
+    const { data, error } = await supabase
+        .from('orders')
+        .update({ status: 'confirmed' })
+        .eq('id', orderId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return { data };
+};
+
 export const updateOrderStatus = async (id, status) => {
+    // Specialized logic for confirmation
+    if (status === 'confirmed') {
+        return confirmOrder(id);
+    }
+
     const { data, error } = await supabase
         .from('orders')
         .update({ status })
@@ -283,6 +314,31 @@ export const getShippedOrders = async () => {
     }
 
     return data || [];
+};
+
+export const getFilteredStats = async (params = {}) => {
+    let baseQuery = supabase.from('orders').select('*', { count: 'exact', head: true });
+
+    if (params.status && params.status !== 'ALL') {
+        baseQuery = baseQuery.eq('status', params.status.toLowerCase());
+    }
+    if (params.search) {
+        baseQuery = baseQuery.or(`order_number.ilike.%${params.search}%,customer_name.ilike.%${params.search}%,customer_phone.ilike.%${params.search}%`);
+    }
+
+    const [total, transit, delivered, returned] = await Promise.all([
+        baseQuery,
+        baseQuery.clone().in('guepex_status', ['En transit', 'in_transit', 'Vers Wilaya', 'Reçu à Wilaya', 'Sorti en livraison']),
+        baseQuery.clone().in('guepex_status', ['Livré', 'delivered']),
+        baseQuery.clone().in('guepex_status', ['Retourné au vendeur', 'returned', 'Annulé', 'cancelled', 'Retour vers vendeur', 'Retourné au centre'])
+    ]);
+
+    return {
+        total: total.count || 0,
+        in_transit: transit.count || 0,
+        delivered: delivered.count || 0,
+        returned: returned.count || 0
+    };
 };
 
 

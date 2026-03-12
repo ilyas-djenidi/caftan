@@ -15,6 +15,9 @@ DROP POLICY IF EXISTS "Allow public insert to order_items" ON public.order_items
 DROP POLICY IF EXISTS "Allow authenticated full access to orders" ON public.orders;
 DROP POLICY IF EXISTS "Allow authenticated full access to order_items" ON public.order_items;
 DROP POLICY IF EXISTS "Allow anon reading orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow anon update orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow anon reading items" ON public.order_items;
+DROP POLICY IF EXISTS "Allow anon update items" ON public.order_items;
 
 -- 3. CUSTOMER POLICIES: Allow anyone (anon) to place an order
 CREATE POLICY "Allow public insert to orders"
@@ -47,9 +50,21 @@ CREATE POLICY "Allow anon reading orders"
   TO anon
   USING (true);
 
+CREATE POLICY "Allow anon update orders"
+  ON public.orders FOR UPDATE
+  TO anon
+  USING (true)
+  WITH CHECK (true);
+
 CREATE POLICY "Allow anon reading items"
   ON public.order_items FOR SELECT
   TO anon
   USING (true);
+
+CREATE POLICY "Allow anon update items"
+  ON public.order_items FOR UPDATE
+  TO anon
+  USING (true)
+  WITH CHECK (true);
 
 -- NOTICE: After running this, try placing a new order from your website.
