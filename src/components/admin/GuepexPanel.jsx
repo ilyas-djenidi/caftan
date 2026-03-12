@@ -293,9 +293,18 @@ function TrackingInfo({ order, onRefresh }) {
     const trackingId = order.guepex_tracking_id || order.guepex_tracking;
     const status = order.guepex_status || 'created';
 
-    const handlePrint = () => {
-        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/guepex-proxy?endpoint=/parcels/${trackingId}/sticker/`;
-        window.open(url, '_blank');
+    const handlePrint = async () => {
+        try {
+            const data = await getParcel(trackingId);
+            const labelUrl = data?.label || data?.data?.[0]?.label;
+            if (labelUrl) {
+                window.open(labelUrl, '_blank');
+            } else {
+                toast.error('URL étiquette introuvable');
+            }
+        } catch (err) {
+            toast.error('Erreur impression');
+        }
     };
 
     const handleRefresh = async () => {
@@ -338,22 +347,6 @@ export default function GuepexPanel({ order, onRefresh }) {
     if (!['PENDING', 'CONFIRMED', 'PAID', 'SHIPPED', 'DELIVERED'].includes(status)) return null;
 
     const hasTracking = Boolean(order.guepex_tracking_id || order.guepex_tracking);
-
-    // Option B: Show loading if status is CONFIRMED (auto-confirm flow is running)
-    if (status === 'CONFIRMED' && !hasTracking) {
-        return (
-            <div style={{ marginTop: '12px' }}>
-                <Card style={{ backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }}>
-                    <div className="flex items-center gap-3">
-                        <Loader2 className="animate-spin text-blue-500" size={18} />
-                        <span style={{ fontSize: '13px', fontWeight: '700', color: '#0369a1' }}>
-                            Traitement de l'expédition Guepex en cours...
-                        </span>
-                    </div>
-                </Card>
-            </div>
-        );
-    }
 
     return (
         <div style={{ marginTop: '8px' }}>
