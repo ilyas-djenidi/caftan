@@ -31,6 +31,11 @@ const guepexFetch = async (endpoint, options = {}) => {
       return { error: `HTTP ${res.status}: ${text}` };
     }
 
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/pdf')) {
+      return await res.blob();
+    }
+
     return await res.json();
   } catch (err) {
     console.error('[Guepex] Fetch error:', err);
@@ -63,6 +68,9 @@ export const getParcel = (tracking) =>
 
 export const getParcelHistory = (tracking) =>
   guepexFetch(`/histories/${tracking}/`);
+
+export const getPrintLabel = (tracking) =>
+  guepexFetch(`/parcels/${tracking}/print/`);
 
 export const createParcel = (data) =>
   guepexFetch('/parcels/', {

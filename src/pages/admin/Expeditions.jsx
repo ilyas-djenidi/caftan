@@ -5,8 +5,8 @@ import {
     History, XCircle, RotateCcw, Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getShipments, syncShipments, getShipmentLabelUrl, updateShipmentStatus } from '../../api/shipments.api';
-import { getStatusColor, cancelParcel } from '../../services/guepex';
+import { getShipments, syncShipments, updateShipmentStatus } from '../../api/shipments.api';
+import { getStatusColor, cancelParcel, getPrintLabel } from '../../services/guepex';
 
 /* ─── Constants ─────────────────────────────────────────────────── */
 const F = "'Jost', sans-serif";
@@ -141,11 +141,24 @@ export default function Expeditions() {
     };
 
     const handlePrintLabel = async (tracking) => {
+        const loadingToast = toast.loading('Préparation du bordereau...');
         try {
-            const url = await getShipmentLabelUrl(tracking);
-            window.open(url, '_blank');
+            const res = await getPrintLabel(tracking);
+            
+            if (res instanceof Blob) {
+                const url = URL.createObjectURL(res);
+                window.open(url, '_blank');
+            } else if (res?.data?.[0]?.label || res?.label) {
+                window.open(res.data?.[0]?.label || res.label, '_blank');
+            } else {
+                console.error('Print response format unknown:', res);
+                toast.error('Format de bordereau inconnu');
+            }
         } catch (e) {
+            console.error('Print error:', e);
             toast.error('Erreur PDF');
+        } finally {
+            toast.dismiss(loadingToast);
         }
     };
 
