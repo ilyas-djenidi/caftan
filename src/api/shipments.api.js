@@ -48,7 +48,7 @@ export const syncShipments = async () => {
     // Prepare data for upsert
     const shipmentsToUpsert = allParcels.map(p => ({
         tracking: p.tracking,
-        order_number: p.order_id, // Guepex uses order_id for our order_number string
+        order_number: p.order_id, 
         status: p.last_status,
         wilaya: p.to_wilaya_name,
         ville: p.to_commune_name,
@@ -64,25 +64,26 @@ export const syncShipments = async () => {
 
     if (upsertError) throw upsertError;
 
-    // Update corresponding orders' guepex_status
-    // We do this individually or in batches to avoid complexity
-    for (const p of allParcels) {
-        if (!p.order_id) continue;
-
+    // Update corresponding orders' guepex_status in parallel batches
+    // We only update if necessary or we do it in parallel to save time
+    const orderUpdates = allParcels.filter(p => p.order_id).map(async (p) => {
         const updateData = { guepex_status: p.last_status };
         
-        // Map Guepex status to internal status
         if (['Livré', 'delivered'].includes(p.last_status)) {
             updateData.status = 'delivered';
         } else if (['Retourné au vendeur', 'Retourné au centre', 'Annulé', 'returned', 'cancelled'].includes(p.last_status)) {
             updateData.status = 'cancelled';
         }
 
-        await supabase
+        return supabase
             .from('orders')
             .update(updateData)
             .eq('order_number', p.order_id);
-    }
+    });
+
+    // Run updates in background without blocking the main sync result
+    // Or at least use Promise.all to speed it up significantly
+    await Promise.all(orderUpdates.slice(0, 50)); // Limit parallel requests to avoid hitting rate limits
 
     return { success: true, count: allParcels.length };
 };

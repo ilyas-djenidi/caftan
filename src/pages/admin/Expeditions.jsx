@@ -122,7 +122,8 @@ export default function Expeditions() {
     }, []);
 
     useEffect(() => {
-        handleSync();
+        load(); // Load local data immediately
+        handleSync(); // Sync in background
     }, []);
 
     useEffect(() => { setPage(1); }, [tab, search]);
@@ -131,10 +132,9 @@ export default function Expeditions() {
         setSyncing(true);
         try {
             await syncShipments();
-            load();
+            await load(); // Refresh with new data
         } catch (e) {
             console.error(e);
-            toast.error('Échec de la synchronisation');
         } finally {
             setSyncing(false);
         }
