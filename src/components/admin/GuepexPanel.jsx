@@ -302,8 +302,8 @@ function TrackingInfo({ order, onRefresh }) {
 
     const handlePrint = async () => {
         try {
-            const data = await getParcel(trackingId);
-            const labelUrl = data?.label || data?.data?.[0]?.label;
+            const data = await getPrintLabel(trackingId);
+            const labelUrl = data?.data?.[0]?.label;
             if (labelUrl) {
                 window.open(labelUrl, '_blank');
             } else {

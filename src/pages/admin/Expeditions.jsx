@@ -148,34 +148,17 @@ export default function Expeditions() {
         }
         const loadingToast = toast.loading('Préparation du bordereau...');
         try {
-            console.log('[Guepex] Printing tracking:', tracking);
-            
-            // 1. Try getPrintLabel
-            let res = await getPrintLabel(tracking);
-            console.log('[Guepex] getPrintLabel response:', res);
-            
-            // 2. Fallback to getParcel if no label found (GuepexPanel uses this)
-            if (!(res instanceof Blob) && !res.label && !res.data?.[0]?.label && !res.pdf_url) {
-                console.log('[Guepex] getPrintLabel failed, trying getParcel...');
-                res = await getParcel(tracking);
-                console.log('[Guepex] getParcel response:', res);
-            }
-
-            if (res instanceof Blob) {
-                const url = URL.createObjectURL(res);
-                window.open(url, '_blank');
+            const res = await getPrintLabel(tracking);
+            const labelUrl = res?.data?.[0]?.label;
+            if (labelUrl) {
+                window.open(labelUrl, '_blank');
             } else {
-                const labelUrl = res?.data?.[0]?.label || res?.label || res?.pdf_url || res?.url || res?.pdf || res?.bordereau || res?.link;
-                if (labelUrl) {
-                    window.open(labelUrl, '_blank');
-                } else {
-                    console.error('[Guepex] Print response format unknown:', res);
-                    toast.error('Format de bordereau inconnu. Voir console.');
-                }
+                toast.error('Bordereau introuvable');
+                console.error('[Guepex] Print response:', res);
             }
         } catch (e) {
-            console.error('Print error:', e);
-            toast.error('Erreur PDF');
+            toast.error('Erreur impression');
+            console.error(e);
         } finally {
             toast.dismiss(loadingToast);
         }

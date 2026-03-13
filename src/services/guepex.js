@@ -70,7 +70,7 @@ export const getParcelHistory = (tracking) =>
   guepexFetch(`/histories/${tracking}/`);
 
 export const getPrintLabel = (tracking) =>
-  guepexFetch(`/parcels/print/?tracking=${tracking}`);
+  guepexFetch(`/parcels/${tracking}/print/`);
 
 export const createParcel = (data) =>
   guepexFetch('/parcels/', {
