@@ -185,7 +185,14 @@ function CreateShipmentForm({ order, onCreated }) {
 
             const parcelPayload = {
                 order_id: orderId,
-                from_wilaya_name: import.meta.env.VITE_STORE_WILAYA || 'Sétif',
+                from_wilaya_id: Number(import.meta.env.VITE_STORE_WILAYA_ID) || 28,
+                from_commune_id: Number(import.meta.env.VITE_STORE_COMMUNE_ID) || 2810,
+                from_wilaya_name: import.meta.env.VITE_STORE_WILAYA || "M'Sila",
+                from_commune_name: import.meta.env.VITE_STORE_COMMUNE || "Berhoum",
+                from_address: `${import.meta.env.VITE_STORE_COMMUNE || "Berhoum"}, ${import.meta.env.VITE_STORE_WILAYA || "M'Sila"}`,
+                from_firstname: "Yahi Linda",
+                from_familyname: "Collection Divers..",
+                from_phone: "0656931952",
                 firstname: form.name.split(' ')[0] || form.name,
                 familyname: form.name.split(' ').slice(1).join(' ') || '.',
                 contact_phone: form.phone,

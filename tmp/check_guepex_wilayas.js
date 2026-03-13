@@ -1,5 +1,4 @@
 
-import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 
@@ -25,7 +24,7 @@ const env = getEnv();
 const PROXY_URL = `${env.VITE_SUPABASE_URL}/functions/v1/guepex-proxy`;
 
 async function checkWilayas() {
-  const endpoint = '/wilayas/?page_size=5';
+  const endpoint = '/centers/?wilaya_id=19';
   const proxyUrl = `${PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
   
   const res = await fetch(proxyUrl, {
@@ -36,8 +35,7 @@ async function checkWilayas() {
   });
   
   const data = await res.json();
-  console.log('Sample Wilayas from Guepex:');
-  console.log(JSON.stringify(data, null, 2));
+  console.log('Centers in Sétif (Wilaya 19):', JSON.stringify(data, null, 2));
 }
 
 checkWilayas();
