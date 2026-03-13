@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getShipments, syncShipments, updateShipmentStatus } from '../../api/shipments.api';
-import { getStatusColor, cancelParcel, getPrintLabel } from '../../services/guepex';
+import { getStatusColor, cancelParcel, getPrintLabel, getParcel } from '../../services/guepex';
 
 /* ─── Constants ─────────────────────────────────────────────────── */
 const F = "'Jost', sans-serif";
@@ -129,6 +129,7 @@ export default function Expeditions() {
     useEffect(() => { setPage(1); }, [tab, search]);
 
     const handleSync = async () => {
+        if (syncing) return;
         setSyncing(true);
         try {
             await syncShipments();
@@ -141,18 +142,36 @@ export default function Expeditions() {
     };
 
     const handlePrintLabel = async (tracking) => {
+        if (!tracking || tracking === '—') {
+            toast.error('ID de tracking invalide');
+            return;
+        }
         const loadingToast = toast.loading('Préparation du bordereau...');
         try {
-            const res = await getPrintLabel(tracking);
+            console.log('[Guepex] Printing tracking:', tracking);
             
+            // 1. Try getPrintLabel
+            let res = await getPrintLabel(tracking);
+            console.log('[Guepex] getPrintLabel response:', res);
+            
+            // 2. Fallback to getParcel if no label found (GuepexPanel uses this)
+            if (!(res instanceof Blob) && !res.label && !res.data?.[0]?.label && !res.pdf_url) {
+                console.log('[Guepex] getPrintLabel failed, trying getParcel...');
+                res = await getParcel(tracking);
+                console.log('[Guepex] getParcel response:', res);
+            }
+
             if (res instanceof Blob) {
                 const url = URL.createObjectURL(res);
                 window.open(url, '_blank');
-            } else if (res?.data?.[0]?.label || res?.label) {
-                window.open(res.data?.[0]?.label || res.label, '_blank');
             } else {
-                console.error('Print response format unknown:', res);
-                toast.error('Format de bordereau inconnu');
+                const labelUrl = res?.data?.[0]?.label || res?.label || res?.pdf_url || res?.url || res?.pdf || res?.bordereau || res?.link;
+                if (labelUrl) {
+                    window.open(labelUrl, '_blank');
+                } else {
+                    console.error('[Guepex] Print response format unknown:', res);
+                    toast.error('Format de bordereau inconnu. Voir console.');
+                }
             }
         } catch (e) {
             console.error('Print error:', e);

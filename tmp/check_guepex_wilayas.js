@@ -35,7 +35,13 @@ async function checkWilayas() {
   });
   
   const data = await res.json();
-  console.log('Centers in Sétif (Wilaya 19):', JSON.stringify(data, null, 2));
+  const list = data.data || data.results || data;
+  console.log('Final Wilaya Check:');
+  list.forEach(w => {
+    if (w.name.includes("Sila") || w.name.includes("tif")) {
+      console.log(`${w.id}: ${w.name}`);
+    }
+  });
 }
 
 checkWilayas();

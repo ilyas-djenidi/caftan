@@ -6,7 +6,7 @@ const guepexFetch = async (endpoint, options = {}) => {
   try {
     const proxyUrl = `${PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
     
-    // Get current session JWT, fall back to anon key
+    // Get current session JWT
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -70,7 +70,7 @@ export const getParcelHistory = (tracking) =>
   guepexFetch(`/histories/${tracking}/`);
 
 export const getPrintLabel = (tracking) =>
-  guepexFetch(`/parcels/${tracking}/print/`);
+  guepexFetch(`/parcels/print/?tracking=${tracking}`);
 
 export const createParcel = (data) =>
   guepexFetch('/parcels/', {
