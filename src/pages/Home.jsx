@@ -44,6 +44,7 @@ export default function Home() {
         image_url: '/hero-bg.jpg'
     });
     const [categoryCounts, setCategoryCounts] = useState({ caftans: 0, sacs: 0, accessoires: 0 });
+    const [heroImageLoaded, setHeroImageLoaded] = useState(false);
 
     useEffect(() => {
         const loadPageData = async () => {
@@ -96,8 +97,24 @@ export default function Home() {
         { name: t('nav.packs'), to: '/packs', image: '/images/cat_packs.jpg', count: t('packs.label') },
     ];
 
-    // Removed global LogoLoader during initial page load to show the shell immediately
-    // if (loading) return <LogoLoader />;
+    // Show LogoLoader if either the data is loading OR the hero image hasn't loaded yet
+    if (loading || (heroData.image_url && !heroImageLoaded)) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <LogoLoader />
+                {/* Preload the image invisibly so heroImageLoaded can turn true */}
+                {heroData.image_url && (
+                    <img 
+                        src={heroData.image_url} 
+                        alt="" 
+                        onLoad={() => setHeroImageLoaded(true)} 
+                        style={{ display: 'none' }} 
+                        fetchPriority="high"
+                    />
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white">
@@ -108,13 +125,16 @@ export default function Home() {
                 minHeight: '100vh',
                 width: '100%',
                 overflow: 'hidden',
-                backgroundColor: '#f8f5f0',
+                backgroundColor: 'white',
                 paddingTop: '80px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
             }}>
                 {heroData.image_url && (
                     <img 
                         src={heroData.image_url} 
-                        alt="Hero background"
+                        alt=""
                         fetchPriority="high"
                         style={{
                             position: 'absolute', inset: 0,
