@@ -116,6 +116,27 @@ const ProductCard = ({ product, onClick }) => {
                     </div>
                 )}
 
+                {/* Promotion Badge */}
+                {!isSoldOut && product.on_sale && product.original_price > product.price && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        backgroundColor: '#B8963E',
+                        color: 'white',
+                        padding: '4px 10px',
+                        fontSize: '10px',
+                        fontFamily: "'Jost', sans-serif",
+                        fontWeight: '700',
+                        letterSpacing: '0.05em',
+                        zIndex: 2,
+                        borderRadius: '4px',
+                        boxShadow: '0 2px 8px rgba(184,150,62,0.3)',
+                    }}>
+                        -{Math.round(((product.original_price - product.price) / product.original_price) * 100)}%
+                    </div>
+                )}
+
             </div>
 
             {/* Card Info */}
@@ -140,23 +161,47 @@ const ProductCard = ({ product, onClick }) => {
                 </p>
 
                 {/* Price */}
-                <p style={{
-                    fontFamily: "'Jost', sans-serif",
-                    fontSize: '15px',
-                    fontWeight: '600',
-                    color: '#6B6458',
-                    margin: '0',
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '2px',
+                    margin: '0'
                 }}>
-                    {product.price?.toLocaleString('fr-FR')}
-                    <span style={{
-                        fontSize: '11px',
-                        fontWeight: '500',
-                        marginLeft: '4px',
-                        letterSpacing: '0.05em',
+                    {product.on_sale && product.original_price > product.price && (
+                        <p style={{
+                            fontFamily: "'Jost', sans-serif",
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            color: '#9CA3AF',
+                            textDecoration: 'line-through',
+                            margin: '0',
+                            lineHeight: '1.2'
+                        }}>
+                            {product.original_price?.toLocaleString('fr-FR')}
+                            <span style={{ fontSize: '10px', marginLeft: '2px' }}>DA</span>
+                        </p>
+                    )}
+                    <p style={{
+                        fontFamily: "'Jost', sans-serif",
+                        fontSize: '17px',
+                        fontWeight: '600',
+                        color: product.on_sale ? '#B8963E' : '#6B6458',
+                        margin: '0',
+                        lineHeight: '1.2'
                     }}>
-                        DA
-                    </span>
-                </p>
+                        {product.price?.toLocaleString('fr-FR')}
+                        <span style={{
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            marginLeft: '4px',
+                            letterSpacing: '0.05em',
+                        }}>
+                            DA
+                        </span>
+                    </p>
+                </div>
             </div>
         </div>
     );

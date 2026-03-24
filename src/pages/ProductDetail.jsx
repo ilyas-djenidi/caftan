@@ -266,9 +266,21 @@ export default function ProductDetail() {
                         </div>
                         <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} {t('product.reviews')})</span>
                     </div>
-                    <p style={{ fontSize: '24px', fontWeight: '600', color: '#1A1714', margin: '0', fontFamily: "'Jost', sans-serif" }}>
-                        {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '13px', color: '#B8963E', fontWeight: '500' }}>DA</span>
-                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', margin: '0' }}>
+                        {product.on_sale && product.original_price > product.price && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <p style={{ fontSize: '20px', fontWeight: '400', color: '#9CA3AF', textDecoration: 'line-through', margin: '0', fontFamily: "'Jost', sans-serif" }}>
+                                    {product.original_price?.toLocaleString('fr-FR')} <span style={{ fontSize: '11px' }}>DA</span>
+                                </p>
+                                <span style={{ backgroundColor: '#B8963E', color: 'white', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '700' }}>
+                                    -{Math.round(((product.original_price - product.price) / product.original_price) * 100)}%
+                                </span>
+                            </div>
+                        )}
+                        <p style={{ fontSize: '30px', fontWeight: '600', color: product.on_sale ? '#B8963E' : '#1A1714', margin: '0', fontFamily: "'Jost', sans-serif", lineHeight: '1.1' }}>
+                            {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '15px', color: '#B8963E', fontWeight: '500' }}>DA</span>
+                        </p>
+                    </div>
                 </div>
 
                 {/* Product Grid */}
@@ -365,9 +377,21 @@ export default function ProductDetail() {
                                 </div>
                                 <span style={{ fontSize: '11px', color: '#6B6458' }}>{averageRating || 0} ({reviews.length} {t('product.reviews')})</span>
                             </div>
-                            <p style={{ fontSize: '28px', fontWeight: '600', color: '#1A1714', margin: '0 0 16px', fontFamily: "'Jost', sans-serif" }}>
-                                {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '15px', color: '#B8963E', fontWeight: '500' }}>DA</span>
-                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', marginBottom: '20px' }}>
+                                {product.on_sale && product.original_price > product.price && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <p style={{ fontSize: '24px', fontWeight: '400', color: '#9CA3AF', textDecoration: 'line-through', margin: '0', fontFamily: "'Jost', sans-serif" }}>
+                                            {product.original_price?.toLocaleString('fr-FR')} <span style={{ fontSize: '12px' }}>DA</span>
+                                        </p>
+                                        <span style={{ backgroundColor: '#B8963E', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '14px', fontWeight: '700', boxShadow: '0 2px 10px rgba(184,150,62,0.2)' }}>
+                                            -{Math.round(((product.original_price - product.price) / product.original_price) * 100)}%
+                                        </span>
+                                    </div>
+                                )}
+                                <p style={{ fontSize: '36px', fontWeight: '600', color: product.on_sale ? '#B8963E' : '#1A1714', margin: '0', fontFamily: "'Jost', sans-serif", lineHeight: '1.1' }}>
+                                    {product.price?.toLocaleString('fr-FR')} <span style={{ fontSize: '18px', color: '#B8963E', fontWeight: '500' }}>DA</span>
+                                </p>
+                            </div>
                         </div>
 
                         {/* Stock Info */}
