@@ -66,13 +66,14 @@ export const updateHeroBanner = async (id, formData) => {
     const file = formData.get('image');
 
     if (file instanceof File) {
-        const fileExt = file.name.split('.').pop();
+        const compressed = await compressImage(file);
+        const fileExt = compressed.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
         const filePath = `hero/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
             .from('caftan-images')
-            .upload(filePath, file);
+            .upload(filePath, compressed);
         if (!uploadError) {
             const { data: { publicUrl } } = supabase.storage
                 .from('caftan-images')

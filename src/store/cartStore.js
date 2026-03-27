@@ -47,12 +47,12 @@ export const useCartStore = create(
             updateQuantity: (key, quantity) => {
                 if (quantity < 1) {
                     set({ items: get().items.filter((i) => i.key !== key) });
-                    return;
+                    return true;
                 }
 
                 const item = get().items.find(i => i.key === key);
                 if (item && item.product.stock_count !== undefined && item.product.stock_count !== null && quantity > item.product.stock_count) {
-                    return; // Prevent exceeding stock
+                    return false; // Prevent exceeding stock
                 }
 
                 set({
@@ -60,6 +60,7 @@ export const useCartStore = create(
                         i.key === key ? { ...i, quantity } : i
                     ),
                 });
+                return true;
             },
 
             clearCart: () => set({ items: [] }),

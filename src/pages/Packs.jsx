@@ -5,6 +5,7 @@ import { getPacks } from '../api/packs.api';
 import { useCartStore } from '../store/cartStore';
 import { getImageUrl } from '../utils';
 import { useTranslation } from 'react-i18next';
+import { showStockLimitToast } from '../utils/notifications';
 
 export default function Packs() {
     const { t, i18n } = useTranslation();
@@ -27,7 +28,7 @@ export default function Packs() {
     }, []);
 
     const handleAddToCart = (pack) => {
-        addItem({
+        const success = addItem({
             ...pack,
             id: pack.id,
             name: pack.name_fr,
@@ -35,7 +36,12 @@ export default function Packs() {
             is_pack: true,
             image: pack.image_url
         });
-        openDrawer();
+        
+        if (success) {
+            openDrawer();
+        } else {
+            showStockLimitToast();
+        }
     };
 
     const getPackName = (pack) => {

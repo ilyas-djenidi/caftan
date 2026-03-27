@@ -5,6 +5,7 @@ import { ShoppingBag, X, Trash2, ArrowRight } from 'lucide-react';
 import { getImageUrl } from '../../utils';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { showStockLimitToast } from '../../utils/notifications';
 
 export default function CartDrawer() {
     const { t } = useTranslation();
@@ -157,8 +158,8 @@ export default function CartDrawer() {
                                                             <button
                                                                 onClick={() => {
                                                                     const success = updateQuantity(item.key, item.quantity + 1);
-                                                                    if (p.stock_count !== undefined && item.quantity >= p.stock_count) {
-                                                                        toast.error("Limite de stock atteinte.");
+                                                                    if (!success) {
+                                                                        showStockLimitToast();
                                                                     }
                                                                 }}
                                                                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#111111' }}>+</button>

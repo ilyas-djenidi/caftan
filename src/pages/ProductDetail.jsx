@@ -11,6 +11,7 @@ import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { getImageUrl, formatPrice } from '../utils';
 import { useTranslation } from 'react-i18next';
+import { showStockLimitToast } from '../utils/notifications';
 
 export default function ProductDetail() {
     const { t, i18n } = useTranslation();
@@ -144,7 +145,7 @@ export default function ProductDetail() {
         if (success) {
             openDrawer();
         } else {
-            toast.error("Limite de stock atteinte pour cet article.");
+            showStockLimitToast();
         }
     };
 
