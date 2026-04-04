@@ -10,6 +10,7 @@ export default function Contact() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        phone: '',
         message: ''
     });
     const [isSuccess, setIsSuccess] = useState(false);
@@ -23,6 +24,7 @@ export default function Contact() {
                 .insert([{
                     sender_name: formData.name,
                     email: formData.email,
+                    phone: formData.phone,
                     subject: '',
                     body: formData.message,
                     status: 'unread'
@@ -36,7 +38,7 @@ export default function Contact() {
                 throw error;
             }
             setIsSuccess(true);
-            setFormData({ name: '', email: '', message: '' });
+            setFormData({ name: '', email: '', phone: '', message: '' });
             setTimeout(() => setIsSuccess(false), 5000); // Hide after 5 seconds
         } catch (error) {
             console.error('Contact error:', error);
@@ -116,6 +118,28 @@ export default function Contact() {
                             <input
                                 required type="email" name="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
                                 placeholder={t('contact.emailPlaceholder')}
+                                style={{
+                                    width: '100%', padding: '12px 14px', backgroundColor: '#F5F5F5',
+                                    border: '1.5px solid transparent', borderRadius: '10px',
+                                    fontFamily: "'Jost', sans-serif", fontSize: '13px', fontWeight: '300',
+                                    color: '#1A1714', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box',
+                                }}
+                                onFocus={e => e.target.style.borderColor = '#B8963E'}
+                                onBlur={e => e.target.style.borderColor = 'transparent'}
+                            />
+                        </div>
+
+                        {/* Phone */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <label style={{
+                                fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '400',
+                                color: '#1A1714', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em'
+                            }}>
+                                {t('contact.phone', 'Téléphone')}
+                            </label>
+                            <input
+                                required type="tel" name="phone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                placeholder={t('contact.phonePlaceholder', '05 40 00 00 00')}
                                 style={{
                                     width: '100%', padding: '12px 14px', backgroundColor: '#F5F5F5',
                                     border: '1.5px solid transparent', borderRadius: '10px',

@@ -462,6 +462,39 @@ export default function Products() {
                                 </div>
                             </div>
 
+                            {/* Section: Models */}
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>Modèles (Numéros)</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(modelNum => {
+                                        const modelStr = modelNum.toString();
+                                        return (
+                                        <button
+                                            key={modelStr} type="button"
+                                            onClick={() => {
+                                                const models = formData.attributes?.filter(a => a.type === 'model') || [];
+                                                const exists = models.find(a => a.value === modelStr);
+                                                if (exists) {
+                                                    setFormData(prev => ({ ...prev, attributes: prev.attributes.filter(a => !(a.type === 'model' && a.value === modelStr)) }));
+                                                } else {
+                                                    setFormData(prev => ({ ...prev, attributes: [...(prev.attributes || []), { type: 'model', value: modelStr, label: modelStr, is_available: true }] }));
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: '800',
+                                                border: formData.attributes?.find(a => a.type === 'model' && a.value === modelStr)
+                                                    ? '2px solid #C3AB7E' : '1px solid #F0EDE8',
+                                                backgroundColor: formData.attributes?.find(a => a.type === 'model' && a.value === modelStr)
+                                                    ? '#FDF6E7' : 'white',
+                                                color: formData.attributes?.find(a => a.type === 'model' && a.value === modelStr)
+                                                    ? '#C3AB7E' : '#6b7280',
+                                                cursor: 'pointer', transition: 'all 0.2s'
+                                            }}
+                                        >{modelStr}</button>
+                                    )})}
+                                </div>
+                            </div>
+
                             {/* Section 7: Toggles */}
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                                 {[

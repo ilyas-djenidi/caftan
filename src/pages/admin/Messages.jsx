@@ -10,6 +10,16 @@ export default function Messages() {
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [expandedIds, setExpandedIds] = useState(new Set());
+
+    const toggleExpand = (id) => {
+        setExpandedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
 
     useEffect(() => {
         fetchMessages();
@@ -119,8 +129,11 @@ export default function Messages() {
                                                 <UserCircle2 size={20} style={{ color: '#C3AB7E' }} />
                                             </div>
                                             <div className="flex flex-col gap-1 items-start text-left">
-                                                <span className={`text-[#111111] ${!msg.is_read ? 'font-bold' : 'font-medium'}`}>{msg.sender_name || 'Inconnu'}</span>
-                                                <span className="text-xs text-[#C3AB7E] font-medium">{msg.email}</span>
+                                                <span className={`text-[#111111] ${!msg.is_read ? 'font-bold' : 'font-medium'}`}>{msg.sender_name || msg.name || 'Inconnu'}</span>
+                                                <span className="text-xs text-[#C3AB7E] font-medium">
+                                                    {msg.email}
+                                                    {msg.phone && <span className="text-gray-400 font-normal ml-2">| {msg.phone}</span>}
+                                                </span>
                                                 <span className="text-[10px] text-gray-400 uppercase font-bold mt-1">
                                                     {format(new Date(msg.created_at), 'd MMM yyyy, HH:mm', { locale: fr })}
                                                 </span>
@@ -140,7 +153,19 @@ export default function Messages() {
                                     <td style={{ padding: '16px 24px', maxWidth: '300px' }} className="w-full-mobile md:w-auto">
                                         <div className="flex items-start gap-2">
                                             <MessageSquare size={14} className="text-gray-300 mt-1 flex-shrink-0 hidden sm:block" />
-                                            <p className="text-sm text-gray-600 line-clamp-2" style={{ textAlign: 'left' }}>{msg.body}</p>
+                                            <div className="flex flex-col items-start gap-1 w-full">
+                                                <p className={`text-sm text-gray-600 ${expandedIds.has(msg.id) ? '' : 'line-clamp-2'}`} style={{ textAlign: 'left', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                                    {msg.body}
+                                                </p>
+                                                {msg.body && msg.body.length > 50 && (
+                                                    <button 
+                                                        onClick={() => toggleExpand(msg.id)}
+                                                        className="text-[10px] text-[#C3AB7E] font-bold uppercase hover:underline mt-1"
+                                                    >
+                                                        {expandedIds.has(msg.id) ? 'Voir moins' : 'Voir tout'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
 

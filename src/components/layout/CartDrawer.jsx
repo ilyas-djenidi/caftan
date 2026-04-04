@@ -102,8 +102,14 @@ export default function CartDrawer() {
                                             || p.cover_image_url
                                             || p.image_url;
 
-                                        const sizeText = item.size || 'NO SIZE';
-                                        const colorText = item.colorName || item.color || 'NO COLOR';
+                                        const sizeText = item.size && item.size !== 'nosize' ? item.size : null;
+                                        
+                                        const colorAttr = p.attributes?.find(a => a.type === 'color' && a.value === item.color);
+                                        const colorText = colorAttr ? colorAttr.label : (item.color !== 'nocolor' ? item.color : null);
+                                        
+                                        const modelText = item.model && item.model !== 'nomodel' ? `Modèle ${item.model}` : null;
+
+                                        const variantText = [sizeText, colorText, modelText].filter(Boolean).join(' • ');
 
                                         return (
                                             <div key={item.key} style={{
@@ -131,16 +137,18 @@ export default function CartDrawer() {
                                                                 {p.name_fr || p.name}
                                                             </h3>
                                                         </div>
-                                                        <p style={{
-                                                            margin: '4px 0 0',
-                                                            fontSize: '11px',
-                                                            color: '#9ca3af',
-                                                            fontWeight: '600',
-                                                            textTransform: 'uppercase',
-                                                            letterSpacing: '0.05em'
-                                                        }}>
-                                                            {sizeText} • {colorText}
-                                                        </p>
+                                                        {variantText && (
+                                                            <p style={{
+                                                                margin: '4px 0 0',
+                                                                fontSize: '11px',
+                                                                color: '#9ca3af',
+                                                                fontWeight: '600',
+                                                                textTransform: 'uppercase',
+                                                                letterSpacing: '0.05em'
+                                                            }}>
+                                                                {variantText}
+                                                            </p>
+                                                        )}
                                                     </div>
 
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>

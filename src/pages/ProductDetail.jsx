@@ -24,6 +24,7 @@ export default function ProductDetail() {
     const [quantity, setQuantity] = useState(1);
     const [selectedSize, setSelectedSize] = useState('');
     const [selectedColor, setSelectedColor] = useState('');
+    const [selectedModel, setSelectedModel] = useState('');
     const [activeTab, setActiveTab] = useState('description');
     const [reviews, setReviews] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +53,9 @@ export default function ProductDetail() {
                         (a.name && (a.name.toLowerCase() === 'color' || a.name.toLowerCase() === 'couleur'))
                     );
                     if (colors.length > 0) setSelectedColor(colors[0].value);
+
+                    const modelsAttr = data.attributes.filter(a => a.type && a.type.toLowerCase() === 'model');
+                    if (modelsAttr.length > 0) setSelectedModel(modelsAttr[0].value);
                 }
 
                 // Fetch related products (same category if possible, or just recent)
@@ -131,16 +135,20 @@ export default function ProductDetail() {
         (a.name && (a.name.toLowerCase() === 'color' || a.name.toLowerCase() === 'couleur'))
     ) || [];
 
+    const models = product.attributes?.filter(a => a.type && a.type.toLowerCase() === 'model') || [];
+
     // DEBUG — check what attributes actually come back from Supabase
     console.log('[ProductDetail] raw attributes:', product.attributes);
     console.log('[ProductDetail] sizes found:', sizes);
     console.log('[ProductDetail] colors found:', colors);
+    console.log('[ProductDetail] models found:', models);
 
 
     const handleAddToCart = () => {
         const sizeToAdd = selectedSize || (sizes[0]?.value) || null;
         const colorToAdd = selectedColor || (colors[0]?.value) || null;
-        const success = addItem(product, sizeToAdd, colorToAdd, quantity);
+        const modelToAdd = selectedModel || (models[0]?.value) || null;
+        const success = addItem(product, sizeToAdd, colorToAdd, modelToAdd, quantity);
 
         if (success) {
             openDrawer();
@@ -448,6 +456,29 @@ export default function ProductDetail() {
                                         >
                                             <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: c.value }} />
                                         </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Selectors — Models */}
+                        {models.length > 0 && (
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '10px', fontWeight: '600' }}>
+                                    {i18n.language === 'ar' ? 'الموديل' : 'Modèle'}
+                                </label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {models.map(m => (
+                                        <button key={m.id || m.value} onClick={() => setSelectedModel(m.value)}
+                                            style={{
+                                                minWidth: '48px', height: '40px', borderRadius: '10px',
+                                                border: selectedModel === m.value ? '2px solid #1A1714' : '1px solid #E8E2D6',
+                                                backgroundColor: selectedModel === m.value ? '#1A1714' : 'transparent',
+                                                color: selectedModel === m.value ? 'white' : '#1A1714',
+                                                fontWeight: '500', fontSize: '12px', transition: 'all 0.2s', cursor: 'pointer',
+                                                padding: '0 14px', fontFamily: "'Jost', sans-serif"
+                                            }}
+                                        >{m.value}</button>
                                     ))}
                                 </div>
                             </div>

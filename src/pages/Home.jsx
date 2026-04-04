@@ -18,19 +18,19 @@ export default function Home() {
     const [accessoiresProducts, setAccessoiresProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [contactLoading, setContactLoading] = useState(false);
-    const [contactData, setContactData] = useState({ name: '', email: '', message: '' });
+    const [contactData, setContactData] = useState({ name: '', email: '', phone: '', message: '' });
 
     const handleContactSubmit = async (e) => {
         e.preventDefault();
         setContactLoading(true);
         try {
             const { error } = await supabase.from('messages').insert([{
-                name: contactData.name, email: contactData.email,
+                name: contactData.name, email: contactData.email, phone: contactData.phone,
                 subject: '', message: contactData.message, status: 'unread'
             }]);
             if (error) throw error;
             toast.success('Message envoyé avec succès !');
-            setContactData({ name: '', email: '', message: '' });
+            setContactData({ name: '', email: '', phone: '', message: '' });
         } catch {
             toast.error('Une erreur est survenue.');
         } finally {
@@ -430,7 +430,7 @@ export default function Home() {
                     <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontFamily: 'serif', textAlign: 'center', marginBottom: '40px', lineHeight: 1.2, whiteSpace: 'pre-line' }}>{t('contact.title')}</h2>
 
                     <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }} className="md:grid-cols-3">
                             <div>
                                 <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>{t('contact.name')}</label>
                                 <input required value={contactData.name} onChange={e => setContactData({ ...contactData, name: e.target.value })} placeholder={t('contact.namePlaceholder')} style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
@@ -438,6 +438,10 @@ export default function Home() {
                             <div>
                                 <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>{t('contact.email')}</label>
                                 <input required type="email" value={contactData.email} onChange={e => setContactData({ ...contactData, email: e.target.value })} placeholder={t('contact.emailPlaceholder')} style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9ca3af', display: 'block', marginBottom: '4px' }}>{t('contact.phone', 'Téléphone')}</label>
+                                <input required type="tel" value={contactData.phone} onChange={e => setContactData({ ...contactData, phone: e.target.value })} placeholder={t('contact.phonePlaceholder', '05...')} style={{ width: '100%', height: '44px', borderBottom: '1px solid #e5e7eb', outline: 'none', backgroundColor: 'transparent', transition: 'border-color 0.3s' }} className="focus:border-[#111]" />
                             </div>
                         </div>
                         <div>

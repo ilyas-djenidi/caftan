@@ -10,9 +10,13 @@ export const useCartStore = create(
             openDrawer: () => set({ isDrawerOpen: true }),
             closeDrawer: () => set({ isDrawerOpen: false }),
 
-            addItem: (product, size, color, quantity = 1) => {
+            addItem: (product, size, color, model, quantity = 1) => {
                 const { items } = get();
-                const key = `${product.id}-${size}-${color}`;
+                // Ensure null or undefined are treated consistently in the key
+                const sizeKey = size || 'nosize';
+                const colorKey = color || 'nocolor';
+                const modelKey = model || 'nomodel';
+                const key = `${product.id}-${sizeKey}-${colorKey}-${modelKey}`;
                 const existing = items.find((i) => i.key === key);
 
                 const currentQty = existing ? existing.quantity : 0;
@@ -33,7 +37,7 @@ export const useCartStore = create(
                     set({
                         items: [
                             ...items,
-                            { key, product, size, color, quantity, addedAt: Date.now() },
+                            { key, product, size, color, model, quantity, addedAt: Date.now() },
                         ],
                     });
                 }

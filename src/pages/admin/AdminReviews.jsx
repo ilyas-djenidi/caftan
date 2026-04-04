@@ -8,6 +8,16 @@ export default function AdminReviews() {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState(null);
+    const [expandedIds, setExpandedIds] = useState(new Set());
+
+    const toggleExpand = (id) => {
+        setExpandedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
 
     useEffect(() => {
         fetchReviews();
@@ -133,7 +143,19 @@ export default function AdminReviews() {
                                     <td className="w-full-mobile md:w-auto" style={{ padding: '16px 24px', maxWidth: '300px' }}>
                                         <div className="flex items-start gap-2">
                                             <MessageSquare size={14} className="text-gray-300 mt-1 flex-shrink-0 hidden sm:block" />
-                                            <p className="text-sm text-gray-600 line-clamp-2" style={{ textAlign: 'left' }}>{review.comment}</p>
+                                            <div className="flex flex-col items-start gap-1 w-full">
+                                                <p className={`text-sm text-gray-600 ${expandedIds.has(review.id) ? '' : 'line-clamp-2'}`} style={{ textAlign: 'left', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                                    {review.comment}
+                                                </p>
+                                                {review.comment && review.comment.length > 50 && (
+                                                    <button 
+                                                        onClick={() => toggleExpand(review.id)}
+                                                        className="text-[10px] text-[#C3AB7E] font-bold uppercase hover:underline mt-1"
+                                                    >
+                                                        {expandedIds.has(review.id) ? 'Voir moins' : 'Voir tout'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </td>
 

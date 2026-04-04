@@ -596,7 +596,7 @@ const Orders = () => {
                                                                                     {item.product_name || item.product?.name || 'Produit'}
                                                                                 </p>
                                                                                 <p style={{ margin: '2px 0 0', fontSize: '11px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase' }}>
-                                                                                    {item.size ? `Taille ${item.size}` : ''} {item.color ? `• ${item.color}` : ''} × {item.quantity}
+                                                                                    {item.size ? (item.size.startsWith('Modèle') || item.size.startsWith('(Modèle') ? item.size.replace(/[()]/g, '') : `Taille ${item.size}`) : ''} {item.color ? `${item.size ? '• ' : ''}${item.color}` : ''} <span style={{ color: '#6B7280', marginLeft: '6px' }}>| Qté: {item.quantity}</span>
                                                                                 </p>
                                                                             </div>
                                                                             <span style={{ fontWeight: '800', fontSize: '13px', color: '#111111', whiteSpace: 'nowrap' }}>

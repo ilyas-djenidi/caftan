@@ -28,7 +28,13 @@ export default function AdminAuth() {
 
             if (authError) throw authError;
 
-            // Simple session management for mdc
+            // Restore the session in the SDK so RLS policies see an authenticated user
+            await supabase.auth.setSession({
+                access_token: data.session.access_token,
+                refresh_token: data.session.refresh_token,
+            });
+
+            // Keep legacy token for route guard checks in AdminLayout
             localStorage.setItem('admin_token', data.session.access_token);
             navigate('/admin');
         } catch (err) {

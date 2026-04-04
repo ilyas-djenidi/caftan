@@ -52,7 +52,8 @@ export default function Cart() {
                                                 <div>
                                                     <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>{item.product?.name_fr}</h3>
                                                     <p style={{ color: '#9ca3af', fontSize: '14px' }}>
-                                                        {item.size && `Taille: ${item.size}`} {item.color && ` • Couleur: ${item.color}`}
+                                                        {item.size && (item.size.startsWith('Modèle') || item.size.startsWith('(Modèle') ? item.size.replace(/[()]/g, '') : `Taille: ${item.size}`)} 
+                                                        {item.color && ` • Couleur: ${item.color}`}
                                                     </p>
                                                 </div>
                                                 <span style={{ fontSize: '18px', fontWeight: '800' }}>{((item.product?.price || 0) * item.quantity).toLocaleString('fr-FR')} DA</span>

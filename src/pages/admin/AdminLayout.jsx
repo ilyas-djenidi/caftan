@@ -17,12 +17,24 @@ export default function AdminLayout() {
     const notificationsRef = useRef(null);
     const { logout } = useAdminStore();
 
-    // Protection: Redirect if no token
+    // Protection: Redirect if no token or invalid session
     useEffect(() => {
-        const token = localStorage.getItem('admin_token');
-        if (!token) {
-            navigate('/admin/nad-auth', { replace: true });
-        }
+        const checkAuth = async () => {
+            const token = localStorage.getItem('admin_token');
+            if (!token) {
+                navigate('/admin/nad-auth', { replace: true });
+                return;
+            }
+
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) {
+                // Token exists but session is invalid, clear token and redirect
+                localStorage.removeItem('admin_token');
+                navigate('/admin/nad-auth', { replace: true });
+            }
+        };
+        
+        checkAuth();
     }, [navigate]);
 
     useEffect(() => {

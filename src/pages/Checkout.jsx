@@ -79,16 +79,23 @@ export default function Checkout() {
             if (orderError) throw orderError;
 
             // 2. Create Order Items — corrected field names
-            const orderItems = items.map(item => ({
-                order_id: orderId,
-                product_id: item.product?.id || null,
-                product_name: item.product?.name_fr || '',
-                product_image: item.product?.images?.[0]?.image_url || '',
-                quantity: item.quantity,
-                size: item.size || null,
-                color: item.color || null,
-                price_at_purchase: item.product?.price || 0
-            }));
+            const orderItems = items.map(item => {
+                const combinedSize = item.model ? (item.size ? `${item.size} (Modèle ${item.model})` : `Modèle ${item.model}`) : (item.size || null);
+                
+                const colorAttr = item.product?.attributes?.find(a => a.type === 'color' && a.value === item.color);
+                const readableColor = colorAttr ? colorAttr.label : (item.color || null);
+
+                return {
+                    order_id: orderId,
+                    product_id: item.product?.id || null,
+                    product_name: item.product?.name_fr || '',
+                    product_image: item.product?.images?.[0]?.image_url || '',
+                    quantity: item.quantity,
+                    size: combinedSize,
+                    color: readableColor,
+                    price_at_purchase: item.product?.price || 0
+                };
+            });
 
             const { error: itemsError } = await supabase
                 .from('order_items')
@@ -112,13 +119,18 @@ export default function Checkout() {
                         address: formData.address,
                         delivery_fee: deliveryFee,
                         total_price: totalPrice,
-                        items: items.map(item => ({
-                            product_name: item.product?.name_fr || '',
-                            quantity: item.quantity,
-                            price: item.product?.price || 0,
-                            size: item.size || '',
-                            color: item.color || ''
-                        }))
+                        items: items.map(item => {
+                            const colorAttr = item.product?.attributes?.find(a => a.type === 'color' && a.value === item.color);
+                            const readableColor = colorAttr ? colorAttr.label : (item.color || '');
+                            return {
+                                product_name: item.product?.name_fr || '',
+                                quantity: item.quantity,
+                                price: item.product?.price || 0,
+                                size: item.size || '',
+                                color: readableColor,
+                                model: item.model || ''
+                            };
+                        })
                     })
                 });
             } catch (webhookError) {

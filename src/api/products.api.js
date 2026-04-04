@@ -134,7 +134,10 @@ export const createProduct = async (formData) => {
         }));
         if (attributes.length > 0) {
             const { error: attrError } = await supabase.from('product_attributes').insert(attributes);
-            if (attrError) throw attrError;
+            if (attrError) {
+                console.error("Supabase Attribute Insert Error:", attrError);
+                throw attrError;
+            }
         }
     }
 
@@ -183,13 +186,19 @@ export const updateProduct = async (id, formData) => {
     // 2. Update attributes
     const attributesStr = formData.get('attributes');
     if (attributesStr) {
-        await supabase.from('product_attributes').delete().eq('product_id', id);
+        const { error: delError } = await supabase.from('product_attributes').delete().eq('product_id', id);
+        if (delError) console.error("Attr del error", delError);
+
         const attributes = JSON.parse(attributesStr).map(attr => ({
             ...attr,
             product_id: id
         }));
         if (attributes.length > 0) {
-            await supabase.from('product_attributes').insert(attributes);
+            const { error: attrError } = await supabase.from('product_attributes').insert(attributes);
+            if (attrError) {
+                console.error("Supabase Attribute Insert Error (Update):", attrError);
+                throw attrError;
+            }
         }
     }
 
