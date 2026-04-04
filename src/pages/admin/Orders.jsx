@@ -592,9 +592,37 @@ const Orders = () => {
                                                                                 style={{ width: '56px', height: '64px', borderRadius: '10px', objectFit: 'cover' }}
                                                                             />
                                                                             <div style={{ flex: 1 }}>
-                                                                                <p style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: '#111111' }}>
-                                                                                    {item.product_name || item.product?.name || 'Produit'}
-                                                                                </p>
+                                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                                                                    <p style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: '#111111' }}>
+                                                                                        {item.product_name || item.product?.name || 'Produit'}
+                                                                                    </p>
+                                                                                    {(() => {
+                                                                                        let label, bg, color;
+                                                                                        if (item.pack_id) {
+                                                                                            label = 'PACK'; bg = '#EFF6FF'; color = '#3b82f6';
+                                                                                        } else {
+                                                                                            const cat = (item.category || '').toLowerCase();
+                                                                                            if (cat === 'accessoires' || cat === 'accessoire') {
+                                                                                                label = 'ACCESSOIRE'; bg = '#F5F3FF'; color = '#8b5cf6';
+                                                                                            } else if (cat === 'sacs' || cat === 'sac') {
+                                                                                                label = 'SACS'; bg = '#FFF7ED'; color = '#f97316';
+                                                                                            } else {
+                                                                                                label = 'CAFTAN'; bg = '#FDF6E7'; color = '#C3AB7E';
+                                                                                            }
+                                                                                        }
+                                                                                        return (
+                                                                                            <span style={{
+                                                                                                fontSize: '9px', fontWeight: '800',
+                                                                                                letterSpacing: '0.08em', textTransform: 'uppercase',
+                                                                                                padding: '2px 8px', borderRadius: '100px',
+                                                                                                backgroundColor: bg, color: color,
+                                                                                                whiteSpace: 'nowrap', flexShrink: 0
+                                                                                            }}>
+                                                                                                {label}
+                                                                                            </span>
+                                                                                        );
+                                                                                    })()}
+                                                                                </div>
                                                                                 <p style={{ margin: '2px 0 0', fontSize: '11px', fontWeight: '800', color: '#C3AB7E', textTransform: 'uppercase' }}>
                                                                                     {item.size ? (item.size.startsWith('Modèle') || item.size.startsWith('(Modèle') ? item.size.replace(/[()]/g, '') : `Taille ${item.size}`) : ''} {item.color ? `${item.size ? '• ' : ''}${item.color}` : ''} <span style={{ color: '#6B7280', marginLeft: '6px' }}>| Qté: {item.quantity}</span>
                                                                                 </p>
