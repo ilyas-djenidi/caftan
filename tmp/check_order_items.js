@@ -10,15 +10,11 @@ envFile.split('\n').filter(Boolean).forEach(line => {
 });
 const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
 (async () => {
-    // Attempt to insert a 'pack' item with product_id=null to see the exact error
-    const { error } = await supabase.from('order_items').insert({
-        order_id: '00000000-0000-0000-0000-000000000000',
-        product_id: null,
-        product_name: 'Test Pack Error Reproduction',
-        quantity: 1,
-        price_at_purchase: 100,
-        pack_id: '00000000-0000-0000-0000-000000000000'
-    });
-    console.log('Result:', JSON.stringify(error, null, 2));
+    const { data: cols, error } = await supabase.from('order_items').select('*').limit(1);
+    if (error) {
+        console.error('Error fetching order_items cols:', error.message);
+    } else {
+        console.log('order_items cols:', cols && cols.length > 0 ? Object.keys(cols[0]) : 'no-data (empty)');
+    }
     process.exit(0);
 })();

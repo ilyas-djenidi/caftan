@@ -87,9 +87,10 @@ export default function Checkout() {
 
                 return {
                     order_id: orderId,
-                    product_id: item.product?.id || null,
-                    product_name: item.product?.name_fr || '',
-                    product_image: item.product?.images?.[0]?.image_url || '',
+                    product_id: item.product?.is_pack ? null : (item.product?.id || null),
+                    pack_id: item.product?.is_pack ? (item.product?.id || null) : null,
+                    product_name: item.product?.name_fr || item.product?.name || '',
+                    product_image: item.product?.images?.[0]?.image_url || item.product?.image_url || item.product?.image || '',
                     quantity: item.quantity,
                     size: combinedSize,
                     color: readableColor,
