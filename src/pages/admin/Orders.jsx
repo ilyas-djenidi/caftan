@@ -254,8 +254,14 @@ const Orders = () => {
     // Client-side Guepex filter on top of server-side data
     const filteredOrders = orders.filter(order => {
         if (guepexFilter === 'ALL') return true;
-        if (guepexFilter === 'none') return !order.guepex_tracking_id;
-        return order.guepex_status === guepexFilter;
+        if (guepexFilter === 'none') return !order.guepex_tracking_id && !order.guepex_tracking;
+        
+        const st = order.guepex_status;
+        if (guepexFilter === 'in_transit') return ['En transit', 'in_transit', 'Vers Wilaya', 'Reçu à Wilaya', 'En localisation', 'Sorti en livraison', 'Prêt pour livreur', 'En attente du client', 'Ramassé', 'Expédié', 'En passation', 'Transfert', 'Prêt à expédier', 'Centre', 'created'].includes(st);
+        if (guepexFilter === 'delivered') return ['Livré', 'delivered'].includes(st);
+        if (guepexFilter === 'returned') return ['Retourné au vendeur', 'Retour vers vendeur', 'Retour vers centre', 'Retourné au centre', 'Retour groupé', 'Retour à retirer', 'Retour transfert', 'Annulé', 'returned', 'cancelled', 'Tentative échouée', 'En alerte', 'Echèc livraison'].includes(st);
+        
+        return st === guepexFilter;
     });
 
     const allFilteredSelected =
@@ -448,6 +454,35 @@ const Orders = () => {
                                                     <span className="text-[11px] text-gray-400 font-bold uppercase">
                                                         {order.created_at ? format(new Date(order.created_at), 'd MMM yyyy, HH:mm', { locale: fr }) : '—'}
                                                     </span>
+                                                    {order.items && order.items.length > 0 && (
+                                                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
+                                                            {Array.from(new Set(order.items.map(item => {
+                                                                if (item.pack_id) return 'PACK';
+                                                                const name = (item.product_name || '').toLowerCase();
+                                                                const catAttr = (item.category || '').toLowerCase();
+                                                                if (catAttr.includes('accessoire') || name.includes('accessoire')) return 'ACCESSOIRE';
+                                                                if (catAttr.includes('sac') || name.includes('sac')) return 'SACS';
+                                                                return 'CAFTAN';
+                                                            }))).map(catLabel => {
+                                                                let bg, color;
+                                                                if (catLabel === 'PACK') { bg = '#EFF6FF'; color = '#3b82f6'; }
+                                                                else if (catLabel === 'ACCESSOIRE') { bg = '#F5F3FF'; color = '#8b5cf6'; }
+                                                                else if (catLabel === 'SACS') { bg = '#FFF7ED'; color = '#f97316'; }
+                                                                else { bg = '#FDF6E7'; color = '#C3AB7E'; }
+                                                                return (
+                                                                    <span key={catLabel} style={{
+                                                                        fontSize: '8px', fontWeight: '800',
+                                                                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                                                                        padding: '2px 6px', borderRadius: '100px',
+                                                                        backgroundColor: bg, color: color,
+                                                                        whiteSpace: 'nowrap'
+                                                                    }}>
+                                                                        {catLabel}
+                                                                    </span>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
 

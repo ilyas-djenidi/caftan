@@ -145,7 +145,7 @@ export const createOrder = async (data) => {
 export const getAdminOrders = async (params = {}) => {
     let query = supabase
         .from('orders')
-        .select('*', { count: 'exact' })
+        .select('*, items:order_items(pack_id, product_name)', { count: 'exact' })
         .order('created_at', { ascending: false });
 
     // Internal Status Filter
@@ -157,6 +157,12 @@ export const getAdminOrders = async (params = {}) => {
     if (params.guepex_status && params.guepex_status !== 'ALL') {
         if (params.guepex_status === 'none') {
             query = query.is('guepex_tracking', null);
+        } else if (params.guepex_status === 'in_transit') {
+            query = query.in('guepex_status', ['En transit', 'in_transit', 'Vers Wilaya', 'Reçu à Wilaya', 'En localisation', 'Sorti en livraison', 'Prêt pour livreur', 'En attente du client', 'Ramassé', 'Expédié', 'En passation', 'Transfert', 'Prêt à expédier', 'Centre', 'created']);
+        } else if (params.guepex_status === 'delivered') {
+            query = query.in('guepex_status', ['Livré', 'delivered']);
+        } else if (params.guepex_status === 'returned') {
+            query = query.in('guepex_status', ['Retourné au vendeur', 'Retour vers vendeur', 'Retour vers centre', 'Retourné au centre', 'Retour groupé', 'Retour à retirer', 'Retour transfert', 'Annulé', 'returned', 'cancelled', 'Tentative échouée', 'En alerte', 'Echèc livraison']);
         } else {
             query = query.eq('guepex_status', params.guepex_status);
         }
@@ -317,20 +323,38 @@ export const getShippedOrders = async () => {
 };
 
 export const getFilteredStats = async (params = {}) => {
-    let baseQuery = supabase.from('orders').select('*', { count: 'exact', head: true });
+    const buildBaseQuery = () => {
+        let q = supabase.from('orders').select('*', { count: 'exact', head: true })
+            // Only count orders actually shipped via Guepex
+            .or('guepex_tracking_id.not.is.null,guepex_tracking.not.is.null');
+        if (params.status && params.status !== 'ALL') {
+            q = q.eq('status', params.status.toLowerCase());
+        }
+        if (params.search) {
+            q = q.or(`order_number.ilike.%${params.search}%,customer_name.ilike.%${params.search}%,customer_phone.ilike.%${params.search}%`);
+        }
+        return q;
+    };
 
-    if (params.status && params.status !== 'ALL') {
-        baseQuery = baseQuery.eq('status', params.status.toLowerCase());
-    }
-    if (params.search) {
-        baseQuery = baseQuery.or(`order_number.ilike.%${params.search}%,customer_name.ilike.%${params.search}%,customer_phone.ilike.%${params.search}%`);
-    }
+    const TRANSIT_STATUSES = [
+        'En transit', 'Vers Wilaya', 'Reçu à Wilaya', 'En localisation',
+        'Sorti en livraison', 'Prêt pour livreur', 'En attente du client',
+        'Ramassé', 'Expédié', 'En passation', 'Transfert', 'Prêt à expédier',
+        'Centre', 'created', 'in_transit',
+    ];
+    const DELIVERED_STATUSES = ['Livré', 'delivered'];
+    const RETURNED_STATUSES = [
+        'Retourné au vendeur', 'Retour vers vendeur', 'Retour vers centre',
+        'Retourné au centre', 'Retour groupé', 'Retour à retirer',
+        'Retour transfert', 'Annulé', 'returned', 'cancelled',
+        'Tentative échouée', 'En alerte', 'Echèc livraison',
+    ];
 
     const [total, transit, delivered, returned] = await Promise.all([
-        baseQuery,
-        baseQuery.clone().in('guepex_status', ['En transit', 'in_transit', 'Vers Wilaya', 'Reçu à Wilaya', 'Sorti en livraison']),
-        baseQuery.clone().in('guepex_status', ['Livré', 'delivered']),
-        baseQuery.clone().in('guepex_status', ['Retourné au vendeur', 'returned', 'Annulé', 'cancelled', 'Retour vers vendeur', 'Retourné au centre'])
+        buildBaseQuery(),
+        buildBaseQuery().in('guepex_status', TRANSIT_STATUSES),
+        buildBaseQuery().in('guepex_status', DELIVERED_STATUSES),
+        buildBaseQuery().in('guepex_status', RETURNED_STATUSES)
     ]);
 
     return {
