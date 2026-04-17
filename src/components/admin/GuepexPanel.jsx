@@ -10,6 +10,7 @@ import {
     createParcel,
     getParcel,
     cancelParcel,
+    getFees
 } from '../../services/guepex';
 import { getDeliveryFee } from '../../utils';
 import GuepexHistoryModal from '../GuepexHistoryModal';
@@ -93,6 +94,8 @@ function CreateShipmentForm({ order, onCreated }) {
     const [loadingCommunes, setLoadingCommunes] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+    const [feesMap, setFeesMap] = useState(null);
+
     useEffect(() => {
         getWilayas().then(data => {
             if (!data?.error) {
@@ -108,37 +111,46 @@ function CreateShipmentForm({ order, onCreated }) {
         });
     }, []);
 
-    // 1. Unified effect to sync form with wilayas and calculate fee
+    // Fetch dynamic fees from Guepex API when wilaya changes
     useEffect(() => {
-        if (!wilayas.length) return;
+        if (!form.wilayaId) {
+            setFeesMap(null);
+            return;
+        }
+        const fromWilayaId = import.meta.env.VITE_STORE_WILAYA_ID || 28;
+        getFees(fromWilayaId, form.wilayaId).then(data => {
+            if (!data?.error && data?.per_commune) {
+                setFeesMap(data.per_commune);
+            }
+        });
+    }, [form.wilayaId]);
 
-        let nextId = form.wilayaId;
-        const actualWilaya = order.wilaya || order.delivery_wilaya;
-
-        // Auto-select wilayaId if missing
-        if (!nextId && actualWilaya) {
-            const orderNorm = norm(actualWilaya);
-            const match = wilayas.find(w => norm(w.name) === orderNorm || norm(w.wilaya_name) === orderNorm);
-            if (match) {
-                nextId = String(match.id);
-                setForm(f => ({ ...f, wilayaId: nextId }));
+    // Recalculate fee dynamically based on exact commune and selected delivery type
+    useEffect(() => {
+        if (!feesMap) return; // Fallback to initial value if not loaded yet
+        
+        // If we have a commune ID selected, we use absolute precision from API
+        if (form.communeId && feesMap[form.communeId]) {
+            const communeData = feesMap[form.communeId];
+            const isCenter = form.deliveryType === 'center';
+            const apiFee = isCenter ? communeData.express_desk : communeData.express_home;
+            
+            if (apiFee !== undefined && apiFee !== null && apiFee !== form.fee) {
+                setForm(f => ({ ...f, fee: apiFee }));
+            }
+        } 
+        // Fallback for before commune is selected
+        else if (form.wilayaId && wilayas.length > 0) {
+            const currentSelectedWilaya = wilayas.find(w => String(w.id) === form.wilayaId);
+            const targetWilayaName = currentSelectedWilaya?.name || order.wilaya;
+            if (targetWilayaName) {
+                const fallbackFee = getDeliveryFee(targetWilayaName, form.deliveryType === 'center' ? 'bureau' : 'home');
+                if (fallbackFee !== form.fee) {
+                    setForm(f => ({ ...f, fee: fallbackFee }));
+                }
             }
         }
-
-        // Always calculate fee if we have a wilaya (either from selection or order)
-        const currentSelectedWilaya = wilayas.find(w => String(w.id) === nextId);
-        const targetWilayaName = currentSelectedWilaya?.name || actualWilaya;
-
-        if (targetWilayaName) {
-            const calculatedFee = getDeliveryFee(targetWilayaName, form.deliveryType === 'center' ? 'bureau' : 'home');
-            // Prioritize order.delivery_fee on first load if it matches target
-            const finalFee = (form.fee === '' && order.delivery_fee) ? order.delivery_fee : calculatedFee;
-
-            if (finalFee !== undefined && finalFee !== null) {
-                setForm(f => ({ ...f, fee: finalFee }));
-            }
-        }
-    }, [wilayas, form.wilayaId, form.deliveryType, order.wilaya, order.delivery_wilaya, order.delivery_fee]);
+    }, [feesMap, form.communeId, form.deliveryType, form.wilayaId, wilayas]);
 
     // 2. Load communes when wilayaId changes
     useEffect(() => {
@@ -200,12 +212,16 @@ function CreateShipmentForm({ order, onCreated }) {
                 to_wilaya_name: wilayas.find(w => String(w.id) === form.wilayaId)?.name || order.wilaya,
                 to_commune_name: communes.find(c => String(c.id) === form.communeId)?.name || order.city || order.notes,
                 product_list: 'Articles',
-                price: Number(order.total_price) || 0,
+                // To avoid freeshipping requirement on a 0-balance account, 
+                // we set freeshipping: false. Guepex will then add the fee to the `price` 
+                // collected by the driver. To prevent double-charging the client,
+                // we must subtract our extracted fee from their order_total.
+                price: Math.max(0, (Number(order.total_price) || 0) - (Number(form.fee) || 0)),
                 do_insurance: false,
-                declared_value: Number(order.total_price) || 0,
+                declared_value: Math.max(0, (Number(order.total_price) || 0) - (Number(form.fee) || 0)),
                 length: 10, width: 10, height: 10,
                 weight: Number(form.weight) || 1,
-                freeshipping: true,
+                freeshipping: false,
                 is_stopdesk: form.deliveryType === 'center',
                 has_exchange: false,
             };
