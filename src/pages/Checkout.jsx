@@ -10,6 +10,9 @@ import { useCartStore } from '../store/cartStore';
 import { supabase } from '../lib/supabase';
 import { ALGERIA_CITIES, WILAYAS, getDeliveryFee } from '../utils';
 import { useTranslation } from 'react-i18next';
+import { getWilayas, getFees } from '../services/guepex';
+
+const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[''\-_\s]+/g, '');
 
 export default function Checkout() {
     const { t } = useTranslation();
@@ -29,6 +32,65 @@ export default function Checkout() {
         deliveryType: 'home',  // 'home' | 'bureau'
     });
 
+    const [fetchedWilayas, setFetchedWilayas] = useState([]);
+    const [fetchedFees, setFetchedFees] = useState(null);
+    const [apiDeliveryFee, setApiDeliveryFee] = useState(null);
+    const [isFetchingFee, setIsFetchingFee] = useState(false);
+
+    useEffect(() => {
+        getWilayas().then(data => {
+            if (!data?.error) {
+                const list = Array.isArray(data) ? data : (data?.data || data?.results || []);
+                setFetchedWilayas(list);
+            }
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!formData.wilaya || !fetchedWilayas.length) {
+            setFetchedFees(null);
+            setApiDeliveryFee(null);
+            return;
+        }
+
+        const wilayaNorm = norm(formData.wilaya);
+        const match = fetchedWilayas.find(w => norm(w.name) === wilayaNorm || norm(w.wilaya_name) === wilayaNorm);
+
+        if (match) {
+            setIsFetchingFee(true);
+            const fromId = Number(import.meta.env.VITE_STORE_WILAYA_ID) || 28;
+            getFees(fromId, match.id).then(data => {
+                if (!data?.error && data?.per_commune) {
+                    setFetchedFees(data.per_commune);
+                } else {
+                    setFetchedFees(null);
+                }
+            }).catch(() => setFetchedFees(null))
+              .finally(() => setIsFetchingFee(false));
+        } else {
+            setFetchedFees(null);
+            setApiDeliveryFee(null);
+        }
+    }, [formData.wilaya, fetchedWilayas]);
+
+    useEffect(() => {
+        if (!fetchedFees || !formData.city) {
+            setApiDeliveryFee(null);
+            return;
+        }
+
+        const cityNorm = norm(formData.city);
+        const communes = Object.values(fetchedFees);
+        const match = communes.find(c => norm(c.commune_name) === cityNorm);
+
+        if (match) {
+            const fee = formData.deliveryType === 'home' ? match.express_home : match.express_desk;
+            setApiDeliveryFee(fee);
+        } else {
+            setApiDeliveryFee(null);
+        }
+    }, [fetchedFees, formData.city, formData.deliveryType]);
+
     useEffect(() => {
         if (items.length === 0 && !orderSuccess) {
             navigate('/');
@@ -40,7 +102,8 @@ export default function Checkout() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const deliveryFee = getDeliveryFee(formData.wilaya, formData.deliveryType);
+    const fallbackFee = getDeliveryFee(formData.wilaya, formData.deliveryType);
+    const deliveryFee = apiDeliveryFee !== null ? apiDeliveryFee : fallbackFee;
     const totalPrice = subtotal + deliveryFee;
 
     const handleSubmit = async (e) => {
@@ -490,7 +553,8 @@ export default function Checkout() {
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: '#6B6458' }}>Livraison {formData.wilaya ? `(${formData.wilaya})` : ''}</span>
-                                <span style={{ fontSize: '12px', fontFamily: "'Jost', sans-serif", color: deliveryFee ? '#1A1714' : '#6B6458' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontFamily: "'Jost', sans-serif", color: deliveryFee ? '#1A1714' : '#6B6458' }}>
+                                    {isFetchingFee && <Loader2 size={12} className="animate-spin text-[#6B6458]" />}
                                     {deliveryFee ? `+${deliveryFee.toLocaleString('fr-DZ')} DA` : '—'}
                                 </span>
                             </div>
@@ -546,7 +610,7 @@ export default function Checkout() {
                                 ← Modifier
                             </button>
                             <button
-                                disabled={loading}
+                                disabled={loading || isFetchingFee}
                                 onClick={handleSubmit}
                                 style={{
                                     width: '100%', height: '44px',
@@ -554,14 +618,15 @@ export default function Checkout() {
                                     borderRadius: '10px', fontFamily: "'Jost', sans-serif",
                                     fontWeight: '400', fontSize: '11px',
                                     letterSpacing: '0.2em', textTransform: 'uppercase', border: 'none',
-                                    cursor: loading ? 'default' : 'pointer',
+                                    cursor: (loading || isFetchingFee) ? 'not-allowed' : 'pointer',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                                     transition: 'background 0.3s',
+                                    opacity: (loading || isFetchingFee) ? 0.7 : 1,
                                 }}
-                                onMouseEnter={e => !loading && (e.currentTarget.style.backgroundColor = '#B8963E')}
-                                onMouseLeave={e => !loading && (e.currentTarget.style.backgroundColor = '#1A1714')}
+                                onMouseEnter={e => !(loading || isFetchingFee) && (e.currentTarget.style.backgroundColor = '#B8963E')}
+                                onMouseLeave={e => !(loading || isFetchingFee) && (e.currentTarget.style.backgroundColor = '#1A1714')}
                             >
-                                {loading ? <Loader2 size={16} className="animate-spin" /> : <>Confirmer la commande ✓</>}
+                                {(loading || isFetchingFee) ? <Loader2 size={16} className="animate-spin" /> : <>Confirmer la commande ✓</>}
                             </button>
                         </div>
                     </div>
