@@ -5,8 +5,8 @@ import {
     History, XCircle, RotateCcw, Printer
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getShipments, syncShipments, updateShipmentStatus } from '../../api/shipments.api';
-import { getStatusColor, cancelParcel, getPrintLabel, getParcel } from '../../services/guepex';
+import { updateShipmentStatus } from '../../api/shipments.api';
+import { getStatusColor, cancelParcel, getPrintLabel, getParcel, getAllParcels } from '../../services/guepex';
 
 /* ─── Constants ─────────────────────────────────────────────────── */
 const F = "'Jost', sans-serif";
@@ -101,20 +101,37 @@ function CopyBtn({ text }) {
 export default function Expeditions() {
     const [parcels, setParcels]     = useState([]);
     const [loading, setLoading]     = useState(true);
-    const [syncing, setSyncing]     = useState(false);
     const [page, setPage]           = useState(1);
+    const [hasMore, setHasMore]     = useState(false);
     const [search, setSearch]       = useState('');
     const [tab, setTab]             = useState('Tous');
     const [histTrack, setHistTrack] = useState(null);
     const [cancelling, setCancelling] = useState(null);
 
-    const load = useCallback(async () => {
+    const load = useCallback(async (pageNum) => {
         setLoading(true);
         try {
-            const { data } = await getShipments();
-            setParcels(data || []);
+            const res = await getAllParcels(pageNum);
+            if (res && res.data) {
+                const mapped = res.data.map(p => ({
+                    tracking: p.tracking,
+                    order_number: p.order_id, 
+                    status: p.last_status,
+                    wilaya: p.to_wilaya_name,
+                    ville: p.to_commune_name,
+                    destinataire_nom: `${p.firstname || ''} ${p.familyname || ''}`.trim(),
+                    destinataire_phone: p.contact_phone,
+                    date_expedition: p.date_expedition || p.date_creation,
+                    weight: p.weight
+                }));
+                setParcels(mapped);
+                setHasMore(res.has_more || false);
+            } else {
+                setParcels([]);
+                setHasMore(false);
+            }
         } catch (e) {
-            toast.error('Erreur de chargement');
+            toast.error('Erreur de chargement depuis l\'API Guepex');
             console.error(e);
         } finally {
             setLoading(false);
@@ -122,24 +139,10 @@ export default function Expeditions() {
     }, []);
 
     useEffect(() => {
-        load(); // Load local data immediately
-        handleSync(); // Sync in background
-    }, []);
+        load(page);
+    }, [page, load]);
 
     useEffect(() => { setPage(1); }, [tab, search]);
-
-    const handleSync = async () => {
-        if (syncing) return;
-        setSyncing(true);
-        try {
-            await syncShipments();
-            await load(); // Refresh with new data
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setSyncing(false);
-        }
-    };
 
     const handlePrintLabel = async (tracking) => {
         if (!tracking || tracking === '—') {
@@ -170,11 +173,11 @@ export default function Expeditions() {
         return parcels.filter(p => {
             const matchTab    = !allowed || allowed.includes(p.status);
             const matchSearch = !q
-                || p.tracking.toLowerCase().includes(q)
-                || (p.destinataire_nom || '').toLowerCase().includes(q)
-                || (p.destinataire_phone || '').toLowerCase().includes(q)
-                || (p.wilaya || '').toLowerCase().includes(q)
-                || (p.order_number || '').toLowerCase().includes(q);
+                || (p.tracking && p.tracking.toLowerCase().includes(q))
+                || (p.destinataire_nom && p.destinataire_nom.toLowerCase().includes(q))
+                || (p.destinataire_phone && p.destinataire_phone.toLowerCase().includes(q))
+                || (p.wilaya && p.wilaya.toLowerCase().includes(q))
+                || (p.order_number && p.order_number.toLowerCase().includes(q));
             return matchTab && matchSearch;
         });
     }, [parcels, tab, search]);
@@ -186,9 +189,8 @@ export default function Expeditions() {
         returned:  parcels.filter(p => TAB_MAP.retourne.includes(p.status)).length,
     }), [parcels]);
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    const sp         = Math.min(page, totalPages);
-    const slice      = filtered.slice((sp - 1) * PAGE_SIZE, sp * PAGE_SIZE);
+    const slice = filtered; // Direct API render, no local slicing needed
+    const sp = page;
 
     const handleCancel = async (p) => {
         if (!window.confirm(`Annuler le colis ${p.tracking} ?`)) return;
@@ -197,11 +199,11 @@ export default function Expeditions() {
             const res = await cancelParcel(p.tracking);
             if (res.error) throw new Error(res.error);
             
-            // Update local DB to reflect cancellation immediately
+            // Update local DB orders to reflect cancellation immediately
             await updateShipmentStatus(p.tracking, 'Annulé', p.order_number);
             
             toast.success('Colis annulé');
-            load();
+            load(page);
         } catch (e) {
             toast.error(e.message || 'Erreur d\'annulation');
         } finally {
@@ -234,11 +236,11 @@ export default function Expeditions() {
                     <div>
                         <h1 style={{ fontFamily: F, fontSize: '20px', fontWeight: '700', color: '#111', margin: 0 }}>Expéditions Guepex</h1>
                         <p style={{ fontFamily: F, fontSize: '11px', color: '#9ca3af', fontWeight: '600', margin: '2px 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            {syncing ? (
+                            {loading ? (
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                    <Loader2 size={10} className="animate-spin" /> Synchronisation en cours…
+                                    <Loader2 size={10} className="animate-spin" /> Chargement direct depuis Guepex…
                                 </span>
-                            ) : `${parcels.length} colis synchronisés`}
+                            ) : `Page ${page} - Total visible: ${filtered.length}`}
                         </p>
                     </div>
                 </div>
@@ -407,10 +409,10 @@ export default function Expeditions() {
                 </div>
 
                 {/* Pagination */}
-                {!loading && totalPages > 1 && (
+                {!loading && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #F0EDE8', padding: '10px 16px' }}>
                         <span style={{ fontFamily: F, fontSize: '12px', color: '#9ca3af', fontWeight: '600' }}>
-                            {filtered.length} résultats · Page {sp} / {totalPages}
+                            Page {sp} (Temps réel depuis l'API Guepex)
                         </span>
                         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={sp === 1} style={{
@@ -419,30 +421,18 @@ export default function Expeditions() {
                                 color: sp === 1 ? '#9ca3af' : '#111', fontFamily: F, fontSize: '12px', fontWeight: '600',
                                 cursor: sp === 1 ? 'not-allowed' : 'pointer',
                             }}>
-                                <ChevronLeft size={13} />
+                                <ChevronLeft size={13} />  Précédent
                             </button>
+                            
+                            <span style={{ margin: '0 8px', fontSize: '13px', fontWeight: '800', color: '#374151' }}>{sp}</span>
 
-                            {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                                const start = Math.max(1, Math.min(sp - 3, totalPages - 6));
-                                const pg = start + i;
-                                return (
-                                    <button key={pg} onClick={() => setPage(pg)} style={{
-                                        width: '32px', height: '32px', borderRadius: '8px',
-                                        border: '1px solid #E5E7EB',
-                                        backgroundColor: pg === sp ? '#111' : 'white',
-                                        color: pg === sp ? 'white' : '#374151',
-                                        fontFamily: F, fontSize: '12px', fontWeight: '700', cursor: 'pointer',
-                                    }}>{pg}</button>
-                                );
-                            })}
-
-                            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={sp === totalPages} style={{
+                            <button onClick={() => setPage(p => p + 1)} disabled={!hasMore} style={{
                                 display: 'flex', alignItems: 'center', padding: '6px 12px', borderRadius: '8px',
-                                border: '1px solid #E5E7EB', backgroundColor: sp === totalPages ? '#F9FAFB' : 'white',
-                                color: sp === totalPages ? '#9ca3af' : '#111', fontFamily: F, fontSize: '12px', fontWeight: '600',
-                                cursor: sp === totalPages ? 'not-allowed' : 'pointer',
+                                border: '1px solid #E5E7EB', backgroundColor: !hasMore ? '#F9FAFB' : 'white',
+                                color: !hasMore ? '#9ca3af' : '#111', fontFamily: F, fontSize: '12px', fontWeight: '600',
+                                cursor: !hasMore ? 'not-allowed' : 'pointer',
                             }}>
-                                <ChevronRight size={13} />
+                                Suivant <ChevronRight size={13} />
                             </button>
                         </div>
                     </div>
