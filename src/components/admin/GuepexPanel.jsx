@@ -212,13 +212,16 @@ function CreateShipmentForm({ order, onCreated }) {
                 to_wilaya_name: wilayas.find(w => String(w.id) === form.wilayaId)?.name || order.wilaya,
                 to_commune_name: communes.find(c => String(c.id) === form.communeId)?.name || order.city || order.notes,
                 product_list: 'Articles',
-                // To avoid freeshipping requirement on a 0-balance account, 
-                // we set freeshipping: false. Guepex will then add the fee to the `price` 
-                // collected by the driver. To prevent double-charging the client,
-                // we must subtract our extracted fee from their order_total.
-                price: Math.max(0, (Number(order.total_price) || 0) - (Number(form.fee) || 0)),
+                ...(() => {
+                    const orderTotal = Number(order.total_price) || 0;
+                    const fee        = Number(form.fee) || 0;
+                    const clientPays = Math.max(0, orderTotal - fee); // driver collects this from client
+                    return {
+                        price: clientPays,
+                        declared_value: clientPays,
+                    };
+                })(),
                 do_insurance: false,
-                declared_value: Math.max(0, (Number(order.total_price) || 0) - (Number(form.fee) || 0)),
                 length: 10, width: 10, height: 10,
                 weight: Number(form.weight) || 1,
                 freeshipping: false,

@@ -96,12 +96,6 @@ export const useAdminStore = create(
                     console.error('fetchStats error:', error);
                 }
             },
-
-            getShippingRate: async (wilaya) => {
-                const { getShippingRate: apiGetRate } = await import('../api/shipping_rates.api');
-                const { data } = await apiGetRate(wilaya);
-                return data;
-            }
         }),
         { name: 'admin-storage' }
     )
