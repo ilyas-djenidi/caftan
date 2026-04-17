@@ -168,10 +168,10 @@ const Orders = () => {
                 console.log('[DEBUG] order_number:', result.data?.order_number);
                 setExpandedOrderDetails(result.data);
                 
-                // Fetch shipping rate for wilaya
+                // Calculate local fallback fee
                 if (result.data?.wilaya) {
-                    const rate = useAdminStore.getState().getShippingRate(result.data.wilaya);
-                    setDetectedRate(rate);
+                    const fee = getDeliveryFee(result.data.wilaya, result.data.delivery_type === 'bureau' ? 'bureau' : 'home');
+                    setDetectedRate({ fee });
                 }
             } catch (error) {
                 console.error("Error fetching order details", error);
@@ -759,7 +759,7 @@ const Orders = () => {
                                                                                 </div>
                                                                                 <div style={{ flex: 1 }}>
                                                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                                                                        Frais de livraison {detectedRate && `(Zone ${detectedRate.zone} - ${expandedOrderDetails.wilaya})`}
+                                                                                        Frais de livraison {detectedRate && `(${expandedOrderDetails.wilaya})`}
                                                                                     </p>
                                                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                                                         <input 
