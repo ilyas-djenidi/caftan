@@ -127,16 +127,12 @@ export default function Checkout() {
                     order_number: orderNumber,
                     customer_name: formData.fullName,
                     customer_phone: formData.phone,
-                    customer_email: '',
                     shipping_address: formData.address,
                     wilaya: formData.wilaya,
-                    city: formData.city,
-                    delivery_type: formData.deliveryType,
-                    delivery_fee: deliveryFee,
-                    payment_method: 'COD',
+                    commune: formData.city,
                     status: 'pending',
                     total_price: totalPrice,
-                    notes: formData.city
+                    notes: `${formData.address} | Livraison: ${formData.deliveryType === 'home' ? 'Domicile' : 'Bureau'} | Frais: ${deliveryFee} DA`
                 });
 
             if (orderError) throw orderError;

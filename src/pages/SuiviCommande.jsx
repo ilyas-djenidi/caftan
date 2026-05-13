@@ -95,6 +95,8 @@ export default function SuiviCommande() {
     const [parcel, setParcel]   = useState(null);
     const [error, setError]     = useState(null);
     const [showHistory, setShowHistory] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [trackingId, setTrackingId] = useState('');
 
     const handleSearch = useCallback(async (e) => {
         e?.preventDefault();
@@ -110,7 +112,8 @@ export default function SuiviCommande() {
                 setError('not_found');
             } else {
                 setParcel(pData);
-                const arr = Array.isArray(hData) ? hData : (hData?.results || []);
+                setTrackingId(id);
+                const arr = Array.isArray(pData.history) ? pData.history : (pData?.tracking_history || pData?.events || []);
                 setHistory(arr);
             }
         } catch (err) {

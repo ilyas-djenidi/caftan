@@ -21,7 +21,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getImageUrl, getDeliveryFee } from '../../utils';
 import { getOrderById, updateOrderGuepex, getGuepexDeliveryStats } from '../../api/orders.api';
-import { getParcel } from '../../services/guepex';
+import { getParcel, getFees, getWilayas } from '../../services/guepex';
 import toast from 'react-hot-toast';
 import GuepexPanel from '../../components/admin/GuepexPanel';
 
@@ -168,10 +168,30 @@ const Orders = () => {
                 console.log('[DEBUG] order_number:', result.data?.order_number);
                 setExpandedOrderDetails(result.data);
                 
-                // Calculate local fallback fee
+                // Calculate local fallback fee + fetch live from Guepex
                 if (result.data?.wilaya) {
-                    const fee = getDeliveryFee(result.data.wilaya, result.data.delivery_type === 'bureau' ? 'bureau' : 'home');
+                    const fee = getDeliveryFee(result.data.wilaya, result.data.notes?.includes('Bureau') ? 'bureau' : 'home');
                     setDetectedRate({ fee });
+                    getWilayas().then(wData => {
+                        const list = Array.isArray(wData) ? wData : (wData?.data || wData?.results || []);
+                        const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[-_\s]+/g, '');
+                        const match = list.find(w => norm(w.name) === norm(result.data.wilaya));
+                        if (match) {
+                            const fromId = Number(import.meta.env.VITE_STORE_WILAYA_ID) || 28;
+                            const isBureau = result.data.notes?.includes('Bureau');
+                            getFees(fromId, match.id).then(feesData => {
+                                if (!feesData?.error && feesData?.per_commune) {
+                                    const communes = Object.values(feesData.per_commune);
+                                    const commune = result.data.commune;
+                                    const comMatch = communes.find(c => norm(c.commune_name) === norm(commune));
+                                    if (comMatch) {
+                                        const liveFee = isBureau ? comMatch.express_desk : comMatch.express_home;
+                                        setDetectedRate({ fee: liveFee });
+                                    }
+                                }
+                            }).catch(() => {});
+                        }
+                    }).catch(() => {});
                 }
             } catch (error) {
                 console.error("Error fetching order details", error);
@@ -498,7 +518,7 @@ const Orders = () => {
                                             <td style={{ padding: '16px 24px' }}>
                                                 <div className="flex flex-col gap-0.5 items-end md:items-start text-right md:text-left">
                                                     <span className="font-bold text-[#111111]">{order.total_price || 0} DA</span>
-                                                    <span className="text-[10px] text-[#C3AB7E] font-bold uppercase tracking-wider">{order.payment_method || 'COD'}</span>
+                                                    <span className="text-[10px] text-[#C3AB7E] font-bold uppercase tracking-wider">COD</span>
                                                 </div>
                                             </td>
 
@@ -531,10 +551,10 @@ const Orders = () => {
                                                 ) : (
                                                     <div className="flex flex-col gap-0.5">
                                                         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-tight">
-                                                            {order.wilaya || order.delivery_wilaya || '—'}
+                                                            {order.wilaya || '—'}
                                                         </span>
                                                         <span className="text-[9px] font-bold text-gray-400 uppercase">
-                                                            {order.delivery_type === 'bureau' ? 'Point relais' : 'À domicile'}
+                                                            {order.notes?.includes('Bureau') ? 'Point relais' : 'À domicile'}
                                                         </span>
                                                     </div>
                                                 )}
@@ -729,7 +749,7 @@ const Orders = () => {
                                                                                 </div>
                                                                                 <div>
                                                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Commune / Ville</p>
-                                                                                    <p className="text-sm font-bold text-[#111111]">{expandedOrderDetails.city || expandedOrderDetails.notes || '—'}</p>
+                                                                                    <p className="text-sm font-bold text-[#111111]">{expandedOrderDetails.commune || '—'}</p>
                                                                                 </div>
                                                                             </div>
 
@@ -743,11 +763,11 @@ const Orders = () => {
                                                                                         <div style={{
                                                                                             display: 'inline-flex', alignItems: 'center', gap: '6px',
                                                                                             padding: '4px 10px', borderRadius: '20px',
-                                                                                            backgroundColor: expandedOrderDetails.delivery_type === 'bureau' ? '#EFF6FF' : '#F0FDF4',
-                                                                                            color: expandedOrderDetails.delivery_type === 'bureau' ? '#3b82f6' : '#16a34a',
+                                                                                            backgroundColor: expandedOrderDetails.notes?.includes('Bureau') ? '#EFF6FF' : '#F0FDF4',
+                                                                                            color: expandedOrderDetails.notes?.includes('Bureau') ? '#3b82f6' : '#16a34a',
                                                                                             fontSize: '11px', fontWeight: '700',
                                                                                         }}>
-                                                                                            {expandedOrderDetails.delivery_type === 'bureau' ? '📦 Bureau / Point relais' : '🏠 À domicile'}
+                                                                                            {expandedOrderDetails.notes?.includes('Bureau') ? '📦 Bureau / Point relais' : '🏠 À domicile'}
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -759,21 +779,14 @@ const Orders = () => {
                                                                                 </div>
                                                                                 <div style={{ flex: 1 }}>
                                                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                                                                        Frais de livraison {detectedRate && `(${expandedOrderDetails.wilaya})`}
+                                                                                        Frais de livraison
                                                                                     </p>
                                                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                                                        <input 
-                                                                                            type="number"
-                                                                                            value={expandedOrderDetails.frais_livraison || expandedOrderDetails.delivery_fee || 0}
-                                                                                            onChange={(e) => setExpandedOrderDetails(prev => ({ ...prev, frais_livraison: parseInt(e.target.value) }))}
-                                                                                            style={{
-                                                                                                width: '90px', padding: '4px 8px', borderRadius: '8px',
-                                                                                                border: '1px solid #F0EDE8', fontSize: '14px', fontWeight: '700'
-                                                                                            }}
-                                                                                        />
-                                                                                        <span className="text-sm font-bold text-[#111111]">DA</span>
-                                                                                        {detectedRate && !expandedOrderDetails.frais_livraison && !expandedOrderDetails.delivery_fee && (
-                                                                                            <span className="text-[10px] text-blue-500 font-bold uppercase">(Auto-détecté)</span>
+                                                                                        <span style={{ fontSize: '20px', fontFamily: 'serif', fontWeight: '700', color: '#111111' }}>
+                                                                                            {detectedRate?.fee ?? (expandedOrderDetails.notes?.match(/Frais: (\d+) DA/)?.[1]) ?? '—'} DA
+                                                                                        </span>
+                                                                                        {detectedRate && (
+                                                                                            <span className="text-[10px] text-blue-500 font-bold uppercase">API Guepex</span>
                                                                                         )}
                                                                                     </div>
                                                                                 </div>
@@ -784,7 +797,7 @@ const Orders = () => {
                                                                     {/* Contact Actions */}
                                                                     <div className="flex flex-col gap-3">
                                                                         <a
-                                                                            href={`tel:${expandedOrderDetails.customer_phone}`}
+                                                                            href={`tel:${expandedOrderDetails.customer_phone || expandedOrderDetails.phone || ''}`}
                                                                             style={{
                                                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                                                                                 padding: '16px', borderRadius: '16px', backgroundColor: '#111111',
@@ -797,7 +810,7 @@ const Orders = () => {
                                                                             Appeler le client
                                                                         </a>
                                                                         <a
-                                                                            href={`https://wa.me/213${expandedOrderDetails.customer_phone?.replace(/^0/, '')}`}
+                                                                            href={`https://wa.me/213${(expandedOrderDetails.customer_phone || expandedOrderDetails.phone || '')?.replace(/^0/, '')}`}
                                                                             target="_blank"
                                                                             style={{
                                                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
@@ -921,3 +934,4 @@ const Orders = () => {
 };
 
 export default Orders;
+

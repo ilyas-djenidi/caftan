@@ -25,8 +25,8 @@ export default function AdminSidebar({ isOpen, onClose }) {
         try {
             const [{ count: orders }, { count: messages }, { count: reviews }] = await Promise.all([
                 supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_read', false),
-                supabase.from('product_reviews').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'unread'),
+                supabase.from('reviews').select('*', { count: 'exact', head: true }).eq('status', 'pending')
             ]);
             setCounts({ orders: orders || 0, messages: messages || 0, reviews: reviews || 0 });
         } catch (error) {
@@ -142,3 +142,4 @@ export default function AdminSidebar({ isOpen, onClose }) {
         </>
     );
 }
+

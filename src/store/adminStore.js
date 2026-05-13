@@ -64,8 +64,17 @@ export const useAdminStore = create(
                 }
             },
 
-            fetchStats: async () => {
+            statsLastFetched: null,
+
+            fetchStats: async (force = false) => {
                 try {
+                    const now = Date.now();
+                    const { statsLastFetched, stats } = get();
+                    
+                    if (!force && statsLastFetched && (now - statsLastFetched < 2 * 60 * 1000) && Object.keys(stats).length > 0) {
+                        return; // Use cached stats
+                    }
+
                     const today = new Date().toISOString().split('T')[0];
                     const startOfMonth = new Date(
                         new Date().getFullYear(), new Date().getMonth(), 1
@@ -77,10 +86,10 @@ export const useAdminStore = create(
                         { data: revenueData },
                         { count: totalProds }
                     ] = await Promise.all([
-                        supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', today),
-                        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+                        supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', today),
+                        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
                         supabase.from('orders').select('total_price').gte('created_at', startOfMonth).eq('status', 'delivered'),
-                        supabase.from('products').select('*', { count: 'exact', head: true })
+                        supabase.from('products').select('id', { count: 'exact', head: true })
                     ]);
 
                     const revenue = revenueData?.reduce((s, r) => s + (r.total_price || 0), 0) || 0;
@@ -90,7 +99,8 @@ export const useAdminStore = create(
                             pending_orders: pendingOrders || 0,
                             month_revenue: revenue,
                             products_count: totalProds || 0
-                        }
+                        },
+                        statsLastFetched: now
                     });
                 } catch (error) {
                     console.error('fetchStats error:', error);

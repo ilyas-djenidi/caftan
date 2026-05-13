@@ -43,8 +43,8 @@ export default function Messages() {
     const markAsRead = async (id) => {
         setUpdatingId(id);
         try {
-            await supabase.from('messages').update({ is_read: true }).eq('id', id);
-            setMessages(messages.map(m => m.id === id ? { ...m, is_read: true } : m));
+            await supabase.from('messages').update({ status: 'read' }).eq('id', id);
+            setMessages(messages.map(m => m.id === id ? { ...m, status: 'read' } : m));
             toast.success("Message marqué comme lu");
         } catch (error) {
             toast.error('Erreur');
@@ -68,7 +68,7 @@ export default function Messages() {
     };
 
     const filtered = messages.filter(m =>
-        m.sender_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         m.subject?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -78,7 +78,7 @@ export default function Messages() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-[#111111]">Messages Clients</h1>
-                    <p className="text-gray-400 text-sm mt-1 uppercase font-bold tracking-widest">{messages.filter(m => !m.is_read).length} messages non lus</p>
+                    <p className="text-gray-400 text-sm mt-1 uppercase font-bold tracking-widest">{messages.filter(m => m.status === 'unread').length} messages non lus</p>
                 </div>
 
                 <div className="relative">
@@ -122,14 +122,14 @@ export default function Messages() {
                             </tr>
                         ) : (
                             filtered.map((msg) => (
-                                <tr key={msg.id} className={`transition-colors ${!msg.is_read ? 'bg-[#fdfbf7]' : 'hover:bg-[#FAFAFA]'}`}>
+                                <tr key={msg.id} className={`transition-colors ${!(msg.status !== 'unread') ? 'bg-[#fdfbf7]' : 'hover:bg-[#FAFAFA]'}`}>
                                     <td style={{ padding: '16px 24px' }} className="w-full-mobile md:w-auto">
                                         <div className="flex items-center gap-3">
                                             <div style={{ width: '40px', height: '40px', backgroundColor: '#f0ede8', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                                 <UserCircle2 size={20} style={{ color: '#C3AB7E' }} />
                                             </div>
                                             <div className="flex flex-col gap-1 items-start text-left">
-                                                <span className={`text-[#111111] ${!msg.is_read ? 'font-bold' : 'font-medium'}`}>{msg.sender_name || msg.name || 'Inconnu'}</span>
+                                                <span className={`text-[#111111] ${!(msg.status !== 'unread') ? 'font-bold' : 'font-medium'}`}>{msg.full_name || msg.name || 'Inconnu'}</span>
                                                 <span className="text-xs text-[#C3AB7E] font-medium">
                                                     {msg.email}
                                                     {msg.phone && <span className="text-gray-400 font-normal ml-2">| {msg.phone}</span>}
@@ -143,10 +143,10 @@ export default function Messages() {
 
                                     <td style={{ padding: '16px 24px' }} className="w-full-mobile md:w-auto">
                                         <div className="flex items-center gap-2">
-                                            <span style={{ fontSize: '13px', fontWeight: !msg.is_read ? '700' : '500', color: '#111111' }}>
+                                            <span style={{ fontSize: '13px', fontWeight: !(msg.status !== 'unread') ? '700' : '500', color: '#111111' }}>
                                                 {msg.subject || 'Sans sujet'}
                                             </span>
-                                            {!msg.is_read && <div className="w-2 h-2 rounded-full bg-[#C3AB7E]" />}
+                                            {!(msg.status !== 'unread') && <div className="w-2 h-2 rounded-full bg-[#C3AB7E]" />}
                                         </div>
                                     </td>
 
@@ -155,9 +155,9 @@ export default function Messages() {
                                             <MessageSquare size={14} className="text-gray-300 mt-1 flex-shrink-0 hidden sm:block" />
                                             <div className="flex flex-col items-start gap-1 w-full">
                                                 <p className={`text-sm text-gray-600 ${expandedIds.has(msg.id) ? '' : 'line-clamp-2'}`} style={{ textAlign: 'left', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                                    {msg.body}
+                                                    {msg.message}
                                                 </p>
-                                                {msg.body && msg.body.length > 50 && (
+                                                {msg.message && msg.message.length > 50 && (
                                                     <button 
                                                         onClick={() => toggleExpand(msg.id)}
                                                         className="text-[10px] text-[#C3AB7E] font-bold uppercase hover:underline mt-1"
@@ -173,16 +173,16 @@ export default function Messages() {
                                         <span style={{
                                             padding: '4px 12px', borderRadius: '100px',
                                             fontSize: '10px', fontWeight: '800', textTransform: 'uppercase',
-                                            backgroundColor: msg.is_read ? '#f1f5f9' : '#fef3c7',
-                                            color: msg.is_read ? '#64748b' : '#d97706'
+                                            backgroundColor: (msg.status !== 'unread') ? '#f1f5f9' : '#fef3c7',
+                                            color: (msg.status !== 'unread') ? '#64748b' : '#d97706'
                                         }}>
-                                            {msg.is_read ? 'Lu' : 'Non Lu'}
+                                            {(msg.status !== 'unread') ? 'Lu' : 'Non Lu'}
                                         </span>
                                     </td>
 
                                     <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                                         <div className="flex justify-end gap-2">
-                                            {!msg.is_read && (
+                                            {!(msg.status !== 'unread') && (
                                                 <button
                                                     onClick={() => markAsRead(msg.id)}
                                                     disabled={updatingId === msg.id}
@@ -211,3 +211,4 @@ export default function Messages() {
         </div>
     );
 }
+

@@ -7,16 +7,14 @@ import { getProducts } from '../api/products.api';
 import ProductCard from '../components/shared/ProductCard';
 import LogoLoader from '../components/shared/LogoLoader';
 import { useTranslation } from 'react-i18next';
+import useProductStore from '../store/productStore';
 
 import { supabase } from '../lib/supabase';
 
 export default function Home() {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
-    const [sacsProducts, setSacsProducts] = useState([]);
-    const [caftansProducts, setCaftansProducts] = useState([]);
-    const [accessoiresProducts, setAccessoiresProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { homeData, loading, fetchHomeData } = useProductStore();
     const [contactLoading, setContactLoading] = useState(false);
     const [contactData, setContactData] = useState({ name: '', email: '', phone: '', message: '' });
 
@@ -25,8 +23,8 @@ export default function Home() {
         setContactLoading(true);
         try {
             const { error } = await supabase.from('messages').insert([{
-                name: contactData.name, email: contactData.email, phone: contactData.phone,
-                subject: '', message: contactData.message, status: 'unread'
+                full_name: contactData.name, email: contactData.email, phone: contactData.phone,
+                subject: 'General Inquiry', message: contactData.message, status: 'unread'
             }]);
             if (error) throw error;
             toast.success('Message envoyé avec succès !');
@@ -37,58 +35,24 @@ export default function Home() {
             setContactLoading(false);
         }
     };
-    const [heroData, setHeroData] = useState({
+    
+    // Default fallback values if homeData is missing
+    const heroData = homeData?.heroSettings || {
         title_fr: 'Maison du Caftans',
         subtitle_fr: 'L’excellence du savoir-faire traditionnel au service de votre élégance.',
         cta_text_fr: 'DÉCOUVRIR LA COLLECTION',
         image_url: '/hero-bg.jpg'
-    });
-    const [categoryCounts, setCategoryCounts] = useState({ caftans: 0, sacs: 0, accessoires: 0 });
+    };
+    const categoryCounts = homeData?.categoryCounts || { caftans: 0, sacs: 0, accessoires: 0 };
+    const sacsProducts = homeData?.sacsProducts || [];
+    const caftansProducts = homeData?.caftansProducts || [];
+    const accessoiresProducts = homeData?.accessoiresProducts || [];
+
     const [heroImageLoaded, setHeroImageLoaded] = useState(false);
 
     useEffect(() => {
-        const loadPageData = async () => {
-            try {
-                // Fetch Products with optimized payload
-                const optimizedSelect = `
-                    id, name_fr, name_ar, price, original_price, on_sale, category, stock_count, 
-                    images:product_images(image_url, is_primary)
-                `;
-
-                const [sacsRes, caftansRes, accessoiresRes] = await Promise.all([
-                    getProducts({ category: 'sacs', limit: 8, select: optimizedSelect }),
-                    getProducts({ category: 'caftans', limit: 8, select: optimizedSelect }),
-                    getProducts({ category: 'accessoires', limit: 8, select: optimizedSelect })
-                ]);
-                setSacsProducts(sacsRes.data.products || []);
-                setCaftansProducts(caftansRes.data.products || []);
-                setAccessoiresProducts(accessoiresRes.data.products || []);
-
-                // Fetch Hero Settings
-                const { data: heroSettings } = await supabase
-                    .from('site_settings')
-                    .select('value')
-                    .eq('key', 'hero_content')
-                    .maybeSingle();
-                if (heroSettings?.value) {
-                    setHeroData(prev => ({ ...prev, ...heroSettings.value }));
-                }
-
-                // Fetch product counts per category
-                const [{ count: caftansCount }, { count: sacsCount }, { count: accCount }] = await Promise.all([
-                    supabase.from('products').select('*', { count: 'exact', head: true }).eq('category', 'caftans'),
-                    supabase.from('products').select('*', { count: 'exact', head: true }).eq('category', 'sacs'),
-                    supabase.from('products').select('*', { count: 'exact', head: true }).eq('category', 'accessoires'),
-                ]);
-                setCategoryCounts({ caftans: caftansCount || 0, sacs: sacsCount || 0, accessoires: accCount || 0 });
-            } catch (error) {
-                console.error('Error loading home data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadPageData();
-    }, []);
+        fetchHomeData();
+    }, [fetchHomeData]);
 
     const categories = [
         { name: t('nav.caftans'), to: '/caftans', image: '/images/cat_caftans.jpg', count: `${categoryCounts.caftans} ${t('product.quantity')}` },
@@ -104,11 +68,12 @@ export default function Home() {
                 <LogoLoader />
                 {/* Preload the image invisibly so heroImageLoaded can turn true */}
                 {heroData.image_url && (
-                    <img 
-                        src={heroData.image_url} 
-                        alt="" 
-                        onLoad={() => setHeroImageLoaded(true)} 
-                        style={{ display: 'none' }} 
+                    <img
+                        src={heroData.image_url}
+                        alt=""
+                        onLoad={() => setHeroImageLoaded(true)}
+                        onError={() => setHeroImageLoaded(true)}
+                        style={{ display: 'none' }}
                         fetchPriority="high"
                     />
                 )}
@@ -457,3 +422,4 @@ export default function Home() {
         </div >
     );
 }
+

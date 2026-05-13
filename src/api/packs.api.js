@@ -5,12 +5,12 @@ export const getPacks = async (params = {}) => {
     let query = supabase
         .from('packs')
         .select(`
-            *,
+            id, name_fr, name_ar, price, original_price, image_url, is_active, is_sold_out, savings, created_at,
             items:pack_items(
                 quantity,
                 product:products(
-                    *,
-                    images:product_images(*)
+                    id, name_fr, name_ar, price, original_price, on_sale, stock_count,
+                    images:product_images(image_url, is_primary)
                 )
             )
         `)

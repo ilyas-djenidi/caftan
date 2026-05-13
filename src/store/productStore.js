@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { getProducts, getProduct } from '../api/products.api'
 import { getPacks, getPack } from '../api/packs.api'
+import { supabase } from '../lib/supabase'
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const useProductStore = create((set, get) => ({
     products: [],
@@ -12,6 +15,59 @@ const useProductStore = create((set, get) => ({
     total: 0,
     page: 1,
     filters: { category: '', search: '', sort: 'newest' },
+    
+    // Home Data Cache
+    homeData: null,
+    homeDataLastFetched: null,
+    
+    fetchHomeData: async () => {
+        const { homeDataLastFetched, homeData } = get();
+        const now = Date.now();
+        
+        // Return cached data if within 5 minutes
+        if (homeData && homeDataLastFetched && (now - homeDataLastFetched < CACHE_DURATION)) {
+            return;
+        }
+
+        set({ loading: true, error: null });
+        try {
+            const optimizedSelect = `
+                id, name_fr, name_ar, price, original_price, on_sale, category, stock_count, 
+                images:product_images(image_url, is_primary)
+            `;
+
+            const [
+                sacsRes, caftansRes, accessoiresRes, 
+                heroSettingsRes, caftansCountRes, sacsCountRes, accCountRes
+            ] = await Promise.all([
+                getProducts({ category: 'sacs', limit: 8, select: optimizedSelect }),
+                getProducts({ category: 'caftans', limit: 8, select: optimizedSelect }),
+                getProducts({ category: 'accessoires', limit: 8, select: optimizedSelect }),
+                supabase.from('site_settings').select('value').eq('key', 'hero_content').maybeSingle(),
+                supabase.from('products').select('id', { count: 'exact', head: true }).eq('category', 'caftans'),
+                supabase.from('products').select('id', { count: 'exact', head: true }).eq('category', 'sacs'),
+                supabase.from('products').select('id', { count: 'exact', head: true }).eq('category', 'accessoires')
+            ]);
+
+            set({
+                homeData: {
+                    sacsProducts: sacsRes.data.products || [],
+                    caftansProducts: caftansRes.data.products || [],
+                    accessoiresProducts: accessoiresRes.data.products || [],
+                    heroSettings: heroSettingsRes.data?.value || null,
+                    categoryCounts: {
+                        caftans: caftansCountRes.count || 0,
+                        sacs: sacsCountRes.count || 0,
+                        accessoires: accCountRes.count || 0
+                    }
+                },
+                homeDataLastFetched: now,
+                loading: false
+            });
+        } catch (err) {
+            set({ error: err.message || 'Failed to fetch home data', loading: false });
+        }
+    },
 
     fetchProducts: async (params = {}) => {
         set({ loading: true, error: null })

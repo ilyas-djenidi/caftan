@@ -22,11 +22,11 @@ export default function Contact() {
             const { error } = await supabase
                 .from('messages')
                 .insert([{
-                    sender_name: formData.name,
+                    full_name: formData.name,
                     email: formData.email,
                     phone: formData.phone,
-                    subject: '',
-                    body: formData.message,
+                    subject: 'General Inquiry',
+                    message: formData.message,
                     status: 'unread'
                 }]);
 

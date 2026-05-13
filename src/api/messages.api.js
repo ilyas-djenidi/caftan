@@ -16,11 +16,6 @@ export const getMessages = async (params = {}) => {
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
-    if (params.type === 'wholesale') {
-        query = query.eq('is_wholesale', true);
-    } else if (params.type === 'contact') {
-        query = query.eq('is_wholesale', false);
-    }
 
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 20;
@@ -44,7 +39,7 @@ export const getMessages = async (params = {}) => {
 export const markAsRead = async (id) => {
     const { data, error } = await supabase
         .from('messages')
-        .update({ is_read: true })
+        .update({ status: 'read' })
         .eq('id', id)
         .select()
         .single();
@@ -57,3 +52,4 @@ export const deleteMessage = async (id) => {
     if (error) throw error;
     return { data: { success: true } };
 }
+

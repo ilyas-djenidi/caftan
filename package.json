@@ -12,14 +12,16 @@
     "images:compress": "node scripts/compress-existing.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.98.0",
+    "@supabase/supabase-js": "^2.105.4",
     "@tailwindcss/vite": "^4.2.1",
     "axios": "^1.13.6",
     "browser-image-compression": "^2.0.2",
+    "csv-parse": "^6.2.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.34.3",
     "i18next": "^25.8.14",
     "lucide-react": "^0.575.0",
+    "pg": "^8.20.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.2",

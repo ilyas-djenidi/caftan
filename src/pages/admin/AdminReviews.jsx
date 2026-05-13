@@ -26,7 +26,7 @@ export default function AdminReviews() {
     const fetchReviews = async () => {
         try {
             const { data, error } = await supabase
-                .from('product_reviews')
+                .from('reviews')
                 .select(`
                     *,
                     products ( name_fr )
@@ -46,7 +46,7 @@ export default function AdminReviews() {
         setUpdatingId(id);
         try {
             const { error } = await supabase
-                .from('product_reviews')
+                .from('reviews')
                 .update({ status: newStatus })
                 .eq('id', id);
 
@@ -67,7 +67,7 @@ export default function AdminReviews() {
         setUpdatingId(id);
         try {
             const { error } = await supabase
-                .from('product_reviews')
+                .from('reviews')
                 .delete()
                 .eq('id', id);
 
@@ -211,3 +211,4 @@ export default function AdminReviews() {
         </div>
     );
 }
+

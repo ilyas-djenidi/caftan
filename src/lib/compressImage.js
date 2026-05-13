@@ -9,8 +9,8 @@ import imageCompression from 'browser-image-compression';
  */
 export const compressImage = async (file) => {
     const options = {
-        maxSizeMB: 2,               // Max size 2MB
-        maxWidthOrHeight: 1600,     // Max dimension 1600px
+        maxSizeMB: 2,             // Max size 500KB to save bandwidth (Egress Quota)
+        maxWidthOrHeight: 1080,     // Max dimension 1080px (Instagram standard)
         useWebWorker: true,
         initialQuality: 0.8         // High quality
     };

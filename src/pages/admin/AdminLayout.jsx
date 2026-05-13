@@ -41,8 +41,8 @@ export default function AdminLayout() {
         const fetchNotifications = async () => {
             try {
                 const [msgsRes, revsRes] = await Promise.all([
-                    supabase.from('messages').select('id', { count: 'exact', head: true }).eq('is_read', false),
-                    supabase.from('product_reviews').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+                    supabase.from('messages').select('id', { count: 'exact', head: true }).eq('status', 'unread'),
+                    supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('status', 'pending')
                 ]);
 
                 if (msgsRes.count !== null) setUnreadMessages(msgsRes.count);
@@ -247,3 +247,4 @@ export default function AdminLayout() {
         </div>
     );
 }
+

@@ -100,7 +100,7 @@ export default function Dashboard() {
                 supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', today),
                 supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
                 supabase.from('orders').select('total_price').gte('created_at', startOfMonth).eq('status', 'delivered'),
-                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_read', false),
+                supabase.from('messages').select('*', { count: 'exact', head: true }).eq('status', 'unread'),
                 supabase.from('products').select('*', { count: 'exact', head: true }),
             ]);
 
@@ -377,3 +377,4 @@ export default function Dashboard() {
         </div>
     );
 }
+

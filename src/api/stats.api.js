@@ -31,7 +31,7 @@ export const getDashboardStats = async () => {
     const { count: unreadMessages } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
-        .eq('is_read', false);
+        .eq('status', 'unread');
 
     // Total Products
     const { count: productsCount } = await supabase
@@ -87,4 +87,5 @@ export const getDashboardStats = async () => {
 // we will mock it to prevent errors if the UI expects it.
 export const getSiteContent = async () => ({ data: {} });
 export const updateSiteContent = async (data) => ({ data });
+
 

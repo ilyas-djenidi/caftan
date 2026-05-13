@@ -81,8 +81,8 @@ function CreateShipmentForm({ order, onCreated }) {
     const [form, setForm] = useState({
         wilayaId: '',
         communeId: '',
-        deliveryType: order.delivery_type === 'bureau' ? 'center' : 'home',
-        fee: order.wilaya ? getDeliveryFee(order.wilaya, order.delivery_type === 'bureau' ? 'bureau' : 'home') : '',
+        deliveryType: order.notes?.includes('Bureau') ? 'center' : 'home',
+        fee: (() => { const m = order.notes?.match(/Frais: (\d+) DA/); return m ? m[1] : ''; })(),
         name: order.customer_name || '',
         phone: order.customer_phone || order.phone || '',
         address: order.shipping_address || order.address || '',
@@ -162,7 +162,7 @@ function CreateShipmentForm({ order, onCreated }) {
                 setCommunes(list);
 
                 // Smart city match
-                const cityRaw = order.city || order.delivery_commune || order.notes || '';
+                const cityRaw = order.commune || order.notes?.split('|')[0]?.trim() || '';
                 if (cityRaw && list.length > 0) {
                     const cityNorm = norm(cityRaw);
                     const match = list.find(c => norm(c.name) === cityNorm || norm(c.commune_name) === cityNorm);
@@ -171,13 +171,14 @@ function CreateShipmentForm({ order, onCreated }) {
             }
             setLoadingCommunes(false);
         }).catch(() => setLoadingCommunes(false));
-    }, [form.wilayaId, order.city, order.delivery_commune, order.notes]);
+    }, [form.wilayaId, order.commune, order.notes]);
 
     const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.wilayaId) { toast.error('Veuillez sélectionner une wilaya'); return; }
+        if (!form.communeId) { toast.error('Veuillez sélectionner une commune'); return; }
         setSubmitting(true);
         try {
             const rawOrderNum = String(order.order_number || '')
@@ -242,9 +243,6 @@ function CreateShipmentForm({ order, onCreated }) {
             await updateOrderGuepex(order.id, {
                 guepex_tracking: String(trackingId),
                 guepex_status: 'created',
-                guepex_created_at: new Date().toISOString(),
-                delivery_type: form.deliveryType,
-                frais_livraison: form.fee ? Number(form.fee) : null,
             });
             await updateOrderStatus(order.id, 'shipped');
             toast.success(`Expédition créée ✓ Tracking: ${trackingId}`);
@@ -268,7 +266,7 @@ function CreateShipmentForm({ order, onCreated }) {
                 </div>
                 <div>
                     <Label>Commune</Label>
-                    <select value={form.communeId} onChange={set('communeId')} style={inputStyle} disabled={!form.wilayaId}>
+                    <select value={form.communeId} onChange={set('communeId')} style={inputStyle} disabled={!form.wilayaId} required>
                         <option value="">{loadingCommunes ? 'Chargement…' : '— Choisir —'}</option>
                         {communes.map(c => <option key={c.id} value={c.id}>{c.name || c.commune_name}</option>)}
                     </select>
@@ -389,3 +387,4 @@ export default function GuepexPanel({ order, onRefresh }) {
         </div>
     );
 }
+
