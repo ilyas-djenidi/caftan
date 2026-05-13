@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Search, RefreshCw, Loader2, Package2,
     Copy, CheckCircle2, ChevronLeft, ChevronRight,
-    History, XCircle, RotateCcw, Printer
+    History, XCircle, Printer, Trash2
 } from 'lucide-react';
+import GuepexHistoryModal from '../../components/GuepexHistoryModal';
 import toast from 'react-hot-toast';
 import { updateShipmentStatus } from '../../api/shipments.api';
 import { getStatusColor, cancelParcel, getPrintLabel, getParcel, getAllParcels } from '../../services/guepex';
@@ -385,20 +386,25 @@ export default function Expeditions() {
                                         >
                                             <History size={13} />
                                         </button>
-                                        {!['Annulé', 'Livré', 'delivered', 'cancelled', 'returned'].includes(p.status) && (
-                                            <button title="Annuler" onClick={() => handleCancel(p)} disabled={cancelling === p.tracking} style={{
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                width: '28px', height: '28px', borderRadius: '7px',
-                                                border: '1px solid #FECACA', backgroundColor: 'white',
-                                                cursor: cancelling === p.tracking ? 'not-allowed' : 'pointer',
-                                                color: '#EF4444', opacity: cancelling === p.tracking ? 0.5 : 1,
-                                            }}
+                                        {/* Cancel / Delete button - only for shippable statuses */}
+                                        {!TAB_MAP.livre.includes(p.status) && !TAB_MAP.retourne.includes(p.status) && (
+                                            <button
+                                                title="Annuler l'expédition"
+                                                onClick={() => handleCancel(p)}
+                                                disabled={cancelling === p.tracking}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    width: '28px', height: '28px', borderRadius: '7px',
+                                                    border: '1px solid #FECACA', backgroundColor: 'white',
+                                                    cursor: cancelling === p.tracking ? 'not-allowed' : 'pointer',
+                                                    color: '#EF4444', opacity: cancelling === p.tracking ? 0.5 : 1,
+                                                }}
                                                 onMouseEnter={e => { if (cancelling !== p.tracking) e.currentTarget.style.backgroundColor = '#FEF2F2'; }}
                                                 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}
                                             >
                                                 {cancelling === p.tracking
                                                     ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
-                                                    : <XCircle size={13} />}
+                                                    : <Trash2 size={13} />}
                                             </button>
                                         )}
                                     </div>
