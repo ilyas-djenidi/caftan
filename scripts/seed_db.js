@@ -1,19 +1,24 @@
+/**
+ * seed_db.js
+ * Seeds products from local images.
+ * Run from project root: node scripts/seed_db.js
+ */
+
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Replicate __dirname for ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const ROOT = path.join(__dirname, '..');
 
-// Simple .env parser to avoid extra dependencies
-const envContent = fs.readFileSync(path.join(__dirname, '.env'), 'utf-8');
+const envContent = fs.readFileSync(path.join(ROOT, '.env'), 'utf-8');
 const env = {};
 envContent.split('\n').forEach(line => {
     const [key, ...value] = line.split('=');
-    if (key && value) {
-        env[key.trim()] = value.join('=').trim().replace(/^"(.*)"$/, '$1');
+    if (key && value.length) {
+        env[key.trim()] = value.join('=').trim().replace(/^["'](.*)["']$/, '$1');
     }
 });
 
@@ -31,15 +36,14 @@ async function seed() {
     try {
         console.log('--- Database Reset Start ---');
 
-        // 1. Clear existing products (cascades to images/attributes if setup)
         console.log('Deleting all products...');
         const { error: delError } = await supabase
             .from('products')
             .delete()
-            .neq('name_fr', 'KEEP_NOTHING'); // Delete all
+            .neq('name_fr', 'KEEP_NOTHING');
 
         if (delError) {
-            console.warn('Error deleting products (might be empty or have constraints):', delError.message);
+            console.warn('Error deleting products:', delError.message);
         }
 
         const categories = {
@@ -48,7 +52,7 @@ async function seed() {
             'sac': 'sacs'
         };
 
-        const baseDir = path.join(__dirname, 'products');
+        const baseDir = path.join(ROOT, 'products');
 
         for (const [dirName, categoryName] of Object.entries(categories)) {
             const dirPath = path.join(baseDir, dirName);
@@ -65,7 +69,6 @@ async function seed() {
                 const filePath = path.join(dirPath, file);
                 const fileBuffer = fs.readFileSync(filePath);
 
-                // Construct a unique filename
                 const fileExt = file.split('.').pop();
                 const storageFileName = `${dirName}_${Date.now()}_${i}.${fileExt}`;
                 const storagePath = `products/${storageFileName}`;
@@ -94,12 +97,12 @@ async function seed() {
                 const productData = {
                     name_fr: productName,
                     category: categoryName,
-                    price: 18000 + (Math.floor(Math.random() * 10) * 1000), // Random price around 20k
+                    price: 18000 + (Math.floor(Math.random() * 10) * 1000),
                     description_fr: `Magnifique ${categoryName.toLowerCase()} de notre nouvelle collection. Qualité supérieure et finition artisanale.`,
                     in_stock: true,
                     stock_count: 5,
                     is_visible: true,
-                    featured: i < 3 // First 3 of each category are featured
+                    featured: i < 3
                 };
 
                 const { data: product, error: prodError } = await supabase
@@ -113,7 +116,6 @@ async function seed() {
                     continue;
                 }
 
-                // Insert the image into product_images
                 const { error: imgError } = await supabase
                     .from('product_images')
                     .insert({
@@ -132,7 +134,7 @@ async function seed() {
         }
 
         console.log('\n--- Hero Section Setup ---');
-        const heroImagePath = path.join(baseDir, 'caftan', 'photo_1_2026-03-01_04-18-20.jpg'); // Picking a nice one
+        const heroImagePath = path.join(baseDir, 'caftan', 'photo_1_2026-03-01_04-18-20.jpg');
         if (fs.existsSync(heroImagePath)) {
             console.log('Uploading hero background...');
             const heroBuffer = fs.readFileSync(heroImagePath);
