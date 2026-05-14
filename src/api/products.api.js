@@ -188,10 +188,13 @@ export const updateProduct = async (id, formData) => {
         const { error: delError } = await supabase.from('product_attributes').delete().eq('product_id', id);
         if (delError) console.error("Attr del error", delError);
 
-        const attributes = JSON.parse(attributesStr).map(attr => ({
-            ...attr,
-            product_id: id
-        }));
+        const attributes = JSON.parse(attributesStr).map(attr => {
+            const { id: attrId, created_at, ...rest } = attr;
+            return {
+                ...rest,
+                product_id: id
+            };
+        });
         if (attributes.length > 0) {
             const { error: attrError } = await supabase.from('product_attributes').insert(attributes);
             if (attrError) {
