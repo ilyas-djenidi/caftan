@@ -1,10 +1,13 @@
+// @ts-ignore
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const GUEPEX_BASE = 'https://api.guepex.app/v1';
+// @ts-ignore
 const API_ID    = Deno.env.get('GUEPEX_API_ID')!;
+// @ts-ignore
 const API_TOKEN = Deno.env.get('GUEPEX_API_TOKEN')!;
 
-serve(async (req) => {
+serve(async (req: Request) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
