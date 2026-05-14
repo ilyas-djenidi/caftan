@@ -5,7 +5,7 @@ export const getProducts = async (params = {}) => {
     // Determine the columns to select to optimize payload if requested
     const selectQuery = params.select || `
         id, name_fr, name_ar, price, original_price, on_sale, category, stock_count, created_at, featured,
-        images:product_images(image_url, is_primary)
+        images:product_images(id, image_url, is_primary, display_order)
     `;
 
     let query = supabase

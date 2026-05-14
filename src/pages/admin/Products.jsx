@@ -4,7 +4,7 @@ import {
     Image as ImageIcon, X, Eye, EyeOff, Upload,
     Check, Sparkles, AlertCircle
 } from 'lucide-react';
-import { getProducts, createProduct, updateProduct, deleteProduct } from '../../api/products.api';
+import { getProducts, getProduct, createProduct, updateProduct, deleteProduct } from '../../api/products.api';
 import toast from 'react-hot-toast';
 
 export default function Products() {
@@ -79,32 +79,40 @@ export default function Products() {
         }
     };
 
-    const handleOpenModal = (product = null) => {
+    const handleOpenModal = async (product = null) => {
         setNewImagePreviews([]);
         setSelectedPresetColor(null);
 
         if (product) {
-            setEditingProduct(product);
-            setFormData({
-                ...product,
-                name_fr: product.name_fr || '',
-                name_ar: product.name_ar || '',
-                category: product.category || 'caftans',
-                sub_category: product.sub_category || '',
-                price: product.price?.toString() || '',
-                original_price: product.original_price?.toString() || '',
-                description_fr: product.description_fr || '',
-                description_ar: product.description_ar || '',
-                stock_count: product.stock_count || 0,
-                in_stock: product.in_stock ?? true,
-                featured: product.featured ?? false,
-                on_sale: product.on_sale ?? false,
-                is_new: product.is_new ?? true,
-                is_visible: product.is_visible ?? true,
-                images: [], // New images to upload
-                existing_images: product.images || [],
-                attributes: product.attributes || []
-            });
+            // Fetch full product data to get attributes and image IDs
+            try {
+                const { data: fullProduct } = await getProduct(product.id);
+                setEditingProduct(fullProduct);
+                setFormData({
+                    ...fullProduct,
+                    name_fr: fullProduct.name_fr || '',
+                    name_ar: fullProduct.name_ar || '',
+                    category: fullProduct.category || 'caftans',
+                    sub_category: fullProduct.sub_category || '',
+                    price: fullProduct.price?.toString() || '',
+                    original_price: fullProduct.original_price?.toString() || '',
+                    description_fr: fullProduct.description_fr || '',
+                    description_ar: fullProduct.description_ar || '',
+                    stock_count: fullProduct.stock_count || 0,
+                    in_stock: fullProduct.in_stock ?? true,
+                    featured: fullProduct.featured ?? false,
+                    on_sale: fullProduct.on_sale ?? false,
+                    is_new: fullProduct.is_new ?? true,
+                    is_visible: fullProduct.is_visible ?? true,
+                    images: [], // New images to upload
+                    existing_images: fullProduct.images || [],
+                    attributes: fullProduct.attributes || []
+                });
+            } catch (err) {
+                console.error('Error loading product for edit:', err);
+                toast.error('Impossible de charger le produit');
+                return;
+            }
         } else {
             setEditingProduct(null);
             setFormData({
