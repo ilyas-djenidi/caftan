@@ -22,6 +22,7 @@ export default function Checkout() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [orderSuccess, setOrderSuccess] = useState(null);
+    const [hydrated, setHydrated] = useState(false);
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -91,11 +92,14 @@ export default function Checkout() {
         }
     }, [fetchedFees, formData.city, formData.deliveryType]);
 
+    // Mark hydrated after first render (gives Zustand persist time to rehydrate)
+    useEffect(() => { setHydrated(true); }, []);
+
     useEffect(() => {
-        if (items.length === 0 && !orderSuccess) {
+        if (hydrated && items.length === 0 && !orderSuccess) {
             navigate('/');
         }
-    }, [items, orderSuccess, navigate]);
+    }, [hydrated, items, orderSuccess, navigate]);
 
     const handleInput = (e) => {
         const { name, value } = e.target;

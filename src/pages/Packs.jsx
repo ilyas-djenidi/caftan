@@ -5,7 +5,6 @@ import { getPacks } from '../api/packs.api';
 import { useCartStore } from '../store/cartStore';
 import { getImageUrl } from '../utils';
 import { useTranslation } from 'react-i18next';
-import { showStockLimitToast } from '../utils/notifications';
 
 export default function Packs() {
     const { t, i18n } = useTranslation();
@@ -28,16 +27,18 @@ export default function Packs() {
     }, []);
 
     const handleAddToCart = (pack) => {
-        const success = addItem({
-            ...pack,
+        const cartProduct = {
             id: pack.id,
+            name_fr: pack.name_fr,
             name: pack.name_fr,
             price: pack.price,
+            stock_count: null, // packs have no stock limit
             is_pack: true,
-            image: pack.image_url
-        });
-        if (success) openDrawer();
-        else showStockLimitToast();
+            image_url: pack.image_url,
+            images: pack.image_url ? [{ image_url: pack.image_url }] : [],
+        };
+        addItem(cartProduct, null, null, null, 1);
+        openDrawer();
     };
 
     const getPackName = (pack) => {

@@ -45,7 +45,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
             flexShrink: 0
         }}>
             {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '48px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <span style={{ color: 'white', fontFamily: 'serif', fontSize: '20px', fontWeight: '700' }}>
                     Maison Admin
                 </span>
@@ -55,7 +55,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
             </div>
 
             {/* Nav */}
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, overflowY: 'auto', overflowX: 'hidden', marginRight: '-8px', paddingRight: '8px' }}>
                 {navItems.map(({ to, label, icon: Icon, end, badgeKey }) => {
                     const count = badgeKey ? counts[badgeKey] : 0;
                     return (
@@ -68,7 +68,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '12px',
-                                padding: '14px 16px',
+                                padding: '10px 16px',
                                 borderRadius: '14px',
                                 backgroundColor: isActive ? '#C3AB7E' : 'transparent',
                                 color: isActive ? '#111111' : 'rgba(255,255,255,0.65)',

@@ -401,26 +401,25 @@ const Orders = () => {
                 backgroundColor: 'white',
                 borderRadius: '30px',
                 border: '1px solid #F0EDE8',
-                overflowX: 'auto',
-                WebkitOverflowScrolling: 'touch',
+                overflow: 'hidden',
                 boxShadow: '0 4px 30px rgba(0,0,0,0.02)'
             }}>
-                <table className="w-full text-left border-collapse mobile-card-table" style={{ minWidth: '960px' }}>
+                <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed', width: '100%' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid #F0EDE8', backgroundColor: '#ffffff' }}>
                             {/* Checkbox */}
-                            <th style={{ padding: '20px 12px 20px 24px', width: '40px' }}>
+                            <th style={{ padding: '14px 8px 14px 16px', width: '36px' }}>
                                 <button onClick={toggleAll} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
-                                    {allFilteredSelected ? <CheckSquare size={16} color="#C3AB7E" /> : <Square size={16} />}
+                                    {allFilteredSelected ? <CheckSquare size={15} color="#C3AB7E" /> : <Square size={15} />}
                                 </button>
                             </th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Commande</th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Client</th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Total</th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut</th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Livraison</th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Statut Guepex</th>
-                            <th style={{ padding: '20px 24px', fontSize: '10px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>Détails</th>
+                            <th style={{ padding: '14px 10px', fontSize: '9px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', width: '18%' }}>Commande</th>
+                            <th style={{ padding: '14px 10px', fontSize: '9px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', width: '18%' }}>Client</th>
+                            <th style={{ padding: '14px 10px', fontSize: '9px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', width: '10%' }}>Total</th>
+                            <th style={{ padding: '14px 10px', fontSize: '9px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', width: '13%' }}>Statut</th>
+                            <th style={{ padding: '14px 10px', fontSize: '9px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', width: '16%' }}>Livraison</th>
+                            <th style={{ padding: '14px 10px', fontSize: '9px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', width: '15%' }}>Statut Guepex</th>
+                            <th style={{ padding: '14px 10px', fontSize: '9px', fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'right', width: '10%' }}>Détails</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#F0EDE8]">
@@ -456,7 +455,7 @@ const Orders = () => {
                                             className="hover:bg-[rgba(255,255,255,0.5)] cursor-default transition-colors"
                                         >
                                             {/* Checkbox */}
-                                            <td style={{ padding: '16px 12px 16px 24px' }} onClick={e => e.stopPropagation()}>
+                                            <td style={{ padding: '12px 8px 12px 16px' }} onClick={e => e.stopPropagation()}>
                                                 <button
                                                     onClick={() => toggleOne(order.id)}
                                                     style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
@@ -468,62 +467,33 @@ const Orders = () => {
                                             </td>
 
                                             {/* Order Info */}
-                                            <td style={{ padding: '16px 24px' }} className={`w-full-mobile ${!isOpened ? 'mobile-hidden-closed' : ''}`}>
+                                            <td style={{ padding: '12px 10px', overflow: 'hidden' }}>
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className="font-bold text-[#111111]" style={{ whiteSpace: 'nowrap' }}>#{order.order_number}</span>
-                                                    <span className="text-[11px] text-gray-400 font-bold uppercase">
-                                                        {order.created_at ? format(new Date(order.created_at), 'd MMM yyyy, HH:mm', { locale: fr }) : '—'}
+                                                    <span style={{ fontWeight: '800', fontSize: '12px', color: '#111111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>#{order.order_number}</span>
+                                                    <span style={{ fontSize: '10px', color: '#9ca3af', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
+                                                        {order.created_at ? format(new Date(order.created_at), 'd MMM yy', { locale: fr }) : '—'}
                                                     </span>
-                                                    {order.items && order.items.length > 0 && (
-                                                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                                            {Array.from(new Set(order.items.map(item => {
-                                                                if (item.pack_id) return 'PACK';
-                                                                const name = (item.product_name || '').toLowerCase();
-                                                                const catAttr = (item.category || '').toLowerCase();
-                                                                if (catAttr.includes('accessoire') || name.includes('accessoire')) return 'ACCESSOIRE';
-                                                                if (catAttr.includes('sac') || name.includes('sac')) return 'SACS';
-                                                                return 'CAFTAN';
-                                                            }))).map(catLabel => {
-                                                                let bg, color;
-                                                                if (catLabel === 'PACK') { bg = '#EFF6FF'; color = '#3b82f6'; }
-                                                                else if (catLabel === 'ACCESSOIRE') { bg = '#F5F3FF'; color = '#8b5cf6'; }
-                                                                else if (catLabel === 'SACS') { bg = '#FFF7ED'; color = '#f97316'; }
-                                                                else { bg = '#FDF6E7'; color = '#C3AB7E'; }
-                                                                return (
-                                                                    <span key={catLabel} style={{
-                                                                        fontSize: '8px', fontWeight: '800',
-                                                                        letterSpacing: '0.08em', textTransform: 'uppercase',
-                                                                        padding: '2px 6px', borderRadius: '100px',
-                                                                        backgroundColor: bg, color: color,
-                                                                        whiteSpace: 'nowrap'
-                                                                    }}>
-                                                                        {catLabel}
-                                                                    </span>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
                                                 </div>
                                             </td>
 
                                             {/* Customer */}
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td style={{ padding: '12px 10px', overflow: 'hidden' }}>
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className="font-bold text-[#111111] leading-tight">{order.customer_name}</span>
-                                                    <span className="text-xs text-gray-400 font-medium">{order.customer_phone}</span>
+                                                    <span style={{ fontWeight: '700', fontSize: '12px', color: '#111111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{order.customer_name}</span>
+                                                    <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{order.customer_phone}</span>
                                                 </div>
                                             </td>
 
                                             {/* Total */}
-                                            <td style={{ padding: '16px 24px' }}>
-                                                <div className="flex flex-col gap-0.5 items-end md:items-start text-right md:text-left">
-                                                    <span className="font-bold text-[#111111]">{order.total_price || 0} DA</span>
-                                                    <span className="text-[10px] text-[#C3AB7E] font-bold uppercase tracking-wider">COD</span>
+                                            <td style={{ padding: '12px 10px', overflow: 'hidden' }}>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span style={{ fontWeight: '800', fontSize: '12px', color: '#111111', whiteSpace: 'nowrap' }}>{order.total_price || 0} DA</span>
+                                                    <span style={{ fontSize: '9px', color: '#C3AB7E', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>COD</span>
                                                 </div>
                                             </td>
 
                                             {/* Statut commande */}
-                                            <td style={{ padding: '16px 24px' }} className={`w-full-mobile ${!isOpened ? 'mobile-hidden-closed' : ''}`}>
+                                            <td style={{ padding: '12px 10px', overflow: 'hidden' }}>
                                                 <div style={{
                                                     display: 'inline-flex', alignItems: 'center', gap: '8px',
                                                     padding: '6px 14px', borderRadius: '100px',
@@ -536,7 +506,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Livraison (tracking / info) */}
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td style={{ padding: '12px 10px', overflow: 'hidden' }}>
                                                 {tracking ? (
                                                     <div style={{
                                                         display: 'inline-flex', alignItems: 'center', gap: '6px',
@@ -561,7 +531,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Statut Guepex */}
-                                            <td style={{ padding: '16px 24px' }}>
+                                            <td style={{ padding: '12px 10px', overflow: 'hidden' }}>
                                                 {gMeta ? (
                                                     <span style={{
                                                         display: 'inline-flex', alignItems: 'center', gap: '5px',
@@ -583,7 +553,7 @@ const Orders = () => {
                                             </td>
 
                                             {/* Action */}
-                                            <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                                            <td style={{ padding: '12px 10px 12px 4px', textAlign: 'right' }}>
                                                 <button style={{
                                                     padding: '8px', borderRadius: '12px', border: '1px solid #F0EDE8',
                                                     backgroundColor: isOpened ? '#C3AB7E' : 'transparent',
