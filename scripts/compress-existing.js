@@ -26,23 +26,23 @@ async function compressAndUpload(filePath) {
         const originalSize = buffer.length;
 
         // 2. Compress with Sharp
-        // Resize to max 1600px, preserve aspect ratio
-        // Output at 90% quality since 2MB is the new target limit
+        // Resize to max 1920px, preserve aspect ratio
+        // Output as WebP at 95% quality for perfect quality & smaller size
         const compressedBuffer = await sharp(buffer)
             .resize({
-                width: 1600,
-                height: 1600,
+                width: 1920,
+                height: 1920,
                 fit: 'inside',
                 withoutEnlargement: true
             })
-            .jpeg({ quality: 90, progressive: true })
+            .webp({ quality: 95 })
             .toBuffer();
 
         const compressedSize = compressedBuffer.length;
 
-        // Only upload if it's smaller AND under 2MB (or much smaller than original)
-        if (compressedSize >= originalSize && originalSize <= 2 * 1024 * 1024) {
-            console.log(`- Skipping ${filePath} (already optimized and under 2MB)`);
+        // Only upload if we actually save space
+        if (compressedSize >= originalSize) {
+            console.log(`- Skipping ${filePath} (already optimized)`);
             return;
         }
 
@@ -65,7 +65,7 @@ async function compressAndUpload(filePath) {
         const { error: uploadError } = await supabase.storage
             .from(BUCKET)
             .upload(filePath, compressedBuffer, {
-                contentType: 'image/jpeg',
+                contentType: 'image/webp',
                 upsert: false // We already deleted
             });
 
