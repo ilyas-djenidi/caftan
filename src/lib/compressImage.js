@@ -9,11 +9,11 @@ import imageCompression from 'browser-image-compression';
  */
 export const compressImage = async (file) => {
     const options = {
-        maxSizeMB: 2,               // Raised limit to 2MB as requested
-        maxWidthOrHeight: 1920,     // Increased to 1920px for crystal clear quality on modern screens
+        maxSizeMB: 2.5,             // Raised limit to 2.5MB as requested for max quality
+        maxWidthOrHeight: 2048,     // Increased to 2048px for crystal clear quality on modern screens
         useWebWorker: true,
         fileType: 'image/webp',     // WebP gives superior quality at a fraction of the size
-        initialQuality: 0.95        // Start with near-lossless quality
+        initialQuality: 1           // Max quality setting
     };
 
     try {
