@@ -35,7 +35,7 @@ export default function Home() {
             setContactLoading(false);
         }
     };
-    
+
     // Default fallback values if homeData is missing
     const heroData = homeData?.heroSettings || {
         title_fr: 'Maison du Caftans',
@@ -97,15 +97,15 @@ export default function Home() {
                 justifyContent: 'center'
             }}>
                 {heroData.image_url && (
-                    <img 
-                        src={heroData.image_url} 
+                    <img
+                        src={heroData.image_url}
                         alt=""
                         fetchPriority="high"
                         style={{
                             position: 'absolute', inset: 0,
-                            width: '100%', height: '100%', 
+                            width: '100%', height: '100%',
                             objectFit: 'cover', objectPosition: 'center top',
-                        }} 
+                        }}
                     />
                 )}
                 {/* Dark gradient overlay — heavier on the left for text legibility */}
