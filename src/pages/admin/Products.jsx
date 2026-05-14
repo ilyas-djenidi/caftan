@@ -201,7 +201,7 @@ export default function Products() {
             loadProducts();
         } catch (error) {
             console.error('Submit error:', error);
-            toast.error('Une erreur est survenue');
+            toast.error(error.message || 'Une erreur est survenue');
         } finally {
             setFormLoading(false);
         }
