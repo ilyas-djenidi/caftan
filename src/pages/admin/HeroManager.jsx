@@ -56,13 +56,14 @@ export default function HeroManager() {
 
         setUploadingImage(true);
         try {
-            const fileExt = file.name.split('.').pop();
+            const compressed = await compressImage(file);
+            const fileExt = compressed.name.split('.').pop();
             const fileName = `hero_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
             const filePath = `hero/${fileName}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('caftan-images')
-                .upload(filePath, file); // upload raw file, no compression
+                .upload(filePath, compressed);
 
             if (uploadError) throw uploadError;
 
