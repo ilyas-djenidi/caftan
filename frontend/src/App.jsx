@@ -13,7 +13,6 @@ import FloatingIcons from './components/layout/FloatingIcons';
 // Lazy loaded pages
 const Home = lazy(() => import('./pages/Home'));
 const Caftans = lazy(() => import('./pages/Caftans'));
-const Sacs = lazy(() => import('./pages/Sacs'));
 const Accessoires = lazy(() => import('./pages/Accessoires'));
 const Jellabas = lazy(() => import('./pages/Jellabas'));
 const Packs = lazy(() => import('./pages/Packs'));
@@ -109,7 +108,6 @@ function App() {
                 <Route element={<StorefrontLayout />}>
                     <Route path="/"                element={<Suspense fallback={<PageSpinner />}><Home /></Suspense>} />
                     <Route path="/caftans"         element={<Suspense fallback={<PageSpinner />}><Caftans /></Suspense>} />
-                    <Route path="/sacs"            element={<Suspense fallback={<PageSpinner />}><Sacs /></Suspense>} />
                     <Route path="/accessoires"     element={<Suspense fallback={<PageSpinner />}><Accessoires /></Suspense>} />
                     <Route path="/jellabas"        element={<Suspense fallback={<PageSpinner />}><Jellabas /></Suspense>} />
                     <Route path="/packs"           element={<Suspense fallback={<PageSpinner />}><Packs /></Suspense>} />

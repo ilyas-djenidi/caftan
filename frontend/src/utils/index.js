@@ -3,7 +3,6 @@
 export const CATEGORIES = [
     { key: 'caftans', label: 'Caftans', labelAr: 'قفاطين' },
     { key: 'accessoires', label: 'Accessoires', labelAr: 'إكسسوارات' },
-    { key: 'sacs', label: 'Les Sacs', labelAr: 'الحقائب' },
 ]
 
 export const ALGERIA_CITIES = {

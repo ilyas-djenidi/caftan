@@ -42,8 +42,7 @@ export default function Home() {
         cta_text_fr: 'DÉCOUVRIR LA COLLECTION',
         image_url: '/images/caftan/photo_1_2026-03-01_04-18-20.jpg'
     };
-    const categoryCounts = homeData?.categoryCounts || { caftans: 0, sacs: 0, accessoires: 0, jellabas: 0 };
-    const sacsProducts = homeData?.sacsProducts || [];
+    const categoryCounts = homeData?.categoryCounts || { caftans: 0, accessoires: 0, jellabas: 0 };
     const caftansProducts = homeData?.caftansProducts || [];
     const accessoiresProducts = homeData?.accessoiresProducts || [];
     const jellabasProducts = homeData?.jellabasProducts || [];
@@ -57,7 +56,6 @@ export default function Home() {
     const categories = [
         { name: t('nav.caftans'), to: '/caftans', image: '/images/cat_caftans.jpg', count: `${categoryCounts.caftans} ${t('product.quantity')}` },
         { name: t('nav.jellabas'), to: '/jellabas', image: '/images/cat_jellabas.jpg', count: `${categoryCounts.jellabas ?? 0} ${t('product.quantity')}` },
-        { name: t('nav.bags'), to: '/sacs', image: '/images/cat_sacs.jpg', count: `${categoryCounts.sacs} ${t('product.quantity')}` },
         { name: t('nav.accessories'), to: '/accessoires', image: '/images/cat_acc.jpg', count: `${categoryCounts.accessoires} ${t('product.quantity')}` },
         { name: t('nav.packs'), to: '/packs', image: '/images/cat_packs.jpg', count: t('packs.label') },
     ];
@@ -354,45 +352,7 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* SACS PRODUCTS */}
-            <section style={{ padding: '0 0 80px', backgroundColor: '#ffffff' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-                        <h2 style={{ fontSize: '48px', fontFamily: 'serif', margin: 0 }}>{t('nav.bags')}</h2>
-                        <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '16px', maxWidth: '500px', margin: '16px auto 0' }}>
-                            {t('home.categories.subtitle')}
-                        </p>
-                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-                        {loading ? (
-                            Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} style={{ aspectRatio: '3/4', backgroundColor: '#F0EBE0', borderRadius: '0px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                            ))
-                        ) : (
-                            sacsProducts.slice(0, 3).map((product) => (
-                                <ProductCard
-                                    key={product.id}
-                                    product={product}
-                                    onClick={() => navigate(`/product/${product.id}`)}
-                                />
-                            ))
-                        )}
-                    </div>
-
-                    <div style={{ textAlign: 'center', marginTop: '80px' }}>
-                        <Link to="/sacs" style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '12px',
-                            color: '#111111', fontWeight: '800', fontSize: '11px',
-                            letterSpacing: '0.2em', textTransform: 'uppercase',
-                            textDecoration: 'none', borderBottom: '2px solid #C3AB7E',
-                            paddingBottom: '8px'
-                        }}>
-                            {t('home.featured.viewAll')} <ArrowRight size={16} />
-                        </Link>
-                    </div>
-                </div>
-            </section>
 
             {/* ACCESSOIRES PRODUCTS */}
             <section style={{ padding: '0 0 80px', backgroundColor: '#ffffff' }}>

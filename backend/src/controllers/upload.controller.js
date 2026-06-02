@@ -4,7 +4,7 @@ const { uploadToCloudinary, deleteFromCloudinary } = require('../middleware/uplo
 const ApiError      = require('../utils/ApiError');
 const asyncHandler  = require('../utils/asyncHandler');
 
-const VALID_FOLDERS = ['products', 'packs', 'hero', 'accessories', 'sacs'];
+const VALID_FOLDERS = ['products', 'packs', 'hero', 'accessories'];
 
 /**
  * POST /api/upload/image

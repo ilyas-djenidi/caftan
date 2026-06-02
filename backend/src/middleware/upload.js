@@ -8,7 +8,7 @@ const env     = require('../config/env');
 const ApiError = require('../utils/ApiError');
 
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const VALID_FOLDERS = ['products', 'packs', 'hero', 'accessories', 'sacs'];
+const VALID_FOLDERS = ['products', 'packs', 'hero', 'accessories'];
 
 // Keep file in memory — Sharp optimises, then we stream to Cloudinary
 const storage = multer.memoryStorage();

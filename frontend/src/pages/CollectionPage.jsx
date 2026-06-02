@@ -3,7 +3,6 @@ import CollectionGrid from '../components/shared/CollectionGrid';
 
 const categoryMap = {
     caftans: { title: 'Caftans de Luxe', subtitle: 'Des créations uniques, tissées avec passion et tradition.' },
-    sacs: { title: 'Maroquinerie Fine', subtitle: 'Des sacs d\'exception façonnés dans les plus beaux matériaux.' },
     accessoires: { title: 'Accessoires de Prestige', subtitle: 'La touche finale qui sublime chaque tenue.' },
 };
 

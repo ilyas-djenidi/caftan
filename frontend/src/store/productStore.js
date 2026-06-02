@@ -26,8 +26,7 @@ const useProductStore = create((set, get) => ({
 
     set({ loading: true, error: null });
     try {
-      const [sacsRes, caftansRes, accRes, jellabasRes, settingsRes] = await Promise.all([
-        getProducts({ category: 'sacs', limit: 8 }),
+      const [caftansRes, accRes, jellabasRes, settingsRes] = await Promise.all([
         getProducts({ category: 'caftans', limit: 8 }),
         getProducts({ category: 'accessoires', limit: 8 }),
         getProducts({ category: 'jellabas', limit: 8 }),
@@ -38,14 +37,12 @@ const useProductStore = create((set, get) => ({
 
       set({
         homeData: {
-          sacsProducts: sacsRes.data ?? [],
           caftansProducts: caftansRes.data ?? [],
           accessoiresProducts: accRes.data ?? [],
           jellabasProducts: jellabasRes.data ?? [],
           heroSettings: settings.hero_content,
           categoryCounts: {
             caftans: caftansRes.pagination?.total ?? 0,
-            sacs: sacsRes.pagination?.total ?? 0,
             accessoires: accRes.pagination?.total ?? 0,
             jellabas: jellabasRes.pagination?.total ?? 0,
           },

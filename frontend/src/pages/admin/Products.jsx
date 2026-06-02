@@ -329,7 +329,6 @@ export default function Products() {
                                     <select required value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]">
                                         <option value="caftans">Caftans</option>
                                         <option value="jellabas">Jellabas</option>
-                                        <option value="sacs">Sacs</option>
                                         <option value="accessoires">Accessoires</option>
                                     </select>
                                 </div>

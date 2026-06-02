@@ -2,7 +2,6 @@
     "nav": {
         "collections": "Collections",
         "caftans": "Caftans",
-        "bags": "Bags",
         "accessories": "Accessories",
         "jellabas": "Jellabas",
         "packs": "Packs",
@@ -135,7 +134,6 @@
         "rights": "© {{year}} Maison du Caftans. All rights reserved.",
         "collections": "Collections",
         "caftans": "Caftans",
-        "sacs": "Bags",
         "accessories": "Accessories",
         "jellabas": "Jellabas",
         "packs": "Packs",

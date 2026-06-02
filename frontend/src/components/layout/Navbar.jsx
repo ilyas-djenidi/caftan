@@ -196,7 +196,6 @@ export default function Navbar() {
                                  {[
                                      { labelKey: 'nav.caftans', to: '/caftans' },
                                      { labelKey: 'nav.jellabas', to: '/jellabas' },
-                                     { labelKey: 'nav.bags', to: '/sacs' },
                                      { labelKey: 'nav.accessories', to: '/accessoires' },
                                      { labelKey: 'nav.packs', to: '/packs' },
                                      { labelKey: 'nav.contact', to: '/contact' }
