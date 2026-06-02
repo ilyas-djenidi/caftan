@@ -5,10 +5,10 @@ module.exports = {
     {
       name: 'caftan-api',
       script: 'src/server.js',
-      instances: 'max',        // uses all CPU cores (server.js also cluster-forks internally)
-      exec_mode: 'fork',        // we handle clustering ourselves; use fork for PM2
+      instances: 1,             // server.js handles clustering internally — do NOT set 'max' here
+      exec_mode: 'fork',
       watch: false,
-      max_memory_restart: '512M',
+      max_memory_restart: '400M',
       env: {
         NODE_ENV: 'development',
         PORT: 4000,

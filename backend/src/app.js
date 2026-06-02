@@ -5,7 +5,6 @@ const helmet = require('helmet');
 const cors = require('cors');
 const compression = require('compression');
 const morgan = require('morgan');
-const path = require('path');
 
 const env = require('./config/env');
 const logger = require('./utils/logger');
@@ -45,14 +44,6 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 const morganStream = { write: (msg) => logger.http(msg.trim()) };
 app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev', { stream: morganStream }));
 
-// ── Static uploads ────────────────────────────────────────
-app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
-  maxAge: '7d',
-  immutable: false,
-  setHeaders: (res) => {
-    res.setHeader('Cache-Control', 'public, max-age=604800');
-  },
-}));
 
 // ── Global rate limiter ───────────────────────────────────
 app.use('/api', publicLimiter);
