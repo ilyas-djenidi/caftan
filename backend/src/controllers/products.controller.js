@@ -9,7 +9,11 @@ const env = require('../config/env');
 
 // ── Helpers ──────────────────────────────────────────────────
 
-const buildPublicUrl = (path) => (path ? `${env.BASE_URL}${path}` : null);
+const buildPublicUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `${env.BASE_URL}${path}`;
+};
 
 const attachImages = async (productIds) => {
   if (!productIds.length) return {};

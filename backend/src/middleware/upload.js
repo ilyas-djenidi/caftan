@@ -38,7 +38,7 @@ const uploadToCloudinary = (buffer, folder) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        public_id,
+        public_id: publicId,
         folder:           `caftan/${safeFolder}`,
         overwrite:        true,
         resource_type:    'image',
@@ -92,4 +92,44 @@ const deleteFromCloudinary = async (publicId) => {
   }
 };
 
-module.exports = { upload, uploadToCloudinary, deleteFromCloudinary };
+/**
+ * Compatibility wrapper for legacy code: process image using Cloudinary.
+ * Returns the secure URL.
+ */
+const processImage = async (buffer, folder) => {
+  const result = await uploadToCloudinary(buffer, folder);
+  return result.secure_url;
+};
+
+/**
+ * Compatibility wrapper for legacy code: delete image using Cloudinary.
+ * Safely extracts public_id if passed a full Cloudinary URL.
+ */
+const deleteImageFile = async (urlOrPublicId) => {
+  if (!urlOrPublicId) return;
+  if (urlOrPublicId.startsWith('/uploads/')) {
+    console.log('[Upload] skipping deletion of local seed file:', urlOrPublicId);
+    return;
+  }
+  let publicId = urlOrPublicId;
+  if (urlOrPublicId.startsWith('http://') || urlOrPublicId.startsWith('https://')) {
+    const match = urlOrPublicId.match(/\/upload\/(?:v\d+\/)?(caftan\/[^\.]+)/);
+    if (match && match[1]) {
+      publicId = match[1];
+    } else {
+      const idx = urlOrPublicId.indexOf('caftan/');
+      if (idx !== -1) {
+        publicId = urlOrPublicId.substring(idx).split('.')[0];
+      }
+    }
+  }
+  await deleteFromCloudinary(publicId);
+};
+
+module.exports = {
+  upload,
+  uploadToCloudinary,
+  deleteFromCloudinary,
+  processImage,
+  deleteImageFile,
+};
