@@ -3,6 +3,7 @@
 const router = require('express').Router();
 
 router.use('/health',          require('./health.routes'));
+router.use('/home',            require('./home.routes'));
 router.use('/auth',            require('./auth.routes'));
 router.use('/products',        require('./products.routes'));
 router.use('/packs',           require('./packs.routes'));
@@ -19,3 +20,4 @@ router.use('/upload',          require('./upload.routes'));
 router.use('/guepex',          require('./guepex.routes'));
 
 module.exports = router;
+

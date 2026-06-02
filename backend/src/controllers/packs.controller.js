@@ -5,13 +5,9 @@ const { processImage, deleteImageFile } = require('../middleware/upload');
 const { delPattern } = require('../config/redis');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
-const env = require('../config/env');
+const { buildUrl } = require('../utils/buildUrl');
 
-const buildUrl = (p) => {
-  if (!p) return null;
-  if (p.startsWith('http')) return p;  // already absolute (e.g. Supabase CDN)
-  return `${env.BASE_URL}${p}`;
-};
+
 
 const hydratePackItems = async (packIds) => {
   if (!packIds.length) return {};
@@ -103,10 +99,18 @@ const createPack = asyncHandler(async (req, res) => {
     );
     const p = ins.rows[0];
     const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
-    for (const item of parsedItems) {
+    if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+      const itemValues = [];
+      const itemPlaceholders = [];
+      let idx = 1;
+      for (const item of parsedItems) {
+        itemPlaceholders.push(`($${idx++}, $${idx++}, $${idx++})`);
+        itemValues.push(p.id, item.product_id, item.quantity ?? 1);
+      }
       await client.query(
-        'INSERT INTO pack_items (pack_id, product_id, quantity) VALUES ($1,$2,$3)',
-        [p.id, item.product_id, item.quantity ?? 1]
+        `INSERT INTO pack_items (pack_id, product_id, quantity)
+         VALUES ${itemPlaceholders.join(', ')}`,
+        itemValues
       );
     }
     return p;
@@ -155,10 +159,18 @@ const updatePack = asyncHandler(async (req, res) => {
     if (items !== undefined) {
       const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
       await client.query('DELETE FROM pack_items WHERE pack_id = $1', [id]);
-      for (const item of parsedItems) {
+      if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+        const itemValues = [];
+        const itemPlaceholders = [];
+        let idx = 1;
+        for (const item of parsedItems) {
+          itemPlaceholders.push(`($${idx++}, $${idx++}, $${idx++})`);
+          itemValues.push(id, item.product_id, item.quantity ?? 1);
+        }
         await client.query(
-          'INSERT INTO pack_items (pack_id, product_id, quantity) VALUES ($1,$2,$3)',
-          [id, item.product_id, item.quantity ?? 1]
+          `INSERT INTO pack_items (pack_id, product_id, quantity)
+           VALUES ${itemPlaceholders.join(', ')}`,
+          itemValues
         );
       }
     }

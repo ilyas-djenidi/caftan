@@ -145,6 +145,8 @@ export default function Packs() {
                                         <img
                                             src={getImageUrl(pack.image_url)}
                                             alt={getPackName(pack)}
+                                            loading="lazy"
+                                            decoding="async"
                                             style={{
                                                 width: '100%', height: '100%',
                                                 objectFit: 'cover', display: 'block',

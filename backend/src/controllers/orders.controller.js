@@ -22,10 +22,38 @@ const createOrder = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Order must contain at least one item');
   }
 
-  let discountAmount = 0;
-  let promoRow = null;
+  // ── Batch-resolve products and packs BEFORE the transaction ───────────────
+  const productIds = items.filter((i) => i.product_id).map((i) => i.product_id);
+  const packIds    = items.filter((i) => i.pack_id).map((i) => i.pack_id);
+
+  const [productsRes, packsRes, imagesRes] = await Promise.all([
+    productIds.length
+      ? query(
+          'SELECT id, name_fr, price, stock_count FROM products WHERE id = ANY($1) AND is_visible = TRUE',
+          [productIds]
+        )
+      : { rows: [] },
+    packIds.length
+      ? query(
+          'SELECT id, name_fr, price, is_active, is_sold_out, image_url FROM packs WHERE id = ANY($1)',
+          [packIds]
+        )
+      : { rows: [] },
+    productIds.length
+      ? query(
+          'SELECT product_id, image_url FROM product_images WHERE product_id = ANY($1) AND is_primary = TRUE',
+          [productIds]
+        )
+      : { rows: [] },
+  ]);
+
+  const productMap = Object.fromEntries(productsRes.rows.map((r) => [r.id, r]));
+  const packMap    = Object.fromEntries(packsRes.rows.map((r) => [r.id, r]));
+  const imageMap   = Object.fromEntries(imagesRes.rows.map((r) => [r.product_id, r.image_url]));
 
   // Validate promo code if provided
+  let discountAmount = 0;
+  let promoRow = null;
   if (promo_code) {
     const promoRes = await query(
       `SELECT * FROM promo_codes
@@ -38,91 +66,56 @@ const createOrder = asyncHandler(async (req, res) => {
     if (!promoRow) throw ApiError.badRequest('Invalid or expired promo code');
   }
 
+  // ── Validate items and build resolved list (no DB calls) ──────────────────
+  let itemsTotal = 0;
+  const resolvedItems = [];
+
+  for (const item of items) {
+    if (item.pack_id) {
+      const p = packMap[item.pack_id];
+      if (!p || !p.is_active || p.is_sold_out) {
+        throw ApiError.badRequest(`Pack "${item.pack_id}" is unavailable`);
+      }
+      const qty = Math.max(1, parseInt(item.quantity ?? 1, 10));
+      itemsTotal += p.price * qty;
+      resolvedItems.push({
+        pack_id: p.id, product_id: null,
+        product_name: p.name_fr, product_image: p.image_url,
+        quantity: qty, size: null, color: null, price_at_purchase: p.price,
+      });
+    } else {
+      const p = productMap[item.product_id];
+      if (!p) throw ApiError.badRequest(`Product "${item.product_id}" not found`);
+      const qty = Math.max(1, parseInt(item.quantity ?? 1, 10));
+      if (p.stock_count < qty) {
+        throw ApiError.badRequest(`Insufficient stock for "${p.name_fr}"`);
+      }
+      itemsTotal += p.price * qty;
+      resolvedItems.push({
+        product_id: p.id, pack_id: null,
+        product_name: p.name_fr, product_image: imageMap[p.id] ?? null,
+        quantity: qty, size: item.size ?? null, color: item.color ?? null,
+        price_at_purchase: p.price,
+      });
+    }
+  }
+
+  // Apply promo
+  if (promoRow) {
+    if (itemsTotal < promoRow.min_order) {
+      throw ApiError.badRequest(`Minimum order amount for this promo is ${promoRow.min_order} DA`);
+    }
+    discountAmount = promoRow.type === 'percentage'
+      ? (itemsTotal * promoRow.value) / 100
+      : promoRow.value;
+    discountAmount = Math.min(discountAmount, itemsTotal);
+  }
+
+  const totalPrice = Math.max(0, itemsTotal - discountAmount + parseFloat(delivery_fee));
+
+  // ── Single transaction: insert order + items + stock + promo ──────────────
   const order = await transaction(async (client) => {
     const orderNumber = await generateOrderNumber();
-
-    // Verify stock and calculate items total
-    let itemsTotal = 0;
-    const resolvedItems = [];
-
-    for (const item of items) {
-      if (item.pack_id) {
-        const pack = await client.query(
-          'SELECT id, name_fr, price, is_active, is_sold_out, image_url FROM packs WHERE id = $1',
-          [item.pack_id]
-        );
-        if (!pack.rows[0] || !pack.rows[0].is_active || pack.rows[0].is_sold_out) {
-          throw ApiError.badRequest(`Pack "${item.pack_id}" is unavailable`);
-        }
-        const p = pack.rows[0];
-        const qty = Math.max(1, parseInt(item.quantity ?? 1, 10));
-        itemsTotal += p.price * qty;
-        resolvedItems.push({
-          pack_id: p.id,
-          product_id: null,
-          product_name: p.name_fr,
-          product_image: p.image_url,
-          quantity: qty,
-          size: null,
-          color: null,
-          price_at_purchase: p.price,
-        });
-      } else {
-        const prod = await client.query(
-          'SELECT id, name_fr, price, stock_count FROM products WHERE id = $1 AND is_visible = TRUE',
-          [item.product_id]
-        );
-        if (!prod.rows[0]) {
-          throw ApiError.badRequest(`Product "${item.product_id}" not found`);
-        }
-        const p = prod.rows[0];
-        const qty = Math.max(1, parseInt(item.quantity ?? 1, 10));
-        if (p.stock_count < qty) {
-          throw ApiError.badRequest(`Insufficient stock for "${p.name_fr}"`);
-        }
-        const imageRes = await client.query(
-          'SELECT image_url FROM product_images WHERE product_id = $1 AND is_primary = TRUE LIMIT 1',
-          [p.id]
-        );
-        itemsTotal += p.price * qty;
-        resolvedItems.push({
-          product_id: p.id,
-          pack_id: null,
-          product_name: p.name_fr,
-          product_image: imageRes.rows[0]?.image_url ?? null,
-          quantity: qty,
-          size: item.size ?? null,
-          color: item.color ?? null,
-          price_at_purchase: p.price,
-        });
-
-        // Decrement stock
-        await client.query(
-          'UPDATE products SET stock_count = stock_count - $1 WHERE id = $2',
-          [qty, p.id]
-        );
-      }
-    }
-
-    // Apply promo
-    if (promoRow) {
-      if (itemsTotal < promoRow.min_order) {
-        throw ApiError.badRequest(
-          `Minimum order amount for this promo is ${promoRow.min_order} DA`
-        );
-      }
-      discountAmount =
-        promoRow.type === 'percentage'
-          ? (itemsTotal * promoRow.value) / 100
-          : promoRow.value;
-      discountAmount = Math.min(discountAmount, itemsTotal);
-      await client.query(
-        'UPDATE promo_codes SET used_count = used_count + 1 WHERE id = $1',
-        [promoRow.id]
-      );
-    }
-
-    const totalPrice = Math.max(0, itemsTotal - discountAmount + parseFloat(delivery_fee));
 
     const ins = await client.query(
       `INSERT INTO orders
@@ -132,31 +125,51 @@ const createOrder = asyncHandler(async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        RETURNING *`,
       [
-        orderNumber,
-        first_name ?? null,
-        last_name ?? null,
+        orderNumber, first_name ?? null, last_name ?? null,
         `${first_name ?? ''} ${last_name ?? ''}`.trim() || null,
-        phone, wilaya, commune,
-        address ?? null, notes ?? null,
-        totalPrice, parseFloat(delivery_fee),
-        delivery_type,
-        promoRow ? promoRow.code : null,
-        discountAmount,
+        phone, wilaya, commune, address ?? null, notes ?? null,
+        totalPrice, parseFloat(delivery_fee), delivery_type,
+        promoRow ? promoRow.code : null, discountAmount,
       ]
     );
     const createdOrder = ins.rows[0];
 
-    for (const item of resolvedItems) {
+    // Bulk insert order items in one batch query
+    if (resolvedItems.length > 0) {
+      const itemValues = [];
+      const itemPlaceholders = [];
+      let idx = 1;
+      for (const item of resolvedItems) {
+        itemPlaceholders.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`);
+        itemValues.push(
+          createdOrder.id, item.product_id, item.pack_id,
+          item.product_name, item.product_image,
+          item.quantity, item.size, item.color, item.price_at_purchase
+        );
+      }
       await client.query(
         `INSERT INTO order_items
            (order_id, product_id, pack_id, product_name, product_image,
             quantity, size, color, price_at_purchase)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-        [
-          createdOrder.id, item.product_id, item.pack_id,
-          item.product_name, item.product_image,
-          item.quantity, item.size, item.color, item.price_at_purchase,
-        ]
+         VALUES ${itemPlaceholders.join(', ')}`,
+        itemValues
+      );
+    }
+
+    // Decrement stock for products in one batch
+    const productItems = resolvedItems.filter((i) => i.product_id);
+    for (const item of productItems) {
+      await client.query(
+        'UPDATE products SET stock_count = stock_count - $1 WHERE id = $2',
+        [item.quantity, item.product_id]
+      );
+    }
+
+    // Increment promo usage
+    if (promoRow) {
+      await client.query(
+        'UPDATE promo_codes SET used_count = used_count + 1 WHERE id = $1',
+        [promoRow.id]
       );
     }
 
@@ -171,6 +184,7 @@ const createOrder = asyncHandler(async (req, res) => {
     data: { order_number: order.order.order_number, id: order.order.id },
   });
 });
+
 
 // ── Admin list ────────────────────────────────────────────────
 

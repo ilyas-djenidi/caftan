@@ -26,26 +26,17 @@ const useProductStore = create((set, get) => ({
 
     set({ loading: true, error: null });
     try {
-      const [caftansRes, accRes, jellabasRes, settingsRes] = await Promise.all([
-        getProducts({ category: 'caftans', limit: 8 }),
-        getProducts({ category: 'accessoires', limit: 8 }),
-        getProducts({ category: 'jellabas', limit: 8 }),
-        api.get('/settings').catch(() => ({ data: { data: {} } })),
-      ]);
-
-      const settings = settingsRes.data?.data ?? {};
+      // Single request — backend aggregates everything in 2 SQL queries
+      const res = await api.get('/home');
+      const d = res.data?.data ?? {};
 
       set({
         homeData: {
-          caftansProducts: caftansRes.data ?? [],
-          accessoiresProducts: accRes.data ?? [],
-          jellabasProducts: jellabasRes.data ?? [],
-          heroSettings: settings.hero_content,
-          categoryCounts: {
-            caftans: caftansRes.pagination?.total ?? 0,
-            accessoires: accRes.pagination?.total ?? 0,
-            jellabas: jellabasRes.pagination?.total ?? 0,
-          },
+          caftansProducts:     d.caftansProducts     ?? [],
+          accessoiresProducts: d.accessoiresProducts ?? [],
+          jellabasProducts:    d.jellabasProducts    ?? [],
+          heroSettings:        d.heroSettings        ?? null,
+          categoryCounts:      d.categoryCounts      ?? { caftans: 0, accessoires: 0, jellabas: 0 },
         },
         homeDataLastFetched: now,
         loading: false,

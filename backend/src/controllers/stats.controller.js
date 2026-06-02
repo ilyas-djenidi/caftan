@@ -34,19 +34,20 @@ const getDashboardStats = asyncHandler(async (req, res) => {
            LIMIT 10`),
 
     query(`SELECT
-             to_char(d, 'YYYY-MM-DD') AS date,
+             to_char(d.d, 'YYYY-MM-DD') AS date,
              COUNT(o.id)               AS orders,
              COALESCE(SUM(o.total_price), 0) AS revenue
            FROM generate_series(
-             NOW() - INTERVAL '6 days',
-             NOW(),
+             date_trunc('day', NOW() - INTERVAL '6 days'),
+             date_trunc('day', NOW()),
              INTERVAL '1 day'
-           ) AS d
+           ) AS d(d)
            LEFT JOIN orders o
-             ON date_trunc('day', o.created_at) = date_trunc('day', d)
+             ON o.created_at >= d.d
+             AND o.created_at < d.d + INTERVAL '1 day'
              AND o.status <> 'cancelled'
-           GROUP BY d
-           ORDER BY d`),
+           GROUP BY d.d
+           ORDER BY d.d`),
 
     query(`SELECT id, order_number, customer_name, phone, total_price, status, created_at
            FROM orders
@@ -69,4 +70,27 @@ const getDashboardStats = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getDashboardStats };
+/**
+ * GET /api/stats/counts
+ * Returns pending orders, unread messages, pending reviews in a SINGLE query.
+ * Replaces 3 polling requests from the admin sidebar.
+ */
+const getAdminCounts = asyncHandler(async (req, res) => {
+  const result = await query(`
+    SELECT
+      (SELECT COUNT(*) FROM orders  WHERE status = 'pending')          AS orders,
+      (SELECT COUNT(*) FROM messages WHERE status = 'unread')          AS messages,
+      (SELECT COUNT(*) FROM reviews  WHERE status = 'pending')         AS reviews
+  `);
+  const row = result.rows[0];
+  res.json({
+    success: true,
+    data: {
+      orders:   parseInt(row.orders,   10),
+      messages: parseInt(row.messages, 10),
+      reviews:  parseInt(row.reviews,  10),
+    },
+  });
+});
+
+module.exports = { getDashboardStats, getAdminCounts };

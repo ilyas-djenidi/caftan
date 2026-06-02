@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, ShoppingBag, Package, LogOut, Tags, MessageCircle, Star, Image as ImageIcon, X, ArrowLeft, Truck } from 'lucide-react';
-import { getAdminOrders } from '../../api/orders.api';
-import { getMessages } from '../../api/messages.api';
-import { getAdminReviews } from '../../api/reviews.api';
+import { api } from '../../api/client';
 
 const navItems = [
     { icon: LayoutDashboard, label: 'Tableau de bord', to: '/admin', end: true },
@@ -21,24 +19,21 @@ export default function AdminSidebar({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [counts, setCounts] = useState({ orders: 0, messages: 0, reviews: 0 });
 
-    useEffect(() => { fetchCounts(); }, []);
-
-    const fetchCounts = async () => {
-        try {
-            const [ordersRes, msgsRes, revsRes] = await Promise.all([
-                getAdminOrders({ status: 'pending', limit: 1 }),
-                getMessages({ status: 'unread', limit: 1 }),
-                getAdminReviews({ status: 'pending', limit: 1 }),
-            ]);
-            setCounts({
-                orders: ordersRes.pagination?.total ?? 0,
-                messages: msgsRes.pagination?.total ?? 0,
-                reviews: revsRes.pagination?.total ?? 0,
-            });
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    useEffect(() => {
+        const fetchCounts = async () => {
+            try {
+                // Single endpoint instead of 3 separate requests
+                const res = await api.get('/stats/counts');
+                setCounts(res.data?.data ?? { orders: 0, messages: 0, reviews: 0 });
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchCounts();
+        // Poll every 60s — backend caches for 30s so this is efficient
+        const id = setInterval(fetchCounts, 60_000);
+        return () => clearInterval(id);
+    }, []);
 
     const SidebarContent = () => (
         <div style={{

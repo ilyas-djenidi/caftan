@@ -5,15 +5,9 @@ const { processImage, deleteImageFile } = require('../middleware/upload');
 const { delPattern, del } = require('../config/redis');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
-const env = require('../config/env');
+const { buildUrl } = require('../utils/buildUrl');
 
 // ── Helpers ──────────────────────────────────────────────────
-
-const buildPublicUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http')) return path;
-  return `${env.BASE_URL}${path}`;
-};
 
 const attachImages = async (productIds) => {
   if (!productIds.length) return {};
@@ -27,7 +21,7 @@ const attachImages = async (productIds) => {
   const map = {};
   for (const row of result.rows) {
     if (!map[row.product_id]) map[row.product_id] = [];
-    map[row.product_id].push({ ...row, image_url: buildPublicUrl(row.image_url) });
+    map[row.product_id].push({ ...row, image_url: buildUrl(row.image_url) });
   }
   return map;
 };
@@ -180,51 +174,84 @@ const createProduct = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('name_fr, price, and category are required');
   }
 
-  const product = await transaction(async (client) => {
-    const ins = await client.query(
-      `INSERT INTO products
-         (name_fr, name_ar, description_fr, description_ar, price, original_price,
-          on_sale, category, subcategory, tissu, stock_count, is_visible, featured, is_new)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-       RETURNING *`,
-      [
-        name_fr, name_ar ?? null, description_fr ?? null, description_ar ?? null,
-        parseFloat(price), original_price ? parseFloat(original_price) : null,
-        on_sale === 'true' || on_sale === true,
-        category, subcategory ?? null, tissu ?? null,
-        parseInt(stock_count ?? 0, 10),
-        is_visible !== 'false' && is_visible !== false,
-        featured === 'true' || featured === true,
-        is_new === 'true' || is_new === true,
-      ]
-    );
-    const prod = ins.rows[0];
+  const files = req.files ?? [];
+  const uploadedUrls = [];
 
-    // Process uploaded images
-    const files = req.files ?? [];
-    for (let i = 0; i < files.length; i++) {
-      const urlPath = await processImage(files[i].buffer, 'products');
-      await client.query(
-        `INSERT INTO product_images (product_id, image_url, is_primary, display_order)
-         VALUES ($1,$2,$3,$4)`,
-        [prod.id, urlPath, i === 0, i]
-      );
+  try {
+    // 1. Process and upload images in parallel outside the DB transaction
+    if (files.length > 0) {
+      const uploadPromises = files.map((file) => processImage(file.buffer, 'products'));
+      const urls = await Promise.all(uploadPromises);
+      uploadedUrls.push(...urls);
     }
 
-    // Attributes
-    const attrs = typeof attributes === 'string' ? JSON.parse(attributes) : attributes;
-    for (const attr of attrs) {
-      await client.query(
-        'INSERT INTO product_attributes (product_id, type, value) VALUES ($1,$2,$3)',
-        [prod.id, attr.type, attr.value]
+    const product = await transaction(async (client) => {
+      const ins = await client.query(
+        `INSERT INTO products
+           (name_fr, name_ar, description_fr, description_ar, price, original_price,
+            on_sale, category, subcategory, tissu, stock_count, is_visible, featured, is_new)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+         RETURNING *`,
+        [
+          name_fr, name_ar ?? null, description_fr ?? null, description_ar ?? null,
+          parseFloat(price), original_price ? parseFloat(original_price) : null,
+          on_sale === 'true' || on_sale === true,
+          category, subcategory ?? null, tissu ?? null,
+          parseInt(stock_count ?? 0, 10),
+          is_visible !== 'false' && is_visible !== false,
+          featured === 'true' || featured === true,
+          is_new === 'true' || is_new === true,
+        ]
       );
+      const prod = ins.rows[0];
+
+      // 2. Batch insert images
+      if (uploadedUrls.length > 0) {
+        const imgValues = [];
+        const imgPlaceholders = [];
+        let idx = 1;
+        for (let i = 0; i < uploadedUrls.length; i++) {
+          imgPlaceholders.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++})`);
+          imgValues.push(prod.id, uploadedUrls[i], i === 0, i);
+        }
+        await client.query(
+          `INSERT INTO product_images (product_id, image_url, is_primary, display_order)
+           VALUES ${imgPlaceholders.join(', ')}`,
+          imgValues
+        );
+      }
+
+      // 3. Batch insert attributes
+      const attrs = typeof attributes === 'string' ? JSON.parse(attributes) : attributes;
+      if (Array.isArray(attrs) && attrs.length > 0) {
+        const attrValues = [];
+        const attrPlaceholders = [];
+        let idx = 1;
+        for (const attr of attrs) {
+          attrPlaceholders.push(`($${idx++}, $${idx++}, $${idx++})`);
+          attrValues.push(prod.id, attr.type, attr.value);
+        }
+        await client.query(
+          `INSERT INTO product_attributes (product_id, type, value)
+           VALUES ${attrPlaceholders.join(', ')}`,
+          attrValues
+        );
+      }
+
+      return prod;
+    });
+
+    await delPattern('cache:/api/products*');
+    res.status(201).json({ success: true, data: product });
+  } catch (err) {
+    // Clean up newly uploaded files from Cloudinary on error/rollback
+    if (uploadedUrls.length > 0) {
+      await Promise.all(uploadedUrls.map((url) => deleteImageFile(url))).catch((cleanupErr) => {
+        console.error('Error cleaning up uploaded images:', cleanupErr.message);
+      });
     }
-
-    return prod;
-  });
-
-  await delPattern('cache:/api/products*');
-  res.status(201).json({ success: true, data: product });
+    throw err;
+  }
 });
 
 // ── Update (admin) ────────────────────────────────────────────
@@ -242,87 +269,135 @@ const updateProduct = asyncHandler(async (req, res) => {
     images_to_delete = '[]',
   } = req.body;
 
-  await transaction(async (client) => {
-    const fields = [];
-    const vals = [];
-    let pi = 1;
+  const toDelete = typeof images_to_delete === 'string'
+    ? JSON.parse(images_to_delete) : images_to_delete;
 
-    const set = (col, val) => { fields.push(`${col} = $${pi++}`); vals.push(val); };
-
-    if (name_fr !== undefined) set('name_fr', name_fr);
-    if (name_ar !== undefined) set('name_ar', name_ar);
-    if (description_fr !== undefined) set('description_fr', description_fr);
-    if (description_ar !== undefined) set('description_ar', description_ar);
-    if (price !== undefined) set('price', parseFloat(price));
-    if (original_price !== undefined) set('original_price', original_price ? parseFloat(original_price) : null);
-    if (on_sale !== undefined) set('on_sale', on_sale === 'true' || on_sale === true);
-    if (category !== undefined) set('category', category);
-    if (subcategory !== undefined) set('subcategory', subcategory);
-    if (tissu !== undefined) set('tissu', tissu);
-    if (stock_count !== undefined) set('stock_count', parseInt(stock_count, 10));
-    if (is_visible !== undefined) set('is_visible', is_visible !== 'false' && is_visible !== false);
-    if (featured !== undefined) set('featured', featured === 'true' || featured === true);
-    if (is_new !== undefined) set('is_new', is_new === 'true' || is_new === true);
-
-    if (fields.length > 0) {
-      vals.push(id);
-      await client.query(
-        `UPDATE products SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${pi}`,
-        vals
-      );
-    }
-
-    // Delete specified images
-    const toDelete = typeof images_to_delete === 'string'
-      ? JSON.parse(images_to_delete) : images_to_delete;
-    for (const imgId of toDelete) {
-      const img = await client.query(
-        'SELECT image_url FROM product_images WHERE id = $1 AND product_id = $2',
-        [imgId, id]
-      );
-      if (img.rows[0]) {
-        deleteImageFile(img.rows[0].image_url);
-        await client.query('DELETE FROM product_images WHERE id = $1', [imgId]);
-      }
-    }
-
-    // Add new uploaded images
-    const files = req.files ?? [];
-    const orderResult = await client.query(
-      'SELECT COALESCE(MAX(display_order), -1) AS max_order FROM product_images WHERE product_id = $1',
-      [id]
+  // We will collect the Cloudinary URLs that need to be deleted
+  const cloudinaryUrlsToDelete = [];
+  if (toDelete.length > 0) {
+    const imgRes = await query(
+      'SELECT image_url FROM product_images WHERE id = ANY($1) AND product_id = $2',
+      [toDelete, id]
     );
-    let nextOrder = orderResult.rows[0].max_order + 1;
+    cloudinaryUrlsToDelete.push(...imgRes.rows.map((r) => r.image_url));
+  }
 
-    for (const file of files) {
-      const urlPath = await processImage(file.buffer, 'products');
-      await client.query(
-        `INSERT INTO product_images (product_id, image_url, is_primary, display_order)
-         VALUES ($1,$2,FALSE,$3)`,
-        [id, urlPath, nextOrder++]
-      );
+  // Upload new images in parallel BEFORE starting the transaction
+  const files = req.files ?? [];
+  const uploadedUrls = [];
+
+  try {
+    if (files.length > 0) {
+      const uploadPromises = files.map((file) => processImage(file.buffer, 'products'));
+      const urls = await Promise.all(uploadPromises);
+      uploadedUrls.push(...urls);
     }
 
-    // Update attributes if provided
-    if (attributes !== undefined) {
-      const attrs = typeof attributes === 'string' ? JSON.parse(attributes) : attributes;
-      await client.query('DELETE FROM product_attributes WHERE product_id = $1', [id]);
-      for (const attr of attrs) {
+    await transaction(async (client) => {
+      const fields = [];
+      const vals = [];
+      let pi = 1;
+
+      const set = (col, val) => { fields.push(`${col} = $${pi++}`); vals.push(val); };
+
+      if (name_fr !== undefined) set('name_fr', name_fr);
+      if (name_ar !== undefined) set('name_ar', name_ar);
+      if (description_fr !== undefined) set('description_fr', description_fr);
+      if (description_ar !== undefined) set('description_ar', description_ar);
+      if (price !== undefined) set('price', parseFloat(price));
+      if (original_price !== undefined) set('original_price', original_price ? parseFloat(original_price) : null);
+      if (on_sale !== undefined) set('on_sale', on_sale === 'true' || on_sale === true);
+      if (category !== undefined) set('category', category);
+      if (subcategory !== undefined) set('subcategory', subcategory);
+      if (tissu !== undefined) set('tissu', tissu);
+      if (stock_count !== undefined) set('stock_count', parseInt(stock_count, 10));
+      if (is_visible !== undefined) set('is_visible', is_visible !== 'false' && is_visible !== false);
+      if (featured !== undefined) set('featured', featured === 'true' || featured === true);
+      if (is_new !== undefined) set('is_new', is_new === 'true' || is_new === true);
+
+      if (fields.length > 0) {
+        vals.push(id);
         await client.query(
-          'INSERT INTO product_attributes (product_id, type, value) VALUES ($1,$2,$3)',
-          [id, attr.type, attr.value]
+          `UPDATE products SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${pi}`,
+          vals
         );
       }
+
+      // Delete specified images in database
+      if (toDelete.length > 0) {
+        await client.query(
+          'DELETE FROM product_images WHERE id = ANY($1) AND product_id = $2',
+          [toDelete, id]
+        );
+      }
+
+      // Add new uploaded images
+      if (uploadedUrls.length > 0) {
+        const orderResult = await client.query(
+          'SELECT COALESCE(MAX(display_order), -1) AS max_order FROM product_images WHERE product_id = $1',
+          [id]
+        );
+        let nextOrder = orderResult.rows[0].max_order + 1;
+
+        const imgValues = [];
+        const imgPlaceholders = [];
+        let idx = 1;
+        for (const urlPath of uploadedUrls) {
+          imgPlaceholders.push(`($${idx++}, $${idx++}, FALSE, $${idx++})`);
+          imgValues.push(id, urlPath, nextOrder++);
+        }
+        await client.query(
+          `INSERT INTO product_images (product_id, image_url, is_primary, display_order)
+           VALUES ${imgPlaceholders.join(', ')}`,
+          imgValues
+        );
+      }
+
+      // Update attributes if provided (batch delete and batch insert)
+      if (attributes !== undefined) {
+        const attrs = typeof attributes === 'string' ? JSON.parse(attributes) : attributes;
+        await client.query('DELETE FROM product_attributes WHERE product_id = $1', [id]);
+        if (Array.isArray(attrs) && attrs.length > 0) {
+          const attrValues = [];
+          const attrPlaceholders = [];
+          let idx = 1;
+          for (const attr of attrs) {
+            attrPlaceholders.push(`($${idx++}, $${idx++}, $${idx++})`);
+            attrValues.push(id, attr.type, attr.value);
+          }
+          await client.query(
+            `INSERT INTO product_attributes (product_id, type, value)
+             VALUES ${attrPlaceholders.join(', ')}`,
+            attrValues
+          );
+        }
+      }
+    });
+
+    // DB Transaction succeeded! Now we can safely delete old images from Cloudinary in background (non-blocking)
+    if (cloudinaryUrlsToDelete.length > 0) {
+      Promise.all(cloudinaryUrlsToDelete.map((url) => deleteImageFile(url))).catch((delErr) => {
+        console.error('Error deleting replaced images from Cloudinary:', delErr.message);
+      });
     }
-  });
 
-  await Promise.all([
-    delPattern('cache:/api/products*'),
-    del(`cache:/api/products/${id}`),
-  ]);
+    await Promise.all([
+      delPattern('cache:/api/products*'),
+      del(`cache:/api/products/${id}`),
+    ]);
 
-  const updated = await query('SELECT * FROM products WHERE id = $1', [id]);
-  res.json({ success: true, data: updated.rows[0] });
+    const updated = await query('SELECT * FROM products WHERE id = $1', [id]);
+    res.json({ success: true, data: updated.rows[0] });
+
+  } catch (err) {
+    // If the database transaction fails/rolls back, clean up the newly uploaded files
+    if (uploadedUrls.length > 0) {
+      await Promise.all(uploadedUrls.map((url) => deleteImageFile(url))).catch((cleanupErr) => {
+        console.error('Error cleaning up uploaded images:', cleanupErr.message);
+      });
+    }
+    throw err;
+  }
 });
 
 // ── Delete (admin) ────────────────────────────────────────────

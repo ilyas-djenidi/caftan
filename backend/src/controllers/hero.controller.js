@@ -5,13 +5,9 @@ const { processImage, deleteImageFile } = require('../middleware/upload');
 const { del, delPattern } = require('../config/redis');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
-const env = require('../config/env');
+const { buildUrl } = require('../utils/buildUrl');
 
-const buildUrl = (p) => {
-  if (!p) return null;
-  if (p.startsWith('http')) return p;  // already absolute (e.g. Supabase CDN)
-  return `${env.BASE_URL}${p}`;
-};
+
 
 
 const getActiveBanners = asyncHandler(async (req, res) => {
