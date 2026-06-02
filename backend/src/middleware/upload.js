@@ -1,17 +1,16 @@
 'use strict';
 
-const multer = require('multer');
-const sharp = require('sharp');
-const path = require('path');
-const fs = require('fs');
+const multer  = require('multer');
+const sharp   = require('sharp');
 const { v4: uuidv4 } = require('uuid');
-const env = require('../config/env');
+const cloudinary = require('../config/cloudinary');
+const env     = require('../config/env');
 const ApiError = require('../utils/ApiError');
 
-const UPLOADS_ROOT = path.join(__dirname, '../../uploads');
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const VALID_FOLDERS = ['products', 'packs', 'hero', 'accessories', 'sacs'];
 
-// Multer keeps file in memory — Sharp does the actual write
+// Keep file in memory — Sharp optimises, then we stream to Cloudinary
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
@@ -29,41 +28,68 @@ const upload = multer({
 });
 
 /**
- * Process an uploaded file with Sharp:
- * - Convert to WebP
- * - Resize if wider than maxWidth
- * - Returns the saved URL path
+ * Optimise with Sharp then upload to Cloudinary.
+ * Returns the Cloudinary result object (secure_url, public_id, …).
  */
-const processImage = async (buffer, folder) => {
-  const dir = path.join(UPLOADS_ROOT, folder);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+const uploadToCloudinary = (buffer, folder) => {
+  const safeFolder = VALID_FOLDERS.includes(folder) ? folder : 'products';
+  const publicId   = `caftan/${safeFolder}/${uuidv4()}`;
 
-  const filename = `${uuidv4()}.webp`;
-  const filepath = path.join(dir, filename);
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        public_id,
+        folder:           `caftan/${safeFolder}`,
+        overwrite:        true,
+        resource_type:    'image',
+        format:           'webp',
+        transformation: [
+          {
+            width:   env.upload.maxWidth,
+            crop:    'limit',           // never enlarge
+            quality: env.upload.webpQuality,
+            fetch_format: 'webp',
+          },
+        ],
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
 
-  await sharp(buffer)
-    .rotate() // auto-rotate based on EXIF
-    .resize({
-      width: env.upload.maxWidth,
-      withoutEnlargement: true,
-      fit: 'inside',
-    })
-    .webp({ quality: env.upload.webpQuality })
-    .toFile(filepath);
-
-  return `/uploads/${folder}/${filename}`;
+    // Run Sharp first for auto-rotate + server-side optimisation, then pipe to Cloudinary
+    sharp(buffer)
+      .rotate()                          // fix EXIF orientation
+      .resize({
+        width: env.upload.maxWidth,
+        withoutEnlargement: true,
+        fit: 'inside',
+      })
+      .webp({ quality: env.upload.webpQuality })
+      .toBuffer()
+      .then((optimised) => {
+        const { Readable } = require('stream');
+        const readable = new Readable();
+        readable.push(optimised);
+        readable.push(null);
+        readable.pipe(stream);
+      })
+      .catch(reject);
+  });
 };
 
 /**
- * Delete a file given its URL path (e.g. /uploads/products/xxx.webp)
+ * Delete an image from Cloudinary by its public_id.
+ * Safe to call without awaiting — failures are logged, not thrown.
  */
-const deleteImageFile = (urlPath) => {
-  if (!urlPath) return;
-  const rel = urlPath.replace(/^\/uploads\//, '');
-  const abs = path.join(UPLOADS_ROOT, rel);
-  if (fs.existsSync(abs)) {
-    fs.unlinkSync(abs);
+const deleteFromCloudinary = async (publicId) => {
+  if (!publicId) return;
+  try {
+    await cloudinary.uploader.destroy(publicId);
+  } catch (err) {
+    console.error('[Cloudinary] delete error:', err.message);
   }
 };
 
-module.exports = { upload, processImage, deleteImageFile };
+module.exports = { upload, uploadToCloudinary, deleteFromCloudinary };

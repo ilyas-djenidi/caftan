@@ -1,37 +1,45 @@
 'use strict';
 
-const { processImage, deleteImageFile } = require('../middleware/upload');
-const ApiError = require('../utils/ApiError');
-const asyncHandler = require('../utils/asyncHandler');
-const env = require('../config/env');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../middleware/upload');
+const ApiError      = require('../utils/ApiError');
+const asyncHandler  = require('../utils/asyncHandler');
 
-const VALID_FOLDERS = ['products', 'packs', 'hero'];
+const VALID_FOLDERS = ['products', 'packs', 'hero', 'accessories', 'sacs'];
 
+/**
+ * POST /api/upload/image
+ * Body (multipart): image (file), folder (string, optional)
+ * Returns: { url, public_id }
+ */
 const uploadImage = asyncHandler(async (req, res) => {
   if (!req.file) throw ApiError.badRequest('No file uploaded');
 
   const folder = VALID_FOLDERS.includes(req.body.folder) ? req.body.folder : 'products';
-  const urlPath = await processImage(req.file.buffer, folder);
+  const result = await uploadToCloudinary(req.file.buffer, folder);
 
   res.json({
     success: true,
     data: {
-      url: `${env.BASE_URL}${urlPath}`,
-      path: urlPath,
+      url:       result.secure_url,
+      public_id: result.public_id,
     },
   });
 });
 
+/**
+ * DELETE /api/upload/image
+ * Body: { public_id: "caftan/products/uuid" }
+ */
 const deleteImage = asyncHandler(async (req, res) => {
-  const { path: urlPath } = req.body;
-  if (!urlPath) throw ApiError.badRequest('path is required');
+  const { public_id } = req.body;
+  if (!public_id) throw ApiError.badRequest('public_id is required');
 
-  // Security: only allow deleting from our uploads directory
-  if (!urlPath.startsWith('/uploads/')) {
-    throw ApiError.forbidden('Cannot delete file outside uploads directory');
+  // Security: only allow deleting images in our own Cloudinary folder
+  if (!public_id.startsWith('caftan/')) {
+    throw ApiError.forbidden('Cannot delete images outside the caftan folder');
   }
 
-  deleteImageFile(urlPath);
+  await deleteFromCloudinary(public_id);
   res.json({ success: true, message: 'Image deleted' });
 });
 
