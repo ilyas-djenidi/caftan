@@ -10,11 +10,12 @@ const pool = new Pool({
   database: env.db.database,
   user: env.db.user,
   password: env.db.password,
+  application_name: 'caftan-api',  // visible in pg_stat_activity
   min: env.db.poolMin,
   max: env.db.poolMax,
   idleTimeoutMillis: env.db.idleTimeout,
   statement_timeout: env.db.statementTimeout,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 3000,   // was 5000 — fail fast if DB unreachable
   ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
@@ -31,7 +32,7 @@ const query = async (text, params) => {
   try {
     const res = await pool.query(text, params);
     const duration = Date.now() - start;
-    if (duration > 2000) {
+    if (duration > 1000) {         // was 2000 — catch slow queries earlier
       logger.warn('Slow query detected', { duration, query: text });
     }
     return res;

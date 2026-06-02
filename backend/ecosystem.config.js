@@ -8,7 +8,7 @@ module.exports = {
       instances: 1,             // server.js handles clustering internally — do NOT set 'max' here
       exec_mode: 'fork',
       watch: false,
-      max_memory_restart: '400M',
+      max_memory_restart: '250M', // restart if Node exceeds 250MB
       env: {
         NODE_ENV: 'development',
         PORT: 4000,
@@ -21,9 +21,9 @@ module.exports = {
       out_file: 'logs/pm2-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss',
       merge_logs: true,
-      restart_delay: 3000,
+      restart_delay: 5000,        // wait 5s before restarting (was 3s)
       max_restarts: 10,
-      min_uptime: '5s',
+      min_uptime: '10s',          // must be up 10s to count as stable (was 5s)
     },
   ],
 };

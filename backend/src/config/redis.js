@@ -9,19 +9,20 @@ const redisConfig = {
   port: env.redis.port,
   password: env.redis.password,
   retryStrategy: (times) => {
-    if (times > 10) {
+    if (times > 5) {              // was 10 — give up faster on dead Redis
       logger.error('Redis: max reconnect attempts reached');
       return null;
     }
-    return Math.min(times * 200, 3000);
+    return Math.min(times * 300, 3000);
   },
   reconnectOnError: (err) => {
     logger.warn('Redis reconnect on error', { error: err.message });
     return true;
   },
-  maxRetriesPerRequest: 3,
-  enableOfflineQueue: true,
-  lazyConnect: false,
+  maxRetriesPerRequest: 1,        // was 3 — fail fast, don't block requests
+  enableOfflineQueue: false,      // was true — drop commands if disconnected
+  lazyConnect: true,              // connect only when first command is sent
+  commandTimeout: 2000,           // 2s max per command
 };
 
 let redis;
