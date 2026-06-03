@@ -1,5 +1,5 @@
 'use strict';
-
+console.log("🚀 SERVER FILE STARTED");
 // 🚨 لا تستخدم dotenv هنا (يسبب تعارض مع injected env system)
 // process.env يتم تحميله مسبقاً من النظام / dotenvx / hosting
 
@@ -22,6 +22,7 @@ const WORKERS =
 // CLUSTER MODE (production only)
 // ─────────────────────────────────────────────
 if (cluster.isPrimary && WORKERS > 1) {
+  console.log("🧠 MASTER PROCESS");
   logger.info(`Master ${process.pid} starting ${WORKERS} workers`);
 
   for (let i = 0; i < WORKERS; i++) {
@@ -35,6 +36,7 @@ if (cluster.isPrimary && WORKERS > 1) {
     cluster.fork();
   });
 } else {
+  console.log("🟢 ENTERING WORKER MODE");
   // ─────────────────────────────────────────────
   // START SERVER
   // ─────────────────────────────────────────────
