@@ -142,10 +142,10 @@ export default function PacksAdmin() {
 
             if (editingPack) {
                 await updatePack(editingPack.id, data);
-                toast.success('Pack mis Ã  jour');
+                toast.success('Pack mis à jour');
             } else {
                 await createPack(data);
-                toast.success('Pack crÃ©Ã©');
+                toast.success('Pack créé');
             }
 
             setIsModalOpen(false);
@@ -179,7 +179,7 @@ export default function PacksAdmin() {
         if (!window.confirm('Supprimer ce pack ?')) return;
         try {
             await deletePack(id);
-            toast.success('Pack supprimÃ©');
+            toast.success('Pack supprimé');
             fetchData();
         } catch (error) {
             toast.error('Erreur de suppression');
@@ -267,7 +267,7 @@ export default function PacksAdmin() {
                             alignItems: 'center', marginBottom: '32px', gap: '16px'
                         }}>
                             <h2 style={{ fontSize: '28px', fontFamily: 'serif', margin: 0 }}>
-                                Ã‰diteur de Pack
+                                Éditeur de Pack
                             </h2>
                             <button onClick={() => setIsModalOpen(false)} style={{
                                 width: '44px', height: '44px', borderRadius: '50%',
@@ -283,7 +283,7 @@ export default function PacksAdmin() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom du Pack (FranÃ§ais)*</label>
+                                        <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom du Pack (Français)*</label>
                                         <input required value={formData.name_fr} onChange={e => setFormData({ ...formData, name_fr: e.target.value })} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
                                     </div>
                                     <div className="space-y-2">
@@ -324,7 +324,7 @@ export default function PacksAdmin() {
                                     <input type="number" value={formData.original_price} onChange={e => handlePriceChange('original_price', e.target.value)} style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Ã‰conomie (DA)</label>
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Économie (DA)</label>
                                     <div style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid #f0ede8', display: 'flex', alignItems: 'center', backgroundColor: '#FDF6E7', color: '#C3AB7E', fontWeight: '800' }}>
                                         {formData.savings.toLocaleString()} DA
                                     </div>
@@ -334,7 +334,7 @@ export default function PacksAdmin() {
                             {/* Section: Description */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-2">
-                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Description (FranÃ§ais)</label>
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Description (Français)</label>
                                     <textarea rows="4" value={formData.description_fr} onChange={e => setFormData({ ...formData, description_fr: e.target.value })} style={{ width: '100%', padding: '20px', borderRadius: '16px', border: '1px solid #f0ede8', outline: 'none', resize: 'none' }} className="bg-[#fafafa]" />
                                 </div>
                                 <div className="space-y-2">
@@ -392,7 +392,7 @@ export default function PacksAdmin() {
                                     <div style={{ width: '18px', height: '18px', borderRadius: '6px', backgroundColor: formData.is_sold_out ? '#ef4444' : 'white', border: `2px solid ${formData.is_sold_out ? '#ef4444' : '#D1D5DB'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         {formData.is_sold_out && <Check size={12} color="white" />}
                                     </div>
-                                    <span style={{ fontSize: '12px', fontWeight: '800' }}>Ã‰puisÃ©</span>
+                                    <span style={{ fontSize: '12px', fontWeight: '800' }}>Épuisé</span>
                                 </label>
                             </div>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Heart, ChevronLeft, ChevronRight, Star, Shield, Truck, RefreshCw, Plus, Minus, Sparkles, XCircle } from 'lucide-react';
+import { ShoppingBag, Heart, ChevronLeft, ChevronRight, Star, Shield, Truck, RefreshCw, Plus, Minus, Sparkles, XCircle, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getProduct, getProducts } from '../api/products.api';
 import { getReviews, createReview } from '../api/reviews.api';
@@ -118,7 +118,7 @@ export default function ProductDetail() {
     if (!product) {
         return (
             <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-                <h1 className="text-2xl font-serif">Produit non trouvÃ©</h1>
+                <h1 className="text-2xl font-serif">Produit non trouvé</h1>
                 <button onClick={() => navigate(-1)} className="mt-4 text-[#C3AB7E] font-bold">Retour</button>
             </div>
         );
@@ -164,7 +164,7 @@ export default function ProductDetail() {
         // Extra guard: check if name already exists in current reviews
         const nameExists = reviews.some(r => r.author_name.toLowerCase() === newReview.author_name.toLowerCase());
         if (nameExists) {
-            alert('Vous avez dÃ©jÃ  laissÃ© un avis sur ce produit.');
+            alert('Vous avez déjà laissé un avis sur ce produit.');
             setHasReviewed(true);
             return;
         }
@@ -224,7 +224,7 @@ export default function ProductDetail() {
                                 backdropFilter: 'blur(8px)',
                             }}
                         >
-                            âœ•
+                            <X size={24} />
                         </button>
                         {/* Big image */}
                         <motion.img
@@ -247,11 +247,11 @@ export default function ProductDetail() {
                             <>
                                 <button onClick={e => { e.stopPropagation(); setCurrentImageIndex(p => p === 0 ? images.length - 1 : p - 1); }}
                                     style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '44px', height: '44px', borderRadius: '50%', fontSize: '22px', cursor: 'pointer', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    â€¹
+                                    <ChevronLeft size={24} />
                                 </button>
                                 <button onClick={e => { e.stopPropagation(); setCurrentImageIndex(p => p === images.length - 1 ? 0 : p + 1); }}
                                     style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '44px', height: '44px', borderRadius: '50%', fontSize: '22px', cursor: 'pointer', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    â€º
+                                    <ChevronRight size={24} />
                                 </button>
                             </>
                         )}
@@ -345,7 +345,7 @@ export default function ProductDetail() {
                                             zIndex: 5,
                                         }}
                                     >
-                                        â€¹
+                                        <ChevronLeft size={24} />
                                     </button>
                                     <button
                                         onClick={e => { e.stopPropagation(); setCurrentImageIndex(p => p === images.length - 1 ? 0 : p + 1); }}
@@ -363,7 +363,7 @@ export default function ProductDetail() {
                                             zIndex: 5,
                                         }}
                                     >
-                                        â€º
+                                        <ChevronRight size={24} />
                                     </button>
                                 </>
                             )}
@@ -465,7 +465,7 @@ export default function ProductDetail() {
                         {models.length > 0 && (
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#B8963E', marginBottom: '10px', fontWeight: '600' }}>
-                                    {i18n.language === 'ar' ? 'Ø§Ù„Ù…ÙˆØ¯ÙŠÙ„' : 'ModÃ¨le'}
+                                    {i18n.language === 'ar' ? 'الموديل' : 'Modèle'}
                                 </label>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                     {models.map(m => (

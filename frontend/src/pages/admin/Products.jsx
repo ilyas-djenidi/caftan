@@ -31,7 +31,7 @@ export default function Products() {
         { name: 'Bleu nuit', hex: '#1A1A4E' },
         { name: 'Vert', hex: '#2D5A27' },
         { name: 'Beige', hex: '#D4B896' },
-        { name: 'DorÃ©', hex: '#B8963E' },
+        { name: 'Doré', hex: '#B8963E' },
         { name: 'Rose', hex: '#E8C4C4' },
         { name: 'Gris', hex: '#9CA3AF' },
         { name: 'Caramel', hex: '#C68642' },
@@ -192,10 +192,10 @@ export default function Products() {
 
             if (editingProduct) {
                 await updateProduct(editingProduct.id, data);
-                toast.success('Produit mis Ã  jour');
+                toast.success('Produit mis à jour');
             } else {
                 await createProduct(data);
-                toast.success('Produit crÃ©Ã©');
+                toast.success('Produit créé');
             }
             handleCloseModal();
             loadProducts();
@@ -211,7 +211,7 @@ export default function Products() {
         if (!window.confirm('Supprimer ce produit ?')) return;
         try {
             await deleteProduct(id);
-            toast.success('Produit supprimÃ©');
+            toast.success('Produit supprimé');
             loadProducts();
         } catch (error) {
             toast.error('Erreur lors de la suppression');
@@ -317,7 +317,7 @@ export default function Products() {
                             {/* Section 1: Basic Info */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom (FranÃ§ais)*</label>
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Nom (Français)*</label>
                                     <input required value={formData.name_fr} onChange={e => setFormData({ ...formData, name_fr: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
                                 </div>
                                 <div className="space-y-2">
@@ -325,7 +325,7 @@ export default function Products() {
                                     <input value={formData.name_ar} onChange={e => setFormData({ ...formData, name_ar: e.target.value })} dir="rtl" style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>CatÃ©gorie*</label>
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Catégorie*</label>
                                     <select required value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]">
                                         <option value="caftans">Caftans</option>
                                         <option value="jellabas">Jellabas</option>
@@ -333,7 +333,7 @@ export default function Products() {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Sous-catÃ©gorie</label>
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Sous-catégorie</label>
                                     <input value={formData.sub_category || ''} onChange={e => setFormData({ ...formData, sub_category: e.target.value })} style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none' }} className="bg-[#fafafa]" />
                                 </div>
                             </div>
@@ -357,7 +357,7 @@ export default function Products() {
                             {/* Section 3: Description */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Description (FranÃ§ais)</label>
+                                    <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>Description (Français)</label>
                                     <textarea rows="4" value={formData.description_fr} onChange={e => setFormData({ ...formData, description_fr: e.target.value })} style={{ width: '100%', padding: '20px', borderRadius: '12px', border: '1px solid #f0ede8', outline: 'none', resize: 'none' }} className="bg-[#fafafa]" />
                                 </div>
                                 <div className="space-y-2">
@@ -376,14 +376,14 @@ export default function Products() {
                                     {(formData.existing_images || []).map((img, i) => (
                                         <div key={img.id} style={{ position: 'relative', aspectRatio: '1', borderRadius: '12px', overflow: 'hidden', border: img.is_primary ? '2px solid #C3AB7E' : '1px solid #F0EDE8' }}>
                                             <img loading="lazy" src={img.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            <button type="button" onClick={() => removeExistingImage(img.id)} style={{ position: 'absolute', top: '4px', right: '4px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Ã—</button>
+                                            <button type="button" onClick={() => removeExistingImage(img.id)} style={{ position: 'absolute', top: '4px', right: '4px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                                             {img.is_primary && <span style={{ position: 'absolute', bottom: '4px', left: '4px', backgroundColor: '#C3AB7E', color: 'white', fontSize: '8px', fontWeight: '800', padding: '2px 6px', borderRadius: '4px' }}>PRINCIPALE</span>}
                                         </div>
                                     ))}
                                     {newImagePreviews.map((src, i) => (
                                         <div key={i} style={{ position: 'relative', aspectRatio: '1', borderRadius: '12px', overflow: 'hidden', border: '1px solid #F0EDE8' }}>
                                             <img loading="lazy" src={src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            <button type="button" onClick={() => removeNewImage(i)} style={{ position: 'absolute', top: '4px', right: '4px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Ã—</button>
+                                            <button type="button" onClick={() => removeNewImage(i)} style={{ position: 'absolute', top: '4px', right: '4px', width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                                         </div>
                                     ))}
                                 </div>
@@ -437,7 +437,7 @@ export default function Products() {
                                             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '20px', border: '1px solid #F0EDE8', backgroundColor: 'white' }}>
                                                 <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: color.value, border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }} />
                                                 <span style={{ fontSize: '11px', fontWeight: '600' }}>{color.label}</span>
-                                                <button type="button" onClick={() => setFormData(prev => ({ ...prev, attributes: prev.attributes.filter((_, idx) => idx !== prev.attributes.findIndex(a => a.type === 'color' && a.value === color.value)) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '16px', padding: '0 0 0 2px', lineHeight: 1 }}>Ã—</button>
+                                                <button type="button" onClick={() => setFormData(prev => ({ ...prev, attributes: prev.attributes.filter((_, idx) => idx !== prev.attributes.findIndex(a => a.type === 'color' && a.value === color.value)) }))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '16px', padding: '0 0 0 2px', lineHeight: 1 }}>×</button>
                                             </div>
                                         ))}
                                     </div>
@@ -472,7 +472,7 @@ export default function Products() {
 
                             {/* Section: Models */}
                             <div>
-                                <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>ModÃ¨les (NumÃ©ros)</label>
+                                <label style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '12px' }}>Modèles (Numéros)</label>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
                                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(modelNum => {
                                         const modelStr = modelNum.toString();
@@ -507,7 +507,7 @@ export default function Products() {
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
                                 {[
                                     { key: 'featured', label: 'Mis en avant' },
-                                    { key: 'is_new', label: 'NouveautÃ©' },
+                                    { key: 'is_new', label: 'Nouveauté' },
                                     { key: 'on_sale', label: 'En promotion' },
                                     { key: 'in_stock', label: 'En stock' },
                                     { key: 'is_visible', label: 'Visible' },
@@ -515,7 +515,7 @@ export default function Products() {
                                     <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '12px 16px', borderRadius: '12px', border: `2px solid ${formData[key] ? '#C3AB7E' : '#F0EDE8'}`, backgroundColor: formData[key] ? '#FDF6E7' : 'white', transition: 'all 0.2s' }}>
                                         <input type="checkbox" checked={!!formData[key]} onChange={e => setFormData(prev => ({ ...prev, [key]: e.target.checked }))} style={{ display: 'none' }} />
                                         <div style={{ width: '18px', height: '18px', borderRadius: '6px', backgroundColor: formData[key] ? '#C3AB7E' : 'white', border: `2px solid ${formData[key] ? '#C3AB7E' : '#D1D5DB'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-                                            {formData[key] && <span style={{ color: 'white', fontSize: '12px', fontWeight: '900' }}>âœ“</span>}
+                                            {formData[key] && <span style={{ color: 'white', fontSize: '12px', fontWeight: '900' }}>✓</span>}
                                         </div>
                                         <span style={{ fontSize: '12px', fontWeight: '800', color: formData[key] ? '#C3AB7E' : '#6b7280' }}>{label}</span>
                                     </label>
@@ -525,7 +525,7 @@ export default function Products() {
                             <div style={{ height: '1px', backgroundColor: '#f0ede8' }} />
 
                             <button disabled={formLoading} type="submit" style={{ width: '100%', height: '52px', backgroundColor: '#111111', color: 'white', borderRadius: '100px', fontWeight: '800', fontSize: '14px', letterSpacing: '0.1em' }} className="hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-200">
-                                {formLoading ? <Loader2 className="animate-spin" /> : (editingProduct ? 'MODIFIER LE PRODUIT' : 'CRÃ‰ER LE PRODUIT')}
+                                {formLoading ? <Loader2 className="animate-spin" /> : (editingProduct ? 'MODIFIER LE PRODUIT' : 'CRÉER LE PRODUIT')}
                             </button>
                         </form>
                     </div>
