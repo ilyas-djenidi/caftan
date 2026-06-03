@@ -1,9 +1,14 @@
 'use strict';
-console.log("🚀 SERVER FILE STARTED");
-// 🚨 لا تستخدم dotenv هنا (يسبب تعارض مع injected env system)
-// process.env يتم تحميله مسبقاً من النظام / dotenvx / hosting
 
-process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+// 🔧 CRITICAL: Load dotenv FIRST in every process (master + workers)
+if (!process.env.DB_HOST) {
+  require('dotenv').config();
+}
+
+console.log("🚀 SERVER FILE STARTED [PID: " + process.pid + "]");
+console.log("  NODE_ENV before:", process.env.NODE_ENV);
+
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 const cluster = require('cluster');
 const os = require('os');
@@ -11,6 +16,13 @@ const app = require('./app');
 const env = require('./config/env');
 const logger = require('./utils/logger');
 const { pool } = require('./config/database');
+
+// 📊 Environment diagnostics
+console.log("  NODE_ENV after:", process.env.NODE_ENV);
+console.log("  env.db.host:", env.db.host);
+console.log("  env.db.user:", env.db.user);
+console.log("  env.db.database:", env.db.database);
+console.log("  env.db.poolMax:", env.db.poolMax);
 
 // عدد العمال (workers)
 const WORKERS =
@@ -22,8 +34,20 @@ const WORKERS =
 // CLUSTER MODE (production only)
 // ─────────────────────────────────────────────
 if (cluster.isPrimary && WORKERS > 1) {
-  console.log("🧠 MASTER PROCESS");
+  console.log("🧠 MASTER PROCESS [PID: " + process.pid + "]");
   logger.info(`Master ${process.pid} starting ${WORKERS} workers`);
+  
+  // ✅ Verify DB connection in master before spawning workers
+  (async () => {
+    try {
+      const res = await pool.query('SELECT 1');
+      logger.info('✓ Master verified DB connection before workers');
+    } catch (err) {
+      logger.error('✗ Master DB connection FAILED before workers:', { error: err.message });
+      logger.error('  This likely means environment variables are not loaded correctly');
+      process.exit(1);
+    }
+  })();
 
   for (let i = 0; i < WORKERS; i++) {
     cluster.fork();
@@ -36,7 +60,19 @@ if (cluster.isPrimary && WORKERS > 1) {
     cluster.fork();
   });
 } else {
-  console.log("🟢 ENTERING WORKER MODE");
+  console.log("🟢 WORKER PROCESS [PID: " + process.pid + "]");
+  
+  // ✅ Verify DB connection in each worker
+  (async () => {
+    try {
+      const res = await pool.query('SELECT 1');
+      logger.info('✓ Worker verified DB connection');
+    } catch (err) {
+      logger.error('✗ Worker DB connection FAILED:', { error: err.message });
+      process.exit(1);
+    }
+  })();
+  
   // ─────────────────────────────────────────────
   // START SERVER
   // ─────────────────────────────────────────────

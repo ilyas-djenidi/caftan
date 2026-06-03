@@ -8,6 +8,14 @@ const required = (name) => {
 
 const optional = (name, fallback) => process.env[name] ?? fallback;
 
+// 📋 Debug: Print what we loaded
+if (process.env.DEBUG) {
+  console.log('✓ env.js loaded:');
+  console.log('  DB_HOST:', process.env.DB_HOST || '(not set)');
+  console.log('  DB_USER:', process.env.DB_USER || '(not set)');
+  console.log('  DB_NAME:', process.env.DB_NAME || '(not set)');
+}
+
 module.exports = {
   NODE_ENV: optional('NODE_ENV', 'development'),
   PORT: parseInt(optional('PORT', '4000'), 10),

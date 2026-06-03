@@ -15,16 +15,16 @@ const pool = new Pool({
   max: env.db.poolMax,
   idleTimeoutMillis: env.db.idleTimeout,
   statement_timeout: env.db.statementTimeout,
-  connectionTimeoutMillis: 3000,   // was 5000 — fail fast if DB unreachable
-  ssl: false,
+  connectionTimeoutMillis: 5000,   // 5s timeout for initial connection
+  ssl: false,  // Explicitly disable SSL for local connections
 });
 
 pool.on('connect', () => {
-  logger.debug('New DB connection established');
+  logger.debug('✓ New DB connection established');
 });
 
 pool.on('error', (err) => {
-  logger.error('Unexpected DB pool error', { error: err.message });
+  logger.error('✗ Unexpected DB pool error', { error: err.message, code: err.code });
 });
 
 const query = async (text, params) => {
