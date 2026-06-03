@@ -24,7 +24,7 @@ if (cluster.isPrimary && WORKERS > 1) {
     cluster.fork();
   });
 } else {
-  const server = app.listen(env.PORT, () => {
+  const server = app.listen(env.PORT, '0.0.0.0', () => {
     logger.info(`Worker ${process.pid} listening on port ${env.PORT} [${env.NODE_ENV}]`);
   });
 
