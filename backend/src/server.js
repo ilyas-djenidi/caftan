@@ -62,7 +62,7 @@ if (cluster.isPrimary && WORKERS > 1) {
 } else {
   console.log("🟢 WORKER PROCESS [PID: " + process.pid + "]");
   
-  // ✅ Verify DB connection in each worker
+  // ✅ Verify DB connection in each worker, then start server
   (async () => {
     try {
       const res = await pool.query('SELECT 1');
@@ -71,59 +71,62 @@ if (cluster.isPrimary && WORKERS > 1) {
       logger.error('✗ Worker DB connection FAILED:', { error: err.message });
       process.exit(1);
     }
-  })();
-  
-  // ─────────────────────────────────────────────
-  // START SERVER
-  // ─────────────────────────────────────────────
-  const server = app.listen(env.PORT, '0.0.0.0', () => {
-    logger.info(
-      `Worker ${process.pid} listening on port ${env.PORT} [${process.env.NODE_ENV}]`
-    );
-  });
 
-  // ─────────────────────────────────────────────
-  // GRACEFUL SHUTDOWN
-  // ─────────────────────────────────────────────
-  const shutdown = async (signal) => {
-    logger.info(`${signal} received — shutting down gracefully`);
-
-    server.close(async () => {
-      try {
-        await pool.end();
-        logger.info('DB pool closed');
-      } catch (err) {
-        logger.error('Error closing DB pool', {
-          error: err.message,
-        });
-      }
-
-      process.exit(0);
+    // ─────────────────────────────────────────────
+    // START SERVER (after DB verified)
+    // ─────────────────────────────────────────────
+    const server = app.listen(env.PORT, '0.0.0.0', () => {
+      logger.info(
+        `✓ Worker ${process.pid} listening on port ${env.PORT} [${process.env.NODE_ENV}]`
+      );
     });
 
-    // force shutdown after 15s
-    setTimeout(() => {
-      logger.error('Forced shutdown after timeout');
-      process.exit(1);
-    }, 15000);
-  };
+    // ─────────────────────────────────────────────
+    // GRACEFUL SHUTDOWN
+    // ─────────────────────────────────────────────
+    const shutdown = async (signal) => {
+      logger.info(`${signal} received — shutting down gracefully`);
 
-  // signals
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('SIGINT', () => shutdown('SIGINT'));
+      server.close(async () => {
+        try {
+          await pool.end();
+          logger.info('DB pool closed');
+        } catch (err) {
+          logger.error('Error closing DB pool', {
+            error: err.message,
+          });
+        }
 
-  // errors
-  process.on('uncaughtException', (err) => {
-    logger.error('Uncaught exception', {
-      error: err.message,
-      stack: err.stack,
+        process.exit(0);
+      });
+
+      // force shutdown after 15s
+      setTimeout(() => {
+        logger.error('Forced shutdown after timeout');
+        process.exit(1);
+      }, 15000);
+    };
+
+    // signals
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT', () => shutdown('SIGINT'));
+
+    // errors
+    process.on('uncaughtException', (err) => {
+      logger.error('Uncaught exception', {
+        error: err.message,
+        stack: err.stack,
+      });
+      shutdown('uncaughtException');
     });
-    shutdown('uncaughtException');
-  });
 
-  process.on('unhandledRejection', (reason) => {
-    logger.error('Unhandled rejection', {
-      reason: String(reason),
+    process.on('unhandledRejection', (reason) => {
+      logger.error('Unhandled rejection', {
+        reason: String(reason),
+      });
     });
+  })().catch((err) => {
+    logger.error('Failed to start worker:', { error: err.message });
+    process.exit(1);
   });
 }

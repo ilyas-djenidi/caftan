@@ -68,7 +68,7 @@ const testPool = new Pool({
     
     // 4. Try with env.js
     console.log('\n4️⃣  USING env.js module:');
-    const env = require('./backend/src/config/env');
+    const env = require('../src/config/env');
     console.log(`   env.db.host: ${env.db.host}`);
     console.log(`   env.db.user: ${env.db.user}`);
     console.log(`   env.db.database: ${env.db.database}`);
@@ -76,7 +76,7 @@ const testPool = new Pool({
     
     // 5. Try with database.js pool
     console.log('\n5️⃣  USING database.js pool:');
-    const { pool } = require('./backend/src/config/database');
+    const { pool } = require('../src/config/database');
     const poolResult = await pool.query('SELECT 1 as ok');
     console.log(`   ✓ Pool connection successful`);
     
