@@ -16,7 +16,7 @@ const pool = new Pool({
   idleTimeoutMillis: env.db.idleTimeout,
   statement_timeout: env.db.statementTimeout,
   connectionTimeoutMillis: 3000,   // was 5000 — fail fast if DB unreachable
-  ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: false,
 });
 
 pool.on('connect', () => {

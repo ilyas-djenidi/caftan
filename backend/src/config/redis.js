@@ -9,9 +9,11 @@ const redisConfig = {
   port: env.redis.port,
   password: env.redis.password,
   retryStrategy: (times) => {
-    if (times > 5) {              // was 10 — give up faster on dead Redis
+    if (times > 5) {     
+      // was 10 — give up faster on dead Redis
       logger.error('Redis: max reconnect attempts reached');
       return null;
+      
     }
     return Math.min(times * 300, 3000);
   },
