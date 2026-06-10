@@ -241,7 +241,10 @@ const createProduct = asyncHandler(async (req, res) => {
       return prod;
     });
 
-    await delPattern('cache:/api/products*');
+    await Promise.all([
+      delPattern('cache:/api/products*'),
+      del('cache:/api/home'),
+    ]);
     res.status(201).json({ success: true, data: product });
   } catch (err) {
     // Clean up newly uploaded files from Cloudinary on error/rollback
@@ -384,6 +387,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     await Promise.all([
       delPattern('cache:/api/products*'),
       del(`cache:/api/products/${id}`),
+      del('cache:/api/home'),
     ]);
 
     const updated = await query('SELECT * FROM products WHERE id = $1', [id]);
@@ -422,7 +426,10 @@ const deleteProduct = asyncHandler(async (req, res) => {
   // Clean up image files after successful DB delete
   for (const row of images.rows) deleteImageFile(row.image_url);
 
-  await delPattern('cache:/api/products*');
+  await Promise.all([
+    delPattern('cache:/api/products*'),
+    del('cache:/api/home'),
+  ]);
   res.json({ success: true, message: 'Product deleted' });
 });
 
