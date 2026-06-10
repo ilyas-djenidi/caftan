@@ -45,9 +45,9 @@ const uploadToCloudinary = (buffer, folder) => {
         format:           'webp',
         transformation: [
           {
-            width:   env.upload.maxWidth,
+            width:   2400,
             crop:    'limit',           // never enlarge
-            quality: env.upload.webpQuality,
+            quality: 100,               // Sharp already encoded — no double-compression
             fetch_format: 'webp',
           },
         ],
@@ -62,11 +62,11 @@ const uploadToCloudinary = (buffer, folder) => {
     sharp(buffer)
       .rotate()                          // fix EXIF orientation
       .resize({
-        width: env.upload.maxWidth,
+        width: 2400,
         withoutEnlargement: true,
         fit: 'inside',
       })
-      .webp({ quality: env.upload.webpQuality })
+      .webp({ quality: 92 })
       .toBuffer()
       .then((optimised) => {
         const { Readable } = require('stream');

@@ -34,7 +34,8 @@ const getHomeData = asyncHandler(async (req, res) => {
       LEFT JOIN LATERAL (
         SELECT image_url
         FROM product_images
-        WHERE product_id = p.id AND is_primary = TRUE
+        WHERE product_id = p.id
+        ORDER BY is_primary DESC, display_order ASC
         LIMIT 1
       ) pi ON TRUE
       WHERE p.rn <= 8
