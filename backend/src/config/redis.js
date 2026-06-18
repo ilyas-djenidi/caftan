@@ -32,6 +32,7 @@ let isRedisAvailable = false;
 
 try {
   redis = new Redis(redisConfig);
+  redis.connect().catch(() => {});
 
   redis.on('connect', () => {
     isRedisAvailable = true;
