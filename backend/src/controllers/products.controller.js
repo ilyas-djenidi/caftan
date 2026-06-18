@@ -178,11 +178,12 @@ const createProduct = asyncHandler(async (req, res) => {
   const uploadedUrls = [];
 
   try {
-    // 1. Process and upload images in parallel outside the DB transaction
+    // 1. Process and upload images sequentially outside the DB transaction to prevent timeouts
     if (files.length > 0) {
-      const uploadPromises = files.map((file) => processImage(file.buffer, 'products'));
-      const urls = await Promise.all(uploadPromises);
-      uploadedUrls.push(...urls);
+      for (const file of files) {
+        const url = await processImage(file.buffer, 'products');
+        uploadedUrls.push(url);
+      }
     }
 
     const product = await transaction(async (client) => {
@@ -291,9 +292,10 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   try {
     if (files.length > 0) {
-      const uploadPromises = files.map((file) => processImage(file.buffer, 'products'));
-      const urls = await Promise.all(uploadPromises);
-      uploadedUrls.push(...urls);
+      for (const file of files) {
+        const url = await processImage(file.buffer, 'products');
+        uploadedUrls.push(url);
+      }
     }
 
     await transaction(async (client) => {
