@@ -33,7 +33,8 @@ const upload = multer({
  */
 const uploadToCloudinary = (buffer, folder) => {
   const safeFolder = VALID_FOLDERS.includes(folder) ? folder : 'products';
-  const publicId   = `caftan/${safeFolder}/${uuidv4()}`;
+  // Use just the uuid as publicId since folder is supplied separately
+  const publicId   = uuidv4();
 
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -86,7 +87,10 @@ const uploadToCloudinary = (buffer, folder) => {
 const deleteFromCloudinary = async (publicId) => {
   if (!publicId) return;
   try {
-    await cloudinary.uploader.destroy(publicId);
+    const decodedId = decodeURIComponent(publicId);
+    console.log(`[Cloudinary] Deleting image with publicId: ${decodedId}`);
+    const result = await cloudinary.uploader.destroy(decodedId, { invalidate: true });
+    console.log(`[Cloudinary] Delete result:`, result);
   } catch (err) {
     console.error('[Cloudinary] delete error:', err.message);
   }
