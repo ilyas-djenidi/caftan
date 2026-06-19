@@ -74,12 +74,6 @@ module.exports = {
     maxWidth: parseInt(optional('UPLOAD_MAX_WIDTH', '1920'), 10),
   },
 
-  cloudinary: {
-    cloudName: optional('CLOUDINARY_CLOUD_NAME', ''),
-    apiKey:    optional('CLOUDINARY_API_KEY', ''),
-    apiSecret: optional('CLOUDINARY_API_SECRET', ''),
-  },
-
   rateLimit: {
     windowMs: parseInt(optional('RATE_LIMIT_WINDOW_MS', '900000'), 10),
     max: parseInt(optional('RATE_LIMIT_MAX_REQUESTS', '300'), 10),
