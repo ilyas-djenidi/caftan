@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const compression = require('compression');
 const morgan = require('morgan');
+const path = require('path');
 
 const env = require('./config/env');
 const logger = require('./utils/logger');
@@ -13,6 +14,10 @@ const errorHandler = require('./middleware/errorHandler');
 const ApiError = require('./utils/ApiError');
 
 const app = express();
+
+// ── Static files ──────────────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 
 // ── Security headers ──────────────────────────────────────
 app.use(helmet({

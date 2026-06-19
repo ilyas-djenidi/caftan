@@ -5,6 +5,7 @@ const generateOrderNumber = require('../utils/generateOrderNumber');
 const { sendOrderNotification } = require('../services/notifications.service');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
+const { buildUrl } = require('../utils/buildUrl');
 
 // ── Create order (public) ─────────────────────────────────────
 
@@ -245,7 +246,28 @@ const getOrderById = asyncHandler(async (req, res) => {
     [req.params.id]
   );
 
-  res.json({ success: true, data: { ...result.rows[0], items: items.rows } });
+  // Enrich items: if product_image is missing/stale, fetch the current primary image
+  const productIds = items.rows
+    .filter((i) => i.product_id && !i.product_image)
+    .map((i) => i.product_id);
+
+  let freshImageMap = {};
+  if (productIds.length > 0) {
+    const imgRes = await query(
+      'SELECT product_id, image_url FROM product_images WHERE product_id = ANY($1) AND is_primary = TRUE',
+      [productIds]
+    );
+    freshImageMap = Object.fromEntries(
+      imgRes.rows.map((r) => [r.product_id, buildUrl(r.image_url)])
+    );
+  }
+
+  const enrichedItems = items.rows.map((item) => ({
+    ...item,
+    product_image: item.product_image || freshImageMap[item.product_id] || null,
+  }));
+
+  res.json({ success: true, data: { ...result.rows[0], items: enrichedItems } });
 });
 
 // ── Update status ─────────────────────────────────────────────

@@ -18,6 +18,7 @@ router.use('/stats',           require('./stats.routes'));
 router.use('/settings',        require('./siteSettings.routes'));
 router.use('/upload',          require('./upload.routes'));
 router.use('/guepex',          require('./guepex.routes'));
+router.use('/admin/cleanup',   require('./cleanup.routes'));
 
 module.exports = router;
 
