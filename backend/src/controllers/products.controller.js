@@ -440,7 +440,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 const getAdminProducts = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, search, category } = req.query;
   const pageNum = Math.max(1, parseInt(page, 10));
-  const limitNum = Math.min(100, parseInt(limit, 10));
+  const limitNum = Math.min(1000, parseInt(limit, 10));
   const offset = (pageNum - 1) * limitNum;
 
   const conditions = [];
