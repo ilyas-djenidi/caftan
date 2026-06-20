@@ -7,7 +7,10 @@ const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { buildUrl } = require('../utils/buildUrl');
 
-
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const validateUUID = (id) => {
+  if (!id || !UUID_RE.test(id)) throw ApiError.badRequest('Invalid pack ID format');
+};
 
 const hydratePackItems = async (packIds) => {
   if (!packIds.length) return {};
@@ -47,6 +50,7 @@ const getPacks = asyncHandler(async (req, res) => {
 });
 
 const getPack = asyncHandler(async (req, res) => {
+  validateUUID(req.params.id);
   const result = await query('SELECT * FROM packs WHERE id = $1', [req.params.id]);
   if (!result.rows[0]) throw ApiError.notFound('Pack not found');
   const pack = result.rows[0];
@@ -122,6 +126,7 @@ const createPack = asyncHandler(async (req, res) => {
 
 const updatePack = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateUUID(id);
   const existing = await query('SELECT id, image_url FROM packs WHERE id = $1', [id]);
   if (!existing.rows[0]) throw ApiError.notFound('Pack not found');
 
@@ -183,10 +188,20 @@ const updatePack = asyncHandler(async (req, res) => {
 
 const deletePack = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateUUID(id);
   const result = await query('SELECT image_url FROM packs WHERE id = $1', [id]);
   if (!result.rows[0]) throw ApiError.notFound('Pack not found');
 
-  await query('DELETE FROM packs WHERE id = $1', [id]);
+  try {
+    await query('DELETE FROM packs WHERE id = $1', [id]);
+  } catch (err) {
+    // Foreign key violation: pack is referenced by existing orders
+    if (err.code === '23503') {
+      throw ApiError.badRequest('Ce pack ne peut pas être supprimé car il est référencé par des commandes existantes.');
+    }
+    throw err;
+  }
+
   await deleteImageFile(result.rows[0].image_url);
   await delPattern('cache:/api/packs*');
   res.json({ success: true, message: 'Pack deleted' });

@@ -80,8 +80,13 @@ const del = async (...keys) => {
 const delPattern = async (pattern) => {
   if (!redis || !isRedisAvailable) return;
   try {
-    const keys = await redis.keys(pattern);
-    if (keys.length > 0) await redis.del(...keys);
+    // Use SCAN instead of KEYS to avoid blocking Redis on large keyspaces
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+      cursor = nextCursor;
+      if (keys.length > 0) await redis.del(...keys);
+    } while (cursor !== '0');
   } catch { /* non-fatal */ }
 };
 
