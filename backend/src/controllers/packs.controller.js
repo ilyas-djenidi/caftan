@@ -133,7 +133,7 @@ const updatePack = asyncHandler(async (req, res) => {
 
   let newImageUrl = existing.rows[0].image_url;
   if (req.file) {
-    deleteImageFile(existing.rows[0].image_url);
+    await deleteImageFile(existing.rows[0].image_url);
     newImageUrl = await processImage(req.file.buffer, 'packs');
   }
 
@@ -187,7 +187,7 @@ const deletePack = asyncHandler(async (req, res) => {
   if (!result.rows[0]) throw ApiError.notFound('Pack not found');
 
   await query('DELETE FROM packs WHERE id = $1', [id]);
-  deleteImageFile(result.rows[0].image_url);
+  await deleteImageFile(result.rows[0].image_url);
   await delPattern('cache:/api/packs*');
   res.json({ success: true, message: 'Pack deleted' });
 });
